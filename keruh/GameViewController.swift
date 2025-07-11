@@ -5,51 +5,75 @@
 //  Created by Revanza Kurniawan on 10/07/25.
 //
 
-import UIKit
-import SpriteKit
 import GameplayKit
+import SpriteKit
+import UIKit
 
-class GameViewController: UIViewController {
+final class GameViewController: UIViewController {
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        // Load 'GameScene.sks' as a GKScene. This provides gameplay related content
-        // including entities and graphs.
-        if let scene = GKScene(fileNamed: "GameScene") {
-            
-            // Get the SKScene from the loaded GKScene
-            if let sceneNode = scene.rootNode as! GameScene? {
-                
-                // Copy gameplay related content over to the scene
-                sceneNode.entities = scene.entities
-                sceneNode.graphs = scene.graphs
-                
-                // Set the scale mode to scale to fit the window
-                sceneNode.scaleMode = .aspectFill
-                
-                // Present the scene
-                if let view = self.view as! SKView? {
-                    view.presentScene(sceneNode)
-                    
-                    view.ignoresSiblingOrder = true
-                    
-                    view.showsFPS = true
-                    view.showsNodeCount = true
-                }
-            }
-        }
+  // MARK: - Properties
+
+  private weak var gameScene: GameScene?
+
+  private var skView: SKView? {
+    return view as? SKView
+  }
+
+  // MARK: - Lifecycle
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    setupGameView()
+    createAndPresentScene()
+  }
+
+  override func viewSafeAreaInsetsDidChange() {
+    super.viewSafeAreaInsetsDidChange()
+    updateGameSceneSafeArea()
+  }
+
+  override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+    return UIDevice.current.userInterfaceIdiom == .phone ? .allButUpsideDown : .all
+  }
+
+  override var prefersStatusBarHidden: Bool {
+    return true
+  }
+
+  // MARK: - Private Methods
+
+  private func setupGameView() {
+    guard let skView = skView else {
+      assertionFailure("Expected SKView but got \(type(of: view))")
+      return
     }
 
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return .allButUpsideDown
-        } else {
-            return .all
-        }
-    }
+    skView.ignoresSiblingOrder = true
 
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
+    #if DEBUG
+      skView.showsFPS = true
+      skView.showsNodeCount = true
+    #endif
+  }
+
+  private func createAndPresentScene() {
+    guard let skView = skView else { return }
+
+    let scene = GameScene()
+    scene.size = skView.bounds.size
+    scene.scaleMode = .aspectFill
+
+    gameScene = scene
+    skView.presentScene(scene)
+  }
+
+  private func updateGameSceneSafeArea() {
+    let safeAreaInsets = view.safeAreaInsets
+
+    #if DEBUG
+      print("Safe area insets updated: \(safeAreaInsets)")
+    #endif
+
+    gameScene?.setSafeAreaInsets(safeAreaInsets)
+  }
 }
