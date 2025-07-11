@@ -7,6 +7,7 @@
 
 import GameplayKit
 import SpriteKit
+import SwiftUI
 
 // MARK: - Game Configuration
 
@@ -23,7 +24,7 @@ private enum GameConfiguration {
   static let speedMultiplier: TimeInterval = 0.9
   static let minimumSpawnInterval: TimeInterval = 0.5
 
-  static let uiPadding: CGFloat = 20
+  static let uiPadding: CGFloat = 36
   static let labelSpacing: CGFloat = 35
   static let fontSize: CGFloat = 24
 
@@ -82,6 +83,11 @@ final class GameScene: SKScene {
   // MARK: - Lifecycle
 
   override func didMove(to view: SKView) {
+    // Get safe area insets from the view's window
+    if let window = view.window {
+      safeAreaInsets = window.safeAreaInsets
+    }
+
     setupGame()
   }
 }

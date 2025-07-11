@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		C56D0BBB2E1F6E82002A68E6 /* keruh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = keruh.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C56B3CFA2E20AC260017AFBA /* keruh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = keruh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C56D0BBD2E1F6E82002A68E6 /* keruh */ = {
+		C56B3CFC2E20AC260017AFBA /* keruh */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = keruh;
 			sourceTree = "<group>";
@@ -19,7 +19,7 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		C56D0BB82E1F6E82002A68E6 /* Frameworks */ = {
+		C56B3CF72E20AC260017AFBA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -29,18 +29,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C56D0BB22E1F6E82002A68E6 = {
+		C56B3CF12E20AC260017AFBA = {
 			isa = PBXGroup;
 			children = (
-				C56D0BBD2E1F6E82002A68E6 /* keruh */,
-				C56D0BBC2E1F6E82002A68E6 /* Products */,
+				C56B3CFC2E20AC260017AFBA /* keruh */,
+				C56B3CFB2E20AC260017AFBA /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		C56D0BBC2E1F6E82002A68E6 /* Products */ = {
+		C56B3CFB2E20AC260017AFBA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C56D0BBB2E1F6E82002A68E6 /* keruh.app */,
+				C56B3CFA2E20AC260017AFBA /* keruh.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,64 +48,64 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C56D0BBA2E1F6E82002A68E6 /* keruh */ = {
+		C56B3CF92E20AC260017AFBA /* keruh */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C56D0BD22E1F6E83002A68E6 /* Build configuration list for PBXNativeTarget "keruh" */;
+			buildConfigurationList = C56B3D052E20AC270017AFBA /* Build configuration list for PBXNativeTarget "keruh" */;
 			buildPhases = (
-				C56D0BB72E1F6E82002A68E6 /* Sources */,
-				C56D0BB82E1F6E82002A68E6 /* Frameworks */,
-				C56D0BB92E1F6E82002A68E6 /* Resources */,
+				C56B3CF62E20AC260017AFBA /* Sources */,
+				C56B3CF72E20AC260017AFBA /* Frameworks */,
+				C56B3CF82E20AC260017AFBA /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				C56D0BBD2E1F6E82002A68E6 /* keruh */,
+				C56B3CFC2E20AC260017AFBA /* keruh */,
 			);
 			name = keruh;
 			packageProductDependencies = (
 			);
 			productName = keruh;
-			productReference = C56D0BBB2E1F6E82002A68E6 /* keruh.app */;
+			productReference = C56B3CFA2E20AC260017AFBA /* keruh.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		C56D0BB32E1F6E82002A68E6 /* Project object */ = {
+		C56B3CF22E20AC260017AFBA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
-					C56D0BBA2E1F6E82002A68E6 = {
+					C56B3CF92E20AC260017AFBA = {
 						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
-			buildConfigurationList = C56D0BB62E1F6E82002A68E6 /* Build configuration list for PBXProject "keruh" */;
+			buildConfigurationList = C56B3CF52E20AC260017AFBA /* Build configuration list for PBXProject "keruh" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = C56D0BB22E1F6E82002A68E6;
+			mainGroup = C56B3CF12E20AC260017AFBA;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = C56D0BBC2E1F6E82002A68E6 /* Products */;
+			productRefGroup = C56B3CFB2E20AC260017AFBA /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C56D0BBA2E1F6E82002A68E6 /* keruh */,
+				C56B3CF92E20AC260017AFBA /* keruh */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		C56D0BB92E1F6E82002A68E6 /* Resources */ = {
+		C56B3CF82E20AC260017AFBA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -115,7 +115,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C56D0BB72E1F6E82002A68E6 /* Sources */ = {
+		C56B3CF62E20AC260017AFBA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -125,7 +125,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		C56D0BD02E1F6E83002A68E6 /* Debug */ = {
+		C56B3D032E20AC270017AFBA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -189,7 +189,7 @@
 			};
 			name = Debug;
 		};
-		C56D0BD12E1F6E83002A68E6 /* Release */ = {
+		C56B3D042E20AC270017AFBA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -246,7 +246,7 @@
 			};
 			name = Release;
 		};
-		C56D0BD32E1F6E83002A68E6 /* Debug */ = {
+		C56B3D062E20AC270017AFBA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -254,11 +254,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 5U7DSB32K6;
+				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -274,7 +274,7 @@
 			};
 			name = Debug;
 		};
-		C56D0BD42E1F6E83002A68E6 /* Release */ = {
+		C56B3D072E20AC270017AFBA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -282,11 +282,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 5U7DSB32K6;
+				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -305,25 +305,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C56D0BB62E1F6E82002A68E6 /* Build configuration list for PBXProject "keruh" */ = {
+		C56B3CF52E20AC260017AFBA /* Build configuration list for PBXProject "keruh" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C56D0BD02E1F6E83002A68E6 /* Debug */,
-				C56D0BD12E1F6E83002A68E6 /* Release */,
+				C56B3D032E20AC270017AFBA /* Debug */,
+				C56B3D042E20AC270017AFBA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C56D0BD22E1F6E83002A68E6 /* Build configuration list for PBXNativeTarget "keruh" */ = {
+		C56B3D052E20AC270017AFBA /* Build configuration list for PBXNativeTarget "keruh" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C56D0BD32E1F6E83002A68E6 /* Debug */,
-				C56D0BD42E1F6E83002A68E6 /* Release */,
+				C56B3D062E20AC270017AFBA /* Debug */,
+				C56B3D072E20AC270017AFBA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = C56D0BB32E1F6E82002A68E6 /* Project object */;
+	rootObject = C56B3CF22E20AC260017AFBA /* Project object */;
 }
