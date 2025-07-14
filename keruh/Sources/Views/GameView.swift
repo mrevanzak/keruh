@@ -8,49 +8,41 @@
 import SpriteKit
 import SwiftUI
 
-// MARK: - SwiftUI Wrapper
-struct GameSceneView: UIViewRepresentable {
-  let scene: SKScene
-
-  func makeUIView(context: Context) -> SKView {
-    let view = SKView()
-    view.backgroundColor = .clear
-    view.allowsTransparency = true
-    view.presentScene(scene)
-    return view
-  }
-
-  func updateUIView(_ uiView: SKView, context: Context) {
-    // Update if needed
-  }
-}
-
 struct GameView: View {
-  var body: some View {
-    GeometryReader { geometry in
-      let gameScene = GameScene()
+    @StateObject private var viewModel = GameViewModel()
 
-      GameSceneView(scene: gameScene)
-        .ignoresSafeArea()
-        .onAppear {
-          gameScene.size = geometry.size
-          gameScene.scaleMode = .aspectFill
-          gameScene.setSafeAreaInsets(
-            UIEdgeInsets(
-              top: geometry.safeAreaInsets.top,
-              left: geometry.safeAreaInsets.leading,
-              bottom: geometry.safeAreaInsets.bottom,
-              right: geometry.safeAreaInsets.trailing
-            )
-          )
+    var body: some View {
+        GeometryReader { geometry in
+            GameSceneView(viewModel: viewModel)
+                .ignoresSafeArea()
+                .onAppear {
+                    viewModel.setupGame(
+                        screenSize: geometry.size,
+                        safeAreaInsets: UIEdgeInsets(
+                            top: geometry.safeAreaInsets.top,
+                            left: geometry.safeAreaInsets.leading,
+                            bottom: geometry.safeAreaInsets.bottom,
+                            right: geometry.safeAreaInsets.trailing
+                        )
+                    )
+                }
         }
-        .onChange(of: geometry.size) { _, newSize in
-          gameScene.size = newSize
+        .overlay(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(viewModel.scoreText)
+                    .foregroundColor(.white)
+                    .padding(.horizontal)
+                    .font(.headline)
+                Text(viewModel.missedText)
+                    .foregroundColor(.white)
+                    .padding(.horizontal)
+                    .font(.subheadline)
+            }
+            .padding(.top, 20)
         }
     }
-  }
 }
 
 #Preview {
-  GameView()
+    GameView()
 }
