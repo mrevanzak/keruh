@@ -151,3 +151,12 @@ class FallingObject: BaseGameObject {
         node.run(sequence)
     }
 }
+
+struct FallingObjectData {
+    let id: UUID = UUID()
+    let type: FallingObjectType
+    var position: CGPoint
+    let targetY: CGFloat
+    let fallDuration: TimeInterval
+    var isActive: Bool = true
+}
