@@ -13,7 +13,7 @@ enum ScreenState {
     case game
 }
 
-struct ContentView: View {
+struct MainView: View {
     @State private var currentScreen: ScreenState = .splash
     
     @Namespace private var heroAnimation
@@ -47,5 +47,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    MainView()
 }
