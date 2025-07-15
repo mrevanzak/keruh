@@ -10,22 +10,27 @@ import Foundation
 import SpriteKit
 import SwiftUI
 
+private enum GameConfiguration {
+    static let catcherBottomOffset: CGFloat = 60
+    static let fallDurationRange: ClosedRange<TimeInterval> = 3.0...5.0
+    static let speedIncreaseInterval = 5
+    static let speedMultiplier: TimeInterval = 0.9
+    static let minimumSpawnInterval: TimeInterval = 0.5
+    static let defaultSpawnInterval: TimeInterval = 2.0
+    static let initialHealth = 3
+    static let initialScore = 0
+    static let uiPadding: CGFloat = 36
+    static let labelSpacing: CGFloat = 35
+    static let offScreenBuffer: CGFloat = -100.0
+}
+
 struct GameState {
-    var score: Int = 0
-    var missed: Int = 0
-    var gameSpeed: TimeInterval = 2.0
+    var score: Int = GameConfiguration.initialScore
+    var health: Int = GameConfiguration.initialHealth
+    var gameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
     var isPlaying: Bool = true
     var isPaused: Bool = false
     var isGameOver: Bool = false
-}
-
-struct FallingObjectData {
-    let id: UUID = UUID()
-    let type: FallingObjectType
-    var position: CGPoint
-    let targetY: CGFloat
-    let fallDuration: TimeInterval
-    var isActive: Bool = true
 }
 
 private enum TouchState {
@@ -41,20 +46,17 @@ private struct TouchStartData {
 class GameViewModel: ObservableObject {
     @Published var gameState = GameState()
     @Published var fallingObjects: [FallingObjectData] = []
-    @Published var scoreText: String = "Score: 0"
-    @Published var missedText: String = "Missed: 0"
+    @Published var scoreText: String = "Score: \(GameConfiguration.initialScore)"
+    @Published var healthText: String = "Health: \(GameConfiguration.initialHealth)"
 
-    // Game objects managed by ViewModel
     private(set) var catcher: Catcher
     private var fallingObjectNodes: [UUID: FallingObject] = [:]
-    private var newFallingObjectNodes: [FallingObject] = []  // Queue for scene addition
-
+    private var newFallingObjectNodes: [FallingObject] = []
     private var cancellables = Set<AnyCancellable>()
     private var spawnTimer: Timer?
     private var objectTimers: [UUID: Timer] = [:]
     private var screenSize: CGSize = .zero
     private var safeAreaInsets: UIEdgeInsets = .zero
-
     private var touchState: TouchState = .idle
     private var touchStartData: TouchStartData?
 
@@ -72,42 +74,19 @@ class GameViewModel: ObservableObject {
         catcher.setup()
     }
 
-    func getCatcherNode() -> SKNode {
-        return catcher.node
-    }
-
-    func getFallingObjectNodes() -> [FallingObject] {
-        return Array(fallingObjectNodes.values)
-    }
-
-    func getNewFallingObjectNodes() -> [FallingObject] {
-        let newNodes = newFallingObjectNodes
-        newFallingObjectNodes.removeAll()
-        return newNodes
-    }
-
-    func getAllActiveNodes() -> [SKNode] {
-        var nodes: [SKNode] = [catcher.node]
-        nodes.append(contentsOf: fallingObjectNodes.values.map { $0.node })
-        return nodes
-    }
-
     private func setupBindings() {
-        // Update text when score changes
         $gameState
             .map { "Score: \($0.score)" }
             .assign(to: \.scoreText, on: self)
             .store(in: &cancellables)
 
-        // Update text when missed changes
         $gameState
-            .map { "Missed: \($0.missed)" }
-            .assign(to: \.missedText, on: self)
+            .map { "Health: \($0.health)" }
+            .assign(to: \.healthText, on: self)
             .store(in: &cancellables)
 
-        // Update spawning when game speed changes
         $gameState
-            .map { $0.gameSpeed }
+            .map(\.gameSpeed)
             .removeDuplicates()
             .sink { [weak self] _ in
                 self?.updateSpawning()
@@ -118,14 +97,34 @@ class GameViewModel: ObservableObject {
     func setupGame(screenSize: CGSize, safeAreaInsets: UIEdgeInsets) {
         self.screenSize = screenSize
         self.safeAreaInsets = safeAreaInsets
-
-        // Initialize catcher position
-        let catcherY = GameConfiguration.catcherBottomOffset
-        let catcherX = screenSize.width / 2
-
-        catcher.node.position = CGPoint(x: catcherX, y: catcherY)
-
+        
+        let catcherPosition = CGPoint(
+            x: screenSize.width / 2,
+            y: GameConfiguration.catcherBottomOffset
+        )
+        catcher.node.position = catcherPosition
+        
         startGameplay()
+    }
+
+    func getCatcherNode() -> SKNode {
+        catcher.node
+    }
+
+    func getFallingObjectNodes() -> [FallingObject] {
+        Array(fallingObjectNodes.values)
+    }
+
+    func getNewFallingObjectNodes() -> [FallingObject] {
+        let newNodes = newFallingObjectNodes
+        newFallingObjectNodes.removeAll()
+        return newNodes
+    }
+
+    func getAllActiveNodes() -> [SKNode] {
+        var nodes: [SKNode] = [catcher.node]
+        nodes.append(contentsOf: fallingObjectNodes.values.map(\.node))
+        return nodes
     }
 
     private func startGameplay() {
@@ -135,7 +134,7 @@ class GameViewModel: ObservableObject {
 
     private func startSpawningObjects() {
         stopSpawnTimer()
-
+        
         spawnTimer = Timer.scheduledTimer(
             withTimeInterval: gameState.gameSpeed,
             repeats: true
@@ -150,43 +149,33 @@ class GameViewModel: ObservableObject {
         let objectType = FallingObjectType.random()
         let objectSize = objectType.size
         let halfWidth = objectSize.width / 2
-        let randomX = CGFloat.random(
-            in: halfWidth...(screenSize.width - halfWidth)
-        )
+        let randomX = CGFloat.random(in: halfWidth...(screenSize.width - halfWidth))
+
         let startPosition = CGPoint(
             x: randomX,
             y: screenSize.height + objectSize.height
         )
-        let targetY = -objectSize.height
-        let fallDuration = TimeInterval.random(
-            in: GameConfiguration.fallDurationRange
-        )
-
+        
         let fallingObjectData = FallingObjectData(
             type: objectType,
             position: startPosition,
-            targetY: targetY,
-            fallDuration: fallDuration
+            targetY: -objectSize.height,
+            fallDuration: TimeInterval.random(in: GameConfiguration.fallDurationRange)
         )
 
-        // Create the actual SpriteKit object
         let fallingObjectNode = FallingObject(type: objectType)
         fallingObjectNode.setup()
+        
         fallingObjectNodes[fallingObjectData.id] = fallingObjectNode
-
-        // Add to queue for scene addition
         newFallingObjectNodes.append(fallingObjectNode)
-
         fallingObjects.append(fallingObjectData)
+
         animateFallingObject(fallingObjectData)
     }
 
     private func animateFallingObject(_ object: FallingObjectData) {
-        guard let fallingObjectNode = fallingObjectNodes[object.id] else {
-            return
-        }
+        guard let fallingObjectNode = fallingObjectNodes[object.id] else { return }
 
-        // Start the falling animation using the object's specific fall speed
         fallingObjectNode.startFallingWithTypeSpeed(
             from: object.position,
             to: object.targetY
@@ -194,73 +183,77 @@ class GameViewModel: ObservableObject {
             self?.handleObjectMissed(object.id)
         }
 
-        // Set up timer for cleanup (backup) - slightly longer than expected duration
+        scheduleObjectCleanup(for: object)
+    }
+
+    private func scheduleObjectCleanup(for object: FallingObjectData) {
         let distance = abs(object.position.y - object.targetY)
         let expectedDuration = TimeInterval(distance / object.type.fallSpeed)
+        
         let timer = Timer.scheduledTimer(
             withTimeInterval: expectedDuration + 1.0,
             repeats: false
         ) { [weak self] _ in
             self?.cleanupFallingObject(object.id)
         }
-
+        
         objectTimers[object.id] = timer
     }
 
     func handleObjectCaught(_ objectId: UUID) {
-        // Remove from falling objects data
-        if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
-            let object = fallingObjects[index]
-            fallingObjects.remove(at: index)
+        guard let index = fallingObjects.firstIndex(where: { $0.id == objectId }) else { return }
+        
+        let object = fallingObjects[index]
+        fallingObjects.remove(at: index)
 
-            // Add score based on object type
+        updateScoreAndHealth(for: object)
+        cleanupFallingObject(objectId)
+        provideCatcherFeedback()
+        checkForSpeedIncrease()
+    }
+
+    private func updateScoreAndHealth(for object: FallingObjectData) {
+        if object.type.isCollectible {
             gameState.score += object.type.points
-
-            // Clean up the SpriteKit node
-            cleanupFallingObject(objectId)
-
-            provideCatcherFeedback()
-            checkForSpeedIncrease()
+        } else {
+            decreaseHealth()
         }
     }
 
     private func handleObjectMissed(_ objectId: UUID) {
-        // Remove from falling objects data
         if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
             fallingObjects.remove(at: index)
-            gameState.missed += 1
+            decreaseHealth()
         }
-
-        // Clean up the SpriteKit node
         cleanupFallingObject(objectId)
     }
 
     private func cleanupFallingObject(_ objectId: UUID) {
-        // Remove from scene
         fallingObjectNodes[objectId]?.node.removeFromParent()
         fallingObjectNodes.removeValue(forKey: objectId)
-
-        // Cancel timer
+        
         objectTimers[objectId]?.invalidate()
         objectTimers.removeValue(forKey: objectId)
     }
 
     private func provideCatcherFeedback() {
-        // Animate the catcher
-        // catcher.animateCatch()
-
-        // Optional: Add haptic feedback
         #if os(iOS)
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-            impactFeedback.impactOccurred()
+        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+        impactFeedback.impactOccurred()
         #endif
+    }
+
+    private func decreaseHealth() {
+        gameState.health -= 1
+        if gameState.health == 0 {
+            gameOver()
+        }
     }
 
     private func checkForSpeedIncrease() {
         guard gameState.score % GameConfiguration.speedIncreaseInterval == 0,
-            gameState.gameSpeed > GameConfiguration.minimumSpawnInterval
-        else { return }
-
+              gameState.gameSpeed > GameConfiguration.minimumSpawnInterval else { return }
+        
         gameState.gameSpeed *= GameConfiguration.speedMultiplier
     }
 
@@ -272,42 +265,27 @@ class GameViewModel: ObservableObject {
     func touchesBegan(at location: CGPoint) {
         guard gameState.isPlaying else { return }
 
-        let catcherPosition = catcher.node.position
-        let catcherFrame = CGRect(
-            x: catcherPosition.x - Catcher.size.width / 2,
-            y: catcherPosition.y - Catcher.size.height / 2,
-            width: Catcher.size.width,
-            height: Catcher.size.height
-        )
+        catcher.moveTo(x: location.x, constrainedTo: screenSize)
 
-        if catcherFrame.contains(location) {
-            touchState = .dragging
-            touchStartData = TouchStartData(
-                touchPosition: location,
-                catcherPosition: catcherPosition
-            )
-        }
+        touchState = .dragging
+        touchStartData = TouchStartData(
+            touchPosition: location,
+            catcherPosition: catcher.node.position
+        )
     }
 
     func touchesMoved(to location: CGPoint) {
         guard touchState == .dragging,
-            let startData = touchStartData
-        else { return }
+              let startData = touchStartData else { return }
 
         let deltaX = location.x - startData.touchPosition.x
         let newX = startData.catcherPosition.x + deltaX
-
-        // Move the catcher (it handles its own constraints)
+        
         catcher.moveTo(x: newX, constrainedTo: screenSize)
     }
 
-    func touchesEnded() {
-        endTouch()
-    }
-
-    func touchesCancelled() {
-        endTouch()
-    }
+    func touchesEnded() { endTouch() }
+    func touchesCancelled() { endTouch() }
 
     private func endTouch() {
         touchState = .idle
@@ -318,100 +296,90 @@ class GameViewModel: ObservableObject {
         gameState.isPaused = true
         gameState.isPlaying = false
         stopAllTimers()
-
-        // Pause all falling object animations
-        fallingObjectNodes.values.forEach { fallingObject in
-            fallingObject.node.isPaused = true
-        }
+        
+        fallingObjectNodes.values.forEach { $0.node.isPaused = true }
     }
 
     func resumeGame() {
         gameState.isPaused = false
         gameState.isPlaying = true
-
-        // Resume all falling object animations
-        fallingObjectNodes.values.forEach { fallingObject in
-            fallingObject.node.isPaused = false
-        }
-
+        
+        fallingObjectNodes.values.forEach { $0.node.isPaused = false }
         startGameplay()
     }
 
     func resetGame() {
         gameState = GameState()
-
-        // Clean up all falling objects
         fallingObjects.removeAll()
+        
+        cleanupAllObjects()
+        resetCatcherPosition()
+        startGameplay()
+    }
+    
+    private func gameOver() {
+        gameState.isGameOver = true
+        gameState.isPlaying = false
+        gameState.isPaused = false
+        
+        fallingObjects.removeAll()
+        cleanupAllObjects()
+        stopAllTimers()
+    }
+
+    private func cleanupAllObjects() {
         fallingObjectNodes.values.forEach { $0.node.removeFromParent() }
         fallingObjectNodes.removeAll()
+    }
 
-        stopAllTimers()
-
-        // Reset catcher position
-        let catcherY = GameConfiguration.catcherBottomOffset
-        let catcherX = screenSize.width / 2
-        catcher.node.position = CGPoint(x: catcherX, y: catcherY)
-
-        startGameplay()
+    private func resetCatcherPosition() {
+        catcher.node.position = CGPoint(
+            x: screenSize.width / 2,
+            y: GameConfiguration.catcherBottomOffset
+        )
     }
 
     func checkCollisions() {
-        let catcherFrame = CGRect(
-            x: catcher.node.position.x - Catcher.size.width / 2,
-            y: catcher.node.position.y - Catcher.size.height / 2,
-            width: Catcher.size.width,
-            height: Catcher.size.height
-        )
-
+        let catcherFrame = createCatcherFrame()
+        
         for (objectId, fallingObject) in fallingObjectNodes {
-            let objectFrame = CGRect(
-                x: fallingObject.node.position.x - fallingObject.size.width / 2,
-                y: fallingObject.node.position.y - fallingObject.size.height
-                    / 2,
-                width: fallingObject.size.width,
-                height: fallingObject.size.height
-            )
-
+            let objectFrame = createObjectFrame(for: fallingObject)
+            
             if catcherFrame.intersects(objectFrame) {
                 handleObjectCaught(objectId)
             }
         }
-
-        // Clean up objects that have fallen off screen
+        
         cleanupOffScreenObjects()
     }
 
+    private func createCatcherFrame() -> CGRect {
+        CGRect(
+            origin: CGPoint(
+                x: catcher.node.position.x - Catcher.size.width / 2,
+                y: catcher.node.position.y - Catcher.size.height / 2
+            ),
+            size: Catcher.size
+        )
+    }
+
+    private func createObjectFrame(for fallingObject: FallingObject) -> CGRect {
+        CGRect(
+            x: fallingObject.node.position.x - fallingObject.size.width / 2,
+            y: fallingObject.node.position.y - fallingObject.size.height / 2,
+            width: fallingObject.size.width,
+            height: fallingObject.size.height
+        )
+    }
+
     private func cleanupOffScreenObjects() {
-        let offScreenY = -100.0  // Buffer below screen
-
         let offScreenObjects = fallingObjectNodes.filter { _, fallingObject in
-            fallingObject.node.position.y < offScreenY
+            fallingObject.node.position.y < GameConfiguration.offScreenBuffer
         }
-
-        for (objectId, _) in offScreenObjects {
+        
+        offScreenObjects.forEach { objectId, _ in
             cleanupFallingObject(objectId)
         }
-    }
-
-    func getFallingObjectsCount() -> Int {
-        return fallingObjectNodes.count
-    }
-
-    func getFallingObjectsByType(_ type: FallingObjectType) -> [FallingObject] {
-        return fallingObjects.compactMap { data in
-            if data.type.assetName == type.assetName {
-                return fallingObjectNodes[data.id]
-            }
-            return nil
-        }
-    }
-
-    func getObjectPosition(for objectId: UUID) -> CGPoint? {
-        return fallingObjectNodes[objectId]?.node.position
-    }
-
-    func updateObjectPosition(for objectId: UUID, to position: CGPoint) {
-        fallingObjectNodes[objectId]?.node.position = position
     }
 
     private func stopAllTimers() {
@@ -423,6 +391,24 @@ class GameViewModel: ObservableObject {
     private func stopSpawnTimer() {
         spawnTimer?.invalidate()
         spawnTimer = nil
+    }
+
+    func getFallingObjectsCount() -> Int {
+        fallingObjectNodes.count
+    }
+
+    func getFallingObjectsByType(_ type: FallingObjectType) -> [FallingObject] {
+        fallingObjects.compactMap { data in
+            data.type.assetName == type.assetName ? fallingObjectNodes[data.id] : nil
+        }
+    }
+
+    func getObjectPosition(for objectId: UUID) -> CGPoint? {
+        fallingObjectNodes[objectId]?.node.position
+    }
+
+    func updateObjectPosition(for objectId: UUID, to position: CGPoint) {
+        fallingObjectNodes[objectId]?.node.position = position
     }
 
     func getScorePosition() -> CGPoint {

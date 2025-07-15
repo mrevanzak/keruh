@@ -21,23 +21,39 @@ class GameScene: SKScene {
         // Add game nodes to the scene
         addChild(viewModel.getCatcherNode())
 
-        // Add new falling objects
+        // Add any initial falling objects
+        addNewFallingObjects()
+    }
+
+    override func update(_ currentTime: TimeInterval) {
+        viewModel?.checkCollisions()
+
+        // Add new falling objects that were spawned since last update
+        addNewFallingObjects()
+    }
+
+    private func addNewFallingObjects() {
+        guard let viewModel = viewModel else { return }
         for node in viewModel.getNewFallingObjectNodes() {
             addChild(node.node)
         }
     }
 
-    override func update(_ currentTime: TimeInterval) {
-        viewModel?.checkCollisions()
+    private func getFirstTouchLocation(from touches: Set<UITouch>) -> CGPoint? {
+        return touches.first?.location(in: self)
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let location = touches.first?.location(in: self) else { return }
+        guard let location = getFirstTouchLocation(from: touches) else {
+            return
+        }
         viewModel?.touchesBegan(at: location)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let location = touches.first?.location(in: self) else { return }
+        guard let location = getFirstTouchLocation(from: touches) else {
+            return
+        }
         viewModel?.touchesMoved(to: location)
     }
 

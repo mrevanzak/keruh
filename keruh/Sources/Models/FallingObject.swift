@@ -23,7 +23,7 @@ struct FallingObjectType {
         fallSpeed: 100,
         rarity: 0.4,
         isSpecial: false,
-        isCollectible: true
+        isCollectible: false
     )
 
     static let banana = FallingObjectType(
@@ -150,4 +150,13 @@ class FallingObject: BaseGameObject {
 
         node.run(sequence)
     }
+}
+
+struct FallingObjectData {
+    let id: UUID = UUID()
+    let type: FallingObjectType
+    var position: CGPoint
+    let targetY: CGFloat
+    let fallDuration: TimeInterval
+    var isActive: Bool = true
 }
