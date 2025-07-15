@@ -23,7 +23,7 @@ struct FallingObjectType {
         fallSpeed: 100,
         rarity: 0.4,
         isSpecial: false,
-        isCollectible: true
+        isCollectible: false
     )
 
     static let banana = FallingObjectType(

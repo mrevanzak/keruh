@@ -12,7 +12,7 @@ import SwiftUI
 
 struct GameState {
     var score: Int = 0
-    var missed: Int = 0
+    var health: Int = 3
     var gameSpeed: TimeInterval = 2.0
     var isPlaying: Bool = true
     var isPaused: Bool = false
@@ -42,7 +42,7 @@ class GameViewModel: ObservableObject {
     @Published var gameState = GameState()
     @Published var fallingObjects: [FallingObjectData] = []
     @Published var scoreText: String = "Score: 0"
-    @Published var missedText: String = "Missed: 0"
+    @Published var healthText: String = "Health: 3"
 
     // Game objects managed by ViewModel
     private(set) var catcher: Catcher
@@ -101,8 +101,8 @@ class GameViewModel: ObservableObject {
 
         // Update text when missed changes
         $gameState
-            .map { "Missed: \($0.missed)" }
-            .assign(to: \.missedText, on: self)
+            .map { "Health: \($0.health)" }
+            .assign(to: \.healthText, on: self)
             .store(in: &cancellables)
 
         // Update spawning when game speed changes
@@ -212,9 +212,13 @@ class GameViewModel: ObservableObject {
         if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
             let object = fallingObjects[index]
             fallingObjects.remove(at: index)
-
-            // Add score based on object type
-            gameState.score += object.type.points
+            
+            if (object.type.isCollectible == true){
+                // Add score based on object type
+                gameState.score += object.type.points
+            } else {
+                gameState.health -= 1
+            }
 
             // Clean up the SpriteKit node
             cleanupFallingObject(objectId)
@@ -228,7 +232,7 @@ class GameViewModel: ObservableObject {
         // Remove from falling objects data
         if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
             fallingObjects.remove(at: index)
-            gameState.missed += 1
+            gameState.health -= 1
         }
 
         // Clean up the SpriteKit node

@@ -21,7 +21,7 @@ class GameScene: SKScene {
         // Add game nodes to the scene
         addChild(viewModel.getCatcherNode())
 
-        // Add new falling objects
+        // Add any initial falling objects
         for node in viewModel.getNewFallingObjectNodes() {
             addChild(node.node)
         }
@@ -29,6 +29,12 @@ class GameScene: SKScene {
 
     override func update(_ currentTime: TimeInterval) {
         viewModel?.checkCollisions()
+        
+        // Add new falling objects that were spawned since last update
+        guard let viewModel = viewModel else { return }
+        for node in viewModel.getNewFallingObjectNodes() {
+            addChild(node.node)
+        }
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

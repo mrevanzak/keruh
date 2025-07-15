@@ -33,7 +33,7 @@ struct GameView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal)
                     .font(.headline)
-                Text(viewModel.missedText)
+                Text(viewModel.healthText)
                     .foregroundColor(.white)
                     .padding(.horizontal)
                     .font(.subheadline)
