@@ -50,7 +50,7 @@ private struct TouchStartData {
 class GameViewModel: ObservableObject {
     @Published var gameState = GameState()
     @Published var fallingObjects: [FallingObjectData] = []
-    @Published var scoreText: String = "Score: 0"
+    @Published var scoreText: String = "Score: \(GameConfiguration.initialScore)"
     @Published var healthText: String = "Health: \(GameConfiguration.initialHealth)"
 
     private(set) var catcher: Catcher
