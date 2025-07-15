@@ -32,8 +32,6 @@ class GameScene: SKScene {
         addNewFallingObjects()
     }
 
-    // MARK: - Private Methods
-
     private func addNewFallingObjects() {
         guard let viewModel = viewModel else { return }
         for node in viewModel.getNewFallingObjectNodes() {
@@ -44,8 +42,6 @@ class GameScene: SKScene {
     private func getFirstTouchLocation(from touches: Set<UITouch>) -> CGPoint? {
         return touches.first?.location(in: self)
     }
-
-    // MARK: - Touch Handling
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let location = getFirstTouchLocation(from: touches) else {
