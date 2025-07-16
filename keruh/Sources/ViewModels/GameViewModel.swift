@@ -12,7 +12,6 @@ import SwiftUI
 
 private enum GameConfiguration {
     static let catcherBottomOffset: CGFloat = 60
-    static let fallDurationRange: ClosedRange<TimeInterval> = 3.0...5.0
     static let speedIncreaseInterval = 5
     static let speedMultiplier: TimeInterval = 0.9
     static let minimumSpawnInterval: TimeInterval = 0.5
@@ -164,7 +163,7 @@ class GameViewModel: ObservableObject {
             type: objectType,
             position: startPosition,
             targetY: -objectSize.height,
-            fallDuration: TimeInterval.random(in: GameConfiguration.fallDurationRange)
+            fallDuration: objectType.fallSpeed
         )
 
         let fallingObjectNode = FallingObject(type: objectType)
