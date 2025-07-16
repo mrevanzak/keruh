@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LeaderboardView: View {
-    @StateObject private var viewModel = GameCenterViewModel()
+    @StateObject private var viewModel = LeaderboardViewModel()
 
     var body: some View {
         VStack {

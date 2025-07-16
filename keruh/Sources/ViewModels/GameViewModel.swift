@@ -22,6 +22,8 @@ private enum GameConfiguration {
     static let uiPadding: CGFloat = 36
     static let labelSpacing: CGFloat = 35
     static let offScreenBuffer: CGFloat = -100.0
+    static let doublePointDuration: TimeInterval = 10.0
+
 }
 
 struct GameState {
@@ -31,6 +33,7 @@ struct GameState {
     var isPlaying: Bool = true
     var isPaused: Bool = false
     var isGameOver: Bool = false
+    var isDoublePointActive: Bool = false
 }
 
 private enum TouchState {
@@ -59,6 +62,7 @@ class GameViewModel: ObservableObject {
     private var safeAreaInsets: UIEdgeInsets = .zero
     private var touchState: TouchState = .idle
     private var touchStartData: TouchStartData?
+    private var doublePointTimer: Timer?
 
     init() {
         self.catcher = Catcher()
@@ -213,12 +217,21 @@ class GameViewModel: ObservableObject {
     }
 
     private func updateScoreAndHealth(for object: FallingObjectData) {
-        if object.type.isCollectible {
-            gameState.score += object.type.points
-        } else {
-            decreaseHealth()
+        switch object.type.assetName {
+        case "heart":
+            addHealth()
+        case "star":
+            activateDoublePoint()
+        default:
+            if object.type.isCollectible {
+                let multiplier = gameState.isDoublePointActive ? 2 : 1
+                gameState.score += object.type.points * multiplier
+            } else {
+                decreaseHealth()
+            }
         }
     }
+
 
     private func handleObjectMissed(_ objectId: UUID) {
         if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
@@ -426,4 +439,30 @@ class GameViewModel: ObservableObject {
             y: screenSize.height - safeAreaTop - GameConfiguration.labelSpacing
         )
     }
+    
+    
+    //power up
+    private func addHealth(_ amount: Int = 1) {
+        let maxHealth = 5
+        if gameState.health < maxHealth {
+            gameState.health = min(gameState.health + amount, maxHealth)
+        } else {
+            print("Health max")
+        }
+    }
+    
+    private func activateDoublePoint() {
+        gameState.isDoublePointActive = true
+        doublePointTimer?.invalidate()
+
+        doublePointTimer = Timer.scheduledTimer(withTimeInterval: GameConfiguration.doublePointDuration, repeats: false) { [weak self] _ in
+            self?.gameState.isDoublePointActive = false
+            print("Double Point expired")
+        }
+
+        print("Double Point activated")
+    }
+    
+    
+
 }
