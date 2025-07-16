@@ -11,6 +11,8 @@ class LeaderboardViewModel: ObservableObject {
     @Published var isAuthenticated = false
     @Published var topPlayers: [Leaderboard] = []
 
+    let leaderboardID = "com.keruh.leaderboard"
+
     func authenticate() {
         GameCenterManager.shared.authenticateLocalPlayer { success in
             DispatchQueue.main.async {
@@ -21,7 +23,7 @@ class LeaderboardViewModel: ObservableObject {
 
     func submitDummyScore() {
         let dummyScore = 19999
-        GameCenterManager.shared.submitScore(dummyScore, leaderboardID: "com.keruh.leaderboard")
+        GameCenterManager.shared.submitScore(dummyScore, leaderboardID: leaderboardID)
     }
 
     func showLeaderboard() {
@@ -29,7 +31,7 @@ class LeaderboardViewModel: ObservableObject {
     }
 
     func loadTopPlayers() {
-        GameCenterManager.shared.loadTopScores(leaderboardID: "com.keruh.leaderboard", count: 10) { players in
+        GameCenterManager.shared.loadTopScores(leaderboardID: leaderboardID, count: 10) { players in
             DispatchQueue.main.async {
                 self.topPlayers = players
             }

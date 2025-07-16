@@ -14,6 +14,8 @@ enum ScreenState {
 }
 
 struct MainView: View {
+    @StateObject private var leaderboardViewModel = LeaderboardViewModel()
+
     @State private var currentScreen: ScreenState = .splash
     
     @Namespace private var heroAnimation
@@ -37,6 +39,7 @@ struct MainView: View {
             }
         }
         .onAppear {
+            leaderboardViewModel.authenticate()
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 withAnimation(.spring(response: 1.0, dampingFraction: 0.8)) {
                     currentScreen = .menu
