@@ -17,7 +17,7 @@ struct FallingObjectType {
     let isCollectible: Bool
 
     static let apple = FallingObjectType(
-        assetName: "apple",
+        assetName: "orang",
         size: CGSize(width: 35, height: 35),
         points: 10,
         fallSpeed: 100,
@@ -27,7 +27,7 @@ struct FallingObjectType {
     )
 
     static let banana = FallingObjectType(
-        assetName: "banana",
+        assetName: "orang",
         size: CGSize(width: 25, height: 40),
         points: 15,
         fallSpeed: 120,
@@ -37,7 +37,7 @@ struct FallingObjectType {
     )
 
     static let cherry = FallingObjectType(
-        assetName: "cherry",
+        assetName: "orang",
         size: CGSize(width: 20, height: 20),
         points: 20,
         fallSpeed: 80,
@@ -47,7 +47,7 @@ struct FallingObjectType {
     )
 
     static let diamond = FallingObjectType(
-        assetName: "diamond",
+        assetName: "orang",
         size: CGSize(width: 30, height: 30),
         points: 50,
         fallSpeed: 60,

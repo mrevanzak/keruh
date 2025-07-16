@@ -12,33 +12,40 @@ struct GameView: View {
     @StateObject private var viewModel = GameViewModel()
 
     var body: some View {
-        GeometryReader { geometry in
-            GameSceneView(viewModel: viewModel)
+        ZStack {
+            Image("background")
+                .resizable()
+                .scaledToFill()
                 .ignoresSafeArea()
-                .onAppear {
-                    viewModel.setupGame(
-                        screenSize: geometry.size,
-                        safeAreaInsets: UIEdgeInsets(
-                            top: geometry.safeAreaInsets.top,
-                            left: geometry.safeAreaInsets.leading,
-                            bottom: geometry.safeAreaInsets.bottom,
-                            right: geometry.safeAreaInsets.trailing
+
+            GeometryReader { geometry in
+                GameSceneView(viewModel: viewModel)
+                    .ignoresSafeArea()
+                    .onAppear {
+                        viewModel.setupGame(
+                            screenSize: geometry.size,
+                            safeAreaInsets: UIEdgeInsets(
+                                top: geometry.safeAreaInsets.top,
+                                left: geometry.safeAreaInsets.leading,
+                                bottom: geometry.safeAreaInsets.bottom,
+                                right: geometry.safeAreaInsets.trailing
+                            )
                         )
-                    )
-                }
-        }
-        .overlay(alignment: .topLeading) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.scoreText)
-                    .foregroundColor(.white)
-                    .padding(.horizontal)
-                    .font(.headline)
-                Text(viewModel.healthText)
-                    .foregroundColor(.white)
-                    .padding(.horizontal)
-                    .font(.subheadline)
+                    }
             }
-            .padding(.top, 20)
+            .overlay(alignment: .topLeading) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(viewModel.scoreText)
+                        .foregroundColor(.white)
+                        .padding(.horizontal)
+                        .font(.headline)
+                    Text(viewModel.healthText)
+                        .foregroundColor(.white)
+                        .padding(.horizontal)
+                        .font(.subheadline)
+                }
+                .padding(.top, 20)
+            }
         }
     }
 }

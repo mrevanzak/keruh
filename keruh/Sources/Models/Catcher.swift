@@ -10,7 +10,7 @@ import SpriteKit
 class Catcher: BaseGameObject {
     private let spriteNode: SKSpriteNode
 
-    static let size = CGSize(width: 80, height: 60)
+    static let size = CGSize(width: 98, height: 150)
 
     init() {
         self.spriteNode = SKSpriteNode(
@@ -24,7 +24,7 @@ class Catcher: BaseGameObject {
 
     override func setup() {
         // Load texture from assets
-        spriteNode.texture = SKTexture(imageNamed: "catcher")
+        spriteNode.texture = SKTexture(imageNamed: "orang")
         spriteNode.size = Catcher.size
         spriteNode.zPosition = 1
 

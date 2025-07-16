@@ -11,7 +11,7 @@ import SpriteKit
 import SwiftUI
 
 private enum GameConfiguration {
-    static let catcherBottomOffset: CGFloat = 60
+    static let catcherBottomOffset: CGFloat = 100
     static let speedIncreaseInterval = 5
     static let speedMultiplier: TimeInterval = 0.9
     static let minimumSpawnInterval: TimeInterval = 0.5

@@ -81,6 +81,7 @@ struct GameSceneView: UIViewRepresentable {
         scene.size = UIScreen.main.bounds.size
         scene.scaleMode = .aspectFill
         scene.viewModel = viewModel
+        scene.backgroundColor = .clear
 
         skView.presentScene(scene)
         return skView
