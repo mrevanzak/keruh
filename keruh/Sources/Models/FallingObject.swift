@@ -168,17 +168,24 @@ class FallingObject: BaseGameObject {
     func startFallingWithTypeSpeed(
         from position: CGPoint,
         to targetY: CGFloat,
+        initialScale: CGFloat = 1.0,
+        finalScale: CGFloat = 1.0,
         onComplete: @escaping () -> Void
     ) {
         node.position = position
+        node.setScale(initialScale)
 
         // Calculate duration based on distance and fall speed
         let distance = abs(position.y - targetY)
         let duration = TimeInterval(distance / objectType.fallSpeed)
 
         let fallAction = SKAction.moveTo(y: targetY, duration: duration)
+        let scaleAction = SKAction.scale(to: finalScale, duration: duration)
         let completeAction = SKAction.run(onComplete)
-        let sequence = SKAction.sequence([fallAction, completeAction])
+        
+        // Use group to run fall and scale together, then run complete
+        let simultaneousActions = SKAction.group([fallAction, scaleAction])
+        let sequence = SKAction.sequence([simultaneousActions, completeAction])
 
         node.run(sequence)
     }
