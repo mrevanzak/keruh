@@ -29,10 +29,6 @@ struct GameState {
     var score: Int = GameConfiguration.initialScore
     var health: Int = GameConfiguration.initialHealth
     var gameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
-    var isPlaying: Bool = true
-    var isPaused: Bool = false
-    var isGameOver: Bool = false
-    var isDoublePointActive: Bool = false
     var playState: GamePlayState = .playing
 }
 
