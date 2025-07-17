@@ -230,14 +230,13 @@ class GameViewModel: ObservableObject {
             activateDoublePoint()
         default:
             if object.type.isCollectible {
-                let multiplier = gameState.isDoublePointActive ? 2 : 1
+                let multiplier = (doublePointTimer != nil) ? 2 : 1
                 gameState.score += object.type.points * multiplier
             } else {
                 decreaseHealth()
             }
         }
     }
-
 
     private func handleObjectMissed(_ objectId: UUID) {
         if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
@@ -454,17 +453,13 @@ class GameViewModel: ObservableObject {
     }
     
     private func activateDoublePoint() {
-        gameState.isDoublePointActive = true
         doublePointTimer?.invalidate()
 
         doublePointTimer = Timer.scheduledTimer(withTimeInterval: GameConfiguration.doublePointDuration, repeats: false) { [weak self] _ in
-            self?.gameState.isDoublePointActive = false
+            self?.doublePointTimer = nil
             print("Double Point expired")
         }
 
         print("Double Point activated")
     }
-    
-    
-
 }
