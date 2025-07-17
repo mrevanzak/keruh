@@ -16,7 +16,9 @@ class GameCenterManager {
         let localPlayer = GKLocalPlayer.local
         localPlayer.authenticateHandler = { viewController, error in
             if let vc = viewController {
-                if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first,
+                   let rootVC = window.rootViewController {
                     rootVC.present(vc, animated: true)
                 }
             } else if localPlayer.isAuthenticated {
@@ -30,9 +32,7 @@ class GameCenterManager {
     }
 
     func submitScore(_ score: Int, leaderboardID: String) {
-        let scoreReporter = GKScore(leaderboardIdentifier: leaderboardID)
-        scoreReporter.value = Int64(score)
-        GKScore.report([scoreReporter]) { error in
+        GKLeaderboard.submitScore(score, context: 0, player: GKLocalPlayer.local, leaderboardIDs: [leaderboardID]) { error in
             if let error = error {
                 print("Failed to submit score: \(error.localizedDescription)")
             } else {
@@ -40,46 +40,64 @@ class GameCenterManager {
             }
         }
     }
-
+    
     func showLeaderboard() {
-        let viewController = GKGameCenterViewController()
-        viewController.viewState = .leaderboards
-        viewController.leaderboardIdentifier = "com.keruh.leaderboard"
-        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+        let viewController = GKGameCenterViewController(state: .leaderboards)
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
+            rootVC.present(viewController, animated: true)
+        }
+    }
+    
+    func showSpecificLeaderboard(leaderboardID: String) {
+        let viewController = GKGameCenterViewController(leaderboardID: leaderboardID, playerScope: .global, timeScope: .allTime)
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
             rootVC.present(viewController, animated: true)
         }
     }
     
     func loadTopScores(leaderboardID: String, count: Int = 10, completion: @escaping ([Leaderboard]) -> Void) {
-        let leaderboard = GKLeaderboard()
-        leaderboard.identifier = leaderboardID
-        leaderboard.playerScope = .global
-        leaderboard.timeScope = .allTime
-        leaderboard.range = NSRange(location: 1, length: count)
-
-        leaderboard.loadScores { scores, error in
+        GKLeaderboard.loadLeaderboards(IDs: [leaderboardID]) { leaderboards, error in
             if let error = error {
-                print("❌ Error loading scores: \(error.localizedDescription)")
+                print("Error loading leaderboards: \(error.localizedDescription)")
                 completion([])
                 return
             }
-
-            guard let scores = scores else {
-                print("⚠️ No scores found.")
+            
+            guard let leaderboard = leaderboards?.first else {
+                print("No leaderboard found.")
                 completion([])
                 return
             }
-
-            let leaderboardEntries: [Leaderboard] = scores.enumerated().map { index, score in
-                Leaderboard(
-                    playerName: score.player.alias,
-                    score: Int(score.value),
-                    rank: score.rank
-                )
+            
+            leaderboard.loadEntries(for: .global, timeScope: .allTime, range: NSRange(location: 1, length: count)) { localPlayerEntry, entries, totalPlayerCount, error in
+                if let error = error {
+                    print("Error loading entries: \(error.localizedDescription)")
+                    completion([])
+                    return
+                }
+                
+                guard let entries = entries else {
+                    print("No entries found.")
+                    completion([])
+                    return
+                }
+                
+                let leaderboardEntries: [Leaderboard] = entries.map { entry in
+                    Leaderboard(
+                        playerName: entry.player.alias,
+                        score: Int(entry.score),
+                        rank: entry.rank
+                    )
+                }
+                
+                completion(leaderboardEntries)
             }
-
-            completion(leaderboardEntries)
         }
     }
-
 }

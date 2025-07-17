@@ -11,7 +11,7 @@ import SwiftUI
 struct KeruhApp: App {
     var body: some Scene {
         WindowGroup {
-            MainView()
+            GameCenterView()
         }
     }
 }
