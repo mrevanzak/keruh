@@ -12,7 +12,6 @@ import SwiftUI
 
 private enum GameConfiguration {
     static let catcherBottomOffset: CGFloat = 60
-    static let fallDurationRange: ClosedRange<TimeInterval> = 3.0...5.0
     static let speedIncreaseInterval = 5
     static let speedMultiplier: TimeInterval = 0.9
     static let minimumSpawnInterval: TimeInterval = 0.5
@@ -34,6 +33,13 @@ struct GameState {
     var isPaused: Bool = false
     var isGameOver: Bool = false
     var isDoublePointActive: Bool = false
+    var playState: GamePlayState = .playing
+}
+
+enum GamePlayState {
+    case playing
+    case paused
+    case gameOver
 }
 
 private enum TouchState {
@@ -132,7 +138,7 @@ class GameViewModel: ObservableObject {
     }
 
     private func startGameplay() {
-        guard gameState.isPlaying else { return }
+        guard gameState.playState == .playing else { return }
         startSpawningObjects()
     }
 
@@ -148,7 +154,7 @@ class GameViewModel: ObservableObject {
     }
 
     private func spawnFallingObject() {
-        guard gameState.isPlaying else { return }
+        guard gameState.playState == .playing else { return }
 
         let objectType = FallingObjectType.random()
         let objectSize = objectType.size
@@ -164,7 +170,7 @@ class GameViewModel: ObservableObject {
             type: objectType,
             position: startPosition,
             targetY: -objectSize.height,
-            fallDuration: TimeInterval.random(in: GameConfiguration.fallDurationRange)
+            fallDuration: objectType.fallSpeed
         )
 
         let fallingObjectNode = FallingObject(type: objectType)
@@ -271,12 +277,12 @@ class GameViewModel: ObservableObject {
     }
 
     private func updateSpawning() {
-        guard gameState.isPlaying else { return }
+        guard gameState.playState == .playing else { return }
         startSpawningObjects()
     }
 
     func touchesBegan(at location: CGPoint) {
-        guard gameState.isPlaying else { return }
+        guard gameState.playState == .playing else { return }
 
         catcher.moveTo(x: location.x, constrainedTo: screenSize)
 
@@ -306,16 +312,14 @@ class GameViewModel: ObservableObject {
     }
 
     func pauseGame() {
-        gameState.isPaused = true
-        gameState.isPlaying = false
+        gameState.playState = .paused
         stopAllTimers()
         
         fallingObjectNodes.values.forEach { $0.node.isPaused = true }
     }
 
     func resumeGame() {
-        gameState.isPaused = false
-        gameState.isPlaying = true
+        gameState.playState = .playing
         
         fallingObjectNodes.values.forEach { $0.node.isPaused = false }
         startGameplay()
@@ -331,9 +335,7 @@ class GameViewModel: ObservableObject {
     }
     
     private func gameOver() {
-        gameState.isGameOver = true
-        gameState.isPlaying = false
-        gameState.isPaused = false
+        gameState.playState = .gameOver
         
         fallingObjects.removeAll()
         cleanupAllObjects()
