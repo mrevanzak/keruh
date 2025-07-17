@@ -18,7 +18,12 @@ class MenuScene: SKScene {
     private var wavesNode: SKSpriteNode!
 
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor(red: 0.5, green: 0.8, blue: 0.95, alpha: 1.0)
+        backgroundColor = SKColor(
+            red: 38 / 255,
+            green: 175 / 255,
+            blue: 225 / 255,
+            alpha: 1.0
+        )
     }
 
     func buildAndAnimateMenu() {
@@ -77,11 +82,11 @@ class MenuScene: SKScene {
         cloudsNode = SKSpriteNode(imageNamed: "awan")
         cloudsNode.anchorPoint = CGPoint(x: 0.5, y: 0)
         cloudsNode.size = CGSize(
-            width: size.width * 1.1,
+            width: size.width * 1.2,
             height: size.height * 0.25
         )
-        cloudsNode.position = CGPoint(x: size.width / 2, y: horizonY + 10)
-        cloudsNode.zPosition = -8
+        cloudsNode.position = CGPoint(x: size.width / 2, y: horizonY - 50)
+        cloudsNode.zPosition = -9
         cloudsNode.alpha = 0
         addChild(cloudsNode)
 
@@ -89,46 +94,57 @@ class MenuScene: SKScene {
         wavesNode = SKSpriteNode(imageNamed: "ombak")
         wavesNode.anchorPoint = CGPoint(x: 0.55, y: 1.0)
         wavesNode.position = CGPoint(x: size.width / 2, y: horizonY)
-        wavesNode.size = CGSize(width: size.width * 1.8, height: riverHeight * 1.5)
+        wavesNode.size = CGSize(
+            width: size.width * 1.8,
+            height: riverHeight * 1.5
+        )
         wavesNode.zPosition = -5
         wavesNode.alpha = 0
         addChild(wavesNode)
 
         // Animations
-        let fadeInBackground = SKAction.fadeIn(withDuration: 0.5)
-        skyNode.run(fadeInBackground)
-        riverBgNode.run(fadeInBackground)
-        
-        let waitAndFadeIn = SKAction.sequence([
+        let skyAndRiver = SKAction.sequence([
+            .wait(forDuration: 0.5), .fadeIn(withDuration: 1.0),
+        ])
+        skyNode.run(skyAndRiver)
+        riverBgNode.run(skyAndRiver)
+
+        let wave = SKAction.sequence([
             .wait(forDuration: 0.8), .fadeIn(withDuration: 0.6),
         ])
-        cloudsNode.run(waitAndFadeIn)
-        wavesNode.run(waitAndFadeIn)
+        wavesNode.run(wave)
+        
+        let cloud = SKAction.sequence([
+            .wait(forDuration: 1.5),
+            .fadeIn(withDuration: 0.2),
+            .moveBy(x: 0, y: 60, duration: 0.6),
+        ])
+        cloudsNode.run(cloud)
 
-        let waitAndMoveLeft = SKAction.sequence([
-            .wait(forDuration: 0.3),
+        let islandLeft = SKAction.sequence([
+            .wait(forDuration: 0.1),
             .move(
                 to: CGPoint(
                     x: leftIslandNode.size.width / 2,
                     y: islandYPosition
                 ),
-                duration: 1.0
+                duration: 0.8
             ),
         ])
-        waitAndMoveLeft.timingMode = .easeOut
-        leftIslandNode.run(waitAndMoveLeft)
+        islandLeft.timingMode = .easeOut
+        leftIslandNode.run(islandLeft)
 
-        let waitAndMoveRight = SKAction.sequence([
-            .wait(forDuration: 0.3),
+        let islandRight = SKAction.sequence([
+            .wait(forDuration: 0.1),
             .move(
                 to: CGPoint(
                     x: size.width - (rightIslandNode.size.width / 2),
                     y: islandYPosition
                 ),
-                duration: 1.0
+                duration: 0.8
             ),
         ])
-        waitAndMoveRight.timingMode = .easeOut
-        rightIslandNode.run(waitAndMoveRight)
+        islandRight.timingMode = .easeOut
+        rightIslandNode.run(islandRight)
     }
 }

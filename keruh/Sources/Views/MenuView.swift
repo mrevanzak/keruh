@@ -25,13 +25,14 @@ struct MenuView: View {
                 .transition(.opacity)
 
             VStack {
+                Spacer()
                 Text("KERUH")
-                    .font(.system(size: 42, weight: .bold))
+                    .font(.system(size: 80, weight: .bold))
+                    .padding(.vertical, 24)
                     .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
                     .fixedSize()
                     .matchedGeometryEffect(id: "title", in: namespace)
-
-                Spacer()
 
                 HStack(spacing: 0) {
                     ForEach(0..<animatedText.count, id: \.self) { index in
@@ -51,6 +52,7 @@ struct MenuView: View {
             }
             .padding(.vertical, 72)
         }
+        .background(Color(red: 38 / 255, green: 175 / 255, blue: 225 / 255))
         .ignoresSafeArea()
         .onTapGesture {
             currentScreen = .game
@@ -61,7 +63,7 @@ struct MenuView: View {
     private func setupAnimations() {
         scene.buildAndAnimateMenu()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation {
                 showPlayText = true
             }
