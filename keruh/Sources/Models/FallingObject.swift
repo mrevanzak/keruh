@@ -55,8 +55,40 @@ struct FallingObjectType {
         isSpecial: false,
         isCollectible: true
     )
+    
+    
+    //power up
+    static let heart = FallingObjectType(
+        assetName: "heart",
+        size: CGSize(width: 30, height: 30),
+        points: 0,
+        fallSpeed: 90,
+        rarity: 0.05,
+        isSpecial: true,
+        isCollectible: true
+    )
+    
+    static let coin = FallingObjectType(
+        assetName: "coin",
+        size: CGSize(width: 30, height: 30),
+        points: 0,
+        fallSpeed: 90,
+        rarity: 0.05,
+        isSpecial: true,
+        isCollectible: true
+    )
+    
+    static let clock = FallingObjectType(
+        assetName: "clock",
+        size: CGSize(width: 30, height: 30),
+        points: 0,
+        fallSpeed: 90,
+        rarity: 0.05,
+        isSpecial: true,
+        isCollectible: true
+    )
 
-    static let allTypes = [apple, banana, cherry, diamond]
+    static let allTypes = [apple, banana, cherry, diamond, heart, coin, clock]
 
     static func random() -> FallingObjectType {
         let randomValue = Float.random(in: 0...1)

@@ -21,6 +21,8 @@ private enum GameConfiguration {
     static let uiPadding: CGFloat = 36
     static let labelSpacing: CGFloat = 35
     static let offScreenBuffer: CGFloat = -100.0
+    static let doublePointDuration: TimeInterval = 10.0
+
 }
 
 struct GameState {
@@ -62,6 +64,7 @@ class GameViewModel: ObservableObject {
     private var safeAreaInsets: UIEdgeInsets = .zero
     private var touchState: TouchState = .idle
     private var touchStartData: TouchStartData?
+    private var doublePointTimer: Timer?
 
     init() {
         self.catcher = Catcher()
@@ -216,10 +219,18 @@ class GameViewModel: ObservableObject {
     }
 
     private func updateScoreAndHealth(for object: FallingObjectData) {
-        if object.type.isCollectible {
-            gameState.score += object.type.points
-        } else {
-            decreaseHealth()
+        switch object.type.assetName {
+        case "heart":
+            addHealth()
+        case "star":
+            activateDoublePoint()
+        default:
+            if object.type.isCollectible {
+                let multiplier = (doublePointTimer != nil) ? 2 : 1
+                gameState.score += object.type.points * multiplier
+            } else {
+                decreaseHealth()
+            }
         }
     }
 
@@ -424,5 +435,27 @@ class GameViewModel: ObservableObject {
             x: GameConfiguration.uiPadding,
             y: screenSize.height - safeAreaTop - GameConfiguration.labelSpacing
         )
+    }
+    
+    
+    //power up
+    private func addHealth(_ amount: Int = 1) {
+        let maxHealth = 5
+        if gameState.health < maxHealth {
+            gameState.health = min(gameState.health + amount, maxHealth)
+        } else {
+            print("Health max")
+        }
+    }
+    
+    private func activateDoublePoint() {
+        doublePointTimer?.invalidate()
+
+        doublePointTimer = Timer.scheduledTimer(withTimeInterval: GameConfiguration.doublePointDuration, repeats: false) { [weak self] _ in
+            self?.doublePointTimer = nil
+            print("Double Point expired")
+        }
+
+        print("Double Point activated")
     }
 }
