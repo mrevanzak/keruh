@@ -20,6 +20,7 @@ class Catcher: BaseGameObject {
         )
         super.init(size: Catcher.size)
         node.addChild(spriteNode)
+        node.alpha = 0
     }
 
     override func setup() {

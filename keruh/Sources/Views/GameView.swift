@@ -2,54 +2,185 @@
 //  GameView.swift
 //  keruh
 //
-//  Created by Revanza Kurniawan on 11/07/25.
+//  Created by Elizabeth Celine Liong on 14/07/25.
 //
 
 import SpriteKit
 import SwiftUI
 
 struct GameView: View {
+    @Binding var currentScreen: ScreenState
     @StateObject private var viewModel = GameViewModel()
+
+    let namespace: Namespace.ID
 
     var body: some View {
         ZStack {
-            Image("background")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
+            // Background Game Scene
+            BackgroundSceneView(viewModel: viewModel)
 
-            GeometryReader { geometry in
-                GameSceneView(viewModel: viewModel)
-                    .ignoresSafeArea()
-                    .onAppear {
-                        viewModel.setupGame(
-                            screenSize: geometry.size,
-                            safeAreaInsets: UIEdgeInsets(
-                                top: geometry.safeAreaInsets.top,
-                                left: geometry.safeAreaInsets.leading,
-                                bottom: geometry.safeAreaInsets.bottom,
-                                right: geometry.safeAreaInsets.trailing
-                            )
-                        )
-                    }
-            }
-            .overlay(alignment: .topLeading) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(viewModel.scoreText)
-                        .foregroundColor(.white)
-                        .padding(.horizontal)
-                        .font(.headline)
-                    Text(viewModel.healthText)
-                        .foregroundColor(.white)
-                        .padding(.horizontal)
-                        .font(.subheadline)
-                }
-                .padding(.top, 20)
+            // Menu Content
+            if viewModel.gameState.playState == .menu {
+                MenuContentView(
+                    onStartGame: {
+                        print("startGameplay")
+                        viewModel.startGameplay()
+                    },
+                    namespace: namespace
+                )
+            } else {
+                GameOverlayView(viewModel: viewModel)
             }
         }
     }
 }
 
+// MARK: - Menu Content View
+private struct MenuContentView: View {
+    let onStartGame: () -> Void
+    @State private var showPlayText = false
+
+    let namespace: Namespace.ID
+
+    var body: some View {
+        VStack {
+            // Title
+            GameTitleView(namespace: namespace)
+
+            Spacer()
+
+            // Animated Play Text
+            AnimatedPlayText(isVisible: showPlayText)
+        }
+        .padding(.vertical, 72)
+        .onTapGesture {
+            onStartGame()
+        }
+        .onAppear {
+            setupPlayTextAnimation()
+        }
+    }
+
+    private func setupPlayTextAnimation() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation {
+                showPlayText = true
+            }
+        }
+    }
+}
+
+// MARK: - Game Title View
+private struct GameTitleView: View {
+    let namespace: Namespace.ID
+
+    var body: some View {
+        Text("KERUH")
+            .font(.system(size: 42, weight: .bold))
+            .foregroundColor(.white)
+            .fixedSize()
+            .matchedGeometryEffect(id: "title", in: namespace)
+    }
+}
+
+// MARK: - Animated Play Text
+private struct AnimatedPlayText: View {
+    let isVisible: Bool
+    private let animatedText = Array("Tap to Play")
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<animatedText.count, id: \.self) { index in
+                Text(String(animatedText[index]))
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .offset(y: isVisible ? 0 : 20)
+                    .animation(
+                        .spring(response: 0.5, dampingFraction: 0.5)
+                            .delay(Double(index) * 0.05),
+                        value: isVisible
+                    )
+            }
+        }
+        .opacity(isVisible ? 1 : 0)
+    }
+}
+
+private struct BackgroundSceneView: View {
+    @ObservedObject var viewModel: GameViewModel
+
+    var body: some View {
+        GeometryReader { geometry in
+            GameSceneView(viewModel: viewModel)
+                .onAppear {
+                    setupGameScene(with: geometry)
+                }
+                .transition(.opacity)
+        }
+        .ignoresSafeArea()
+    }
+
+    private func setupGameScene(with geometry: GeometryProxy) {
+        viewModel.setupGame(
+            screenSize: geometry.size,
+            safeAreaInsets: UIEdgeInsets(
+                top: geometry.safeAreaInsets.top,
+                left: geometry.safeAreaInsets.leading,
+                bottom: geometry.safeAreaInsets.bottom,
+                right: geometry.safeAreaInsets.trailing
+            )
+        )
+        viewModel.setupScene()
+    }
+}
+
+// MARK: - Game Overlay View
+private struct GameOverlayView: View {
+    @ObservedObject var viewModel: GameViewModel
+
+    var body: some View {
+        VStack {
+            HStack {
+                GameStatsView(viewModel: viewModel)
+                Spacer()
+            }
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Game Stats View
+private struct GameStatsView: View {
+    @ObservedObject var viewModel: GameViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(viewModel.scoreText)
+                .foregroundColor(.white)
+                .font(.headline)
+
+            Text(viewModel.healthText)
+                .foregroundColor(.white)
+                .font(.subheadline)
+        }
+        .padding(.horizontal)
+        .padding(.top, 20)
+    }
+}
+
+// MARK: - Preview
 #Preview {
-    GameView()
+    struct MenuPreview: View {
+        @Namespace private var namespace
+
+        var body: some View {
+            GameView(
+                currentScreen: .constant(.menu),
+                namespace: namespace
+            )
+        }
+    }
+
+    return MenuPreview()
 }

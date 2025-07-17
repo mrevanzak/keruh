@@ -29,10 +29,11 @@ struct GameState {
     var score: Int = GameConfiguration.initialScore
     var health: Int = GameConfiguration.initialHealth
     var gameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
-    var playState: GamePlayState = .playing
+    var playState: GamePlayState = .menu
 }
 
 enum GamePlayState {
+    case menu
     case playing
     case paused
     case gameOver
@@ -46,6 +47,15 @@ private enum TouchState {
 private struct TouchStartData {
     let touchPosition: CGPoint
     let catcherPosition: CGPoint
+}
+
+struct SceneNode {
+    let sky: SKSpriteNode
+    let river: SKSpriteNode
+    let leftIsland: SKSpriteNode
+    let rightIsland: SKSpriteNode
+    let clouds: SKSpriteNode
+    let waves: SKSpriteNode
 }
 
 class GameViewModel: ObservableObject {
@@ -68,6 +78,15 @@ class GameViewModel: ObservableObject {
     private var touchStartData: TouchStartData?
     private var doublePointTimer: Timer?
 
+    var sceneNodes = SceneNode(
+        sky: SKSpriteNode(imageNamed: "langit"),
+        river: SKSpriteNode(imageNamed: "bg_sungai"),
+        leftIsland: SKSpriteNode(imageNamed: "pulau_kiri"),
+        rightIsland: SKSpriteNode(imageNamed: "pulau_kanan"),
+        clouds: SKSpriteNode(imageNamed: "awan"),
+        waves: SKSpriteNode(imageNamed: "ombak")
+    )
+
     init() {
         self.catcher = Catcher()
         setupBindings()
@@ -78,8 +97,133 @@ class GameViewModel: ObservableObject {
         stopAllTimers()
     }
 
+    func setupScene() {
+        // Sky and River Background
+        let skyHeight = screenSize.height * 0.35
+        let riverHeight = screenSize.height * 0.65
+        let horizonY = screenSize.height * 0.65
+
+        sceneNodes.sky.anchorPoint = CGPoint(x: 0.5, y: 0)
+        sceneNodes.sky.position = CGPoint(x: screenSize.width / 2, y: horizonY)
+        sceneNodes.sky.size = CGSize(width: screenSize.width, height: skyHeight)
+        sceneNodes.sky.zPosition = -10
+        sceneNodes.sky.alpha = 0
+
+        sceneNodes.river.anchorPoint = CGPoint(x: 0.5, y: 1.0)
+        sceneNodes.river.position = CGPoint(
+            x: screenSize.width / 2,
+            y: horizonY
+        )
+        sceneNodes.river.size = CGSize(
+            width: screenSize.width,
+            height: riverHeight
+        )
+        sceneNodes.river.zPosition = -8
+        sceneNodes.river.alpha = 0
+
+        // Islands
+        sceneNodes.leftIsland.anchorPoint = CGPoint(x: 1.0, y: 0.0)
+        sceneNodes.leftIsland.size = CGSize(
+            width: screenSize.width * 0.65,
+            height: screenSize.height * 0.8
+        )
+        let islandYPosition = screenSize.height * 0.05
+        sceneNodes.leftIsland.position = CGPoint(
+            x: -sceneNodes.leftIsland.size.width,
+            y: islandYPosition
+        )
+        sceneNodes.leftIsland.zPosition = 10
+
+        sceneNodes.rightIsland.anchorPoint = CGPoint(x: 0.1, y: 0.0)
+        sceneNodes.rightIsland.size = CGSize(
+            width: screenSize.width * 0.65,
+            height: screenSize.height * 0.8
+        )
+        sceneNodes.rightIsland.position = CGPoint(
+            x: screenSize.width + sceneNodes.rightIsland.size.width,
+            y: islandYPosition
+        )
+        sceneNodes.rightIsland.zPosition = 10
+
+        // Clouds
+        sceneNodes.clouds.anchorPoint = CGPoint(x: 0.5, y: 0)
+        sceneNodes.clouds.size = CGSize(
+            width: screenSize.width * 1.1,
+            height: screenSize.height * 0.25
+        )
+        sceneNodes.clouds.position = CGPoint(
+            x: screenSize.width / 2,
+            y: horizonY + 10
+        )
+        sceneNodes.clouds.zPosition = -8
+        sceneNodes.clouds.alpha = 0
+
+        // Waves
+        sceneNodes.waves.anchorPoint = CGPoint(x: 0.55, y: 1.0)
+        sceneNodes.waves.position = CGPoint(
+            x: screenSize.width / 2,
+            y: horizonY
+        )
+        sceneNodes.waves.size = CGSize(
+            width: screenSize.width * 1.8,
+            height: riverHeight * 1.5
+        )
+        sceneNodes.waves.zPosition = -5
+        sceneNodes.waves.alpha = 0
+
+        // Animations
+        let fadeInBackground = SKAction.fadeIn(withDuration: 0.5)
+        sceneNodes.sky.run(fadeInBackground)
+        sceneNodes.river.run(fadeInBackground)
+
+        let waitAndFadeIn = SKAction.sequence([
+            .wait(forDuration: 0.8), .fadeIn(withDuration: 0.6),
+        ])
+        sceneNodes.clouds.run(waitAndFadeIn)
+        sceneNodes.waves.run(waitAndFadeIn)
+
+        let waitAndMoveLeft = SKAction.sequence([
+            .wait(forDuration: 0.3),
+            .move(
+                to: CGPoint(
+                    x: sceneNodes.leftIsland.size.width / 2,
+                    y: islandYPosition
+                ),
+                duration: 1.0
+            ),
+        ])
+        waitAndMoveLeft.timingMode = .easeOut
+        sceneNodes.leftIsland.run(waitAndMoveLeft)
+
+        let waitAndMoveRight = SKAction.sequence([
+            .wait(forDuration: 0.3),
+            .move(
+                to: CGPoint(
+                    x: screenSize.width
+                        - (sceneNodes.rightIsland.size.width / 2),
+                    y: islandYPosition
+                ),
+                duration: 1.0
+            ),
+        ])
+        waitAndMoveRight.timingMode = .easeOut
+        sceneNodes.rightIsland.run(waitAndMoveRight)
+    }
+
     private func setupCatcher() {
         catcher.setup()
+    }
+
+    private func spawnCatcher() {
+        // Position the catcher
+        let catcherPosition = CGPoint(
+            x: screenSize.width / 2,
+            y: GameConfiguration.catcherBottomOffset
+        )
+        catcher.node.position = catcherPosition
+
+        let transition = SKAction.fadeIn(withDuration: 0.5)
+        catcher.node.run(transition)
     }
 
     private func setupBindings() {
@@ -105,18 +249,10 @@ class GameViewModel: ObservableObject {
     func setupGame(screenSize: CGSize, safeAreaInsets: UIEdgeInsets) {
         self.screenSize = screenSize
         self.safeAreaInsets = safeAreaInsets
-
-        let catcherPosition = CGPoint(
-            x: screenSize.width / 2,
-            y: GameConfiguration.catcherBottomOffset
-        )
-        catcher.node.position = catcherPosition
-
-        startGameplay()
     }
 
     func getCatcherNode() -> SKNode {
-        catcher.node
+        return catcher.node
     }
 
     func getFallingObjectNodes() -> [FallingObject] {
@@ -135,8 +271,10 @@ class GameViewModel: ObservableObject {
         return nodes
     }
 
-    private func startGameplay() {
-        guard gameState.playState == .playing else { return }
+    func startGameplay() {
+        gameState.playState = .playing
+
+        spawnCatcher()
         startSpawningObjects()
     }
 
@@ -377,7 +515,7 @@ class GameViewModel: ObservableObject {
                 width: catcherFrame.width,
                 height: 30
             )
-            
+
             if topCatchZone.intersects(objectFrame) {
                 handleObjectCaught(objectId)
             }
