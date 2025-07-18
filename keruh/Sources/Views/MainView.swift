@@ -10,7 +10,6 @@ import SwiftUI
 enum ScreenState {
     case splash
     case menu
-    case game
 }
 
 struct MainView: View {
@@ -20,22 +19,13 @@ struct MainView: View {
     
     @Namespace private var heroAnimation
     
-    @State private var menuScene: MenuScene = {
-        let scene = MenuScene()
-        scene.size = UIScreen.main.bounds.size
-        scene.scaleMode = .aspectFill
-        return scene
-    }()
-
     var body: some View {
         ZStack {
             switch currentScreen {
             case .splash:
                 SplashScreenView(namespace: heroAnimation)
             case .menu:
-                MenuView(currentScreen: $currentScreen, scene: menuScene, namespace: heroAnimation)
-            case .game:
-                GameView()
+                GameView(currentScreen: $currentScreen, namespace: heroAnimation)
             }
         }
         .onAppear {

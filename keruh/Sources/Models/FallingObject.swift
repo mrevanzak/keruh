@@ -17,7 +17,7 @@ struct FallingObjectType {
     let isCollectible: Bool
 
     static let apple = FallingObjectType(
-        assetName: "apple",
+        assetName: "orang",
         size: CGSize(width: 35, height: 35),
         points: 10,
         fallSpeed: 100,
@@ -27,7 +27,7 @@ struct FallingObjectType {
     )
 
     static let banana = FallingObjectType(
-        assetName: "banana",
+        assetName: "orang",
         size: CGSize(width: 25, height: 40),
         points: 15,
         fallSpeed: 120,
@@ -37,7 +37,7 @@ struct FallingObjectType {
     )
 
     static let cherry = FallingObjectType(
-        assetName: "cherry",
+        assetName: "orang",
         size: CGSize(width: 20, height: 20),
         points: 20,
         fallSpeed: 80,
@@ -47,7 +47,7 @@ struct FallingObjectType {
     )
 
     static let diamond = FallingObjectType(
-        assetName: "diamond",
+        assetName: "orang",
         size: CGSize(width: 30, height: 30),
         points: 50,
         fallSpeed: 60,
@@ -168,17 +168,24 @@ class FallingObject: BaseGameObject {
     func startFallingWithTypeSpeed(
         from position: CGPoint,
         to targetY: CGFloat,
+        initialScale: CGFloat = 1.0,
+        finalScale: CGFloat = 1.0,
         onComplete: @escaping () -> Void
     ) {
         node.position = position
+        node.setScale(initialScale)
 
         // Calculate duration based on distance and fall speed
         let distance = abs(position.y - targetY)
         let duration = TimeInterval(distance / objectType.fallSpeed)
 
         let fallAction = SKAction.moveTo(y: targetY, duration: duration)
+        let scaleAction = SKAction.scale(to: finalScale, duration: duration)
         let completeAction = SKAction.run(onComplete)
-        let sequence = SKAction.sequence([fallAction, completeAction])
+        
+        // Use group to run fall and scale together, then run complete
+        let simultaneousActions = SKAction.group([fallAction, scaleAction])
+        let sequence = SKAction.sequence([simultaneousActions, completeAction])
 
         node.run(sequence)
     }

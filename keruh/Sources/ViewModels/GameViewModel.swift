@@ -11,7 +11,7 @@ import SpriteKit
 import SwiftUI
 
 private enum GameConfiguration {
-    static let catcherBottomOffset: CGFloat = 60
+    static let catcherBottomOffset: CGFloat = 100
     static let speedIncreaseInterval = 5
     static let speedMultiplier: TimeInterval = 0.9
     static let minimumSpawnInterval: TimeInterval = 0.5
@@ -29,10 +29,11 @@ struct GameState {
     var score: Int = GameConfiguration.initialScore
     var health: Int = GameConfiguration.initialHealth
     var gameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
-    var playState: GamePlayState = .playing
+    var playState: GamePlayState = .menu
 }
 
 enum GamePlayState {
+    case menu
     case playing
     case paused
     case gameOver
@@ -48,11 +49,22 @@ private struct TouchStartData {
     let catcherPosition: CGPoint
 }
 
+struct SceneNode {
+    let sky: SKSpriteNode
+    let river: SKSpriteNode
+    let leftIsland: SKSpriteNode
+    let rightIsland: SKSpriteNode
+    let clouds: SKSpriteNode
+    let waves: SKSpriteNode
+}
+
 class GameViewModel: ObservableObject {
     @Published var gameState = GameState()
     @Published var fallingObjects: [FallingObjectData] = []
-    @Published var scoreText: String = "Score: \(GameConfiguration.initialScore)"
-    @Published var healthText: String = "Health: \(GameConfiguration.initialHealth)"
+    @Published var scoreText: String =
+        "Score: \(GameConfiguration.initialScore)"
+    @Published var healthText: String =
+        "Health: \(GameConfiguration.initialHealth)"
 
     private(set) var catcher: Catcher
     private var fallingObjectNodes: [UUID: FallingObject] = [:]
@@ -66,6 +78,15 @@ class GameViewModel: ObservableObject {
     private var touchStartData: TouchStartData?
     private var doublePointTimer: Timer?
 
+    var sceneNodes = SceneNode(
+        sky: SKSpriteNode(imageNamed: "langit"),
+        river: SKSpriteNode(imageNamed: "bg_sungai"),
+        leftIsland: SKSpriteNode(imageNamed: "pulau_kiri"),
+        rightIsland: SKSpriteNode(imageNamed: "pulau_kanan"),
+        clouds: SKSpriteNode(imageNamed: "awan"),
+        waves: SKSpriteNode(imageNamed: "ombak")
+    )
+
     init() {
         self.catcher = Catcher()
         setupBindings()
@@ -76,8 +97,133 @@ class GameViewModel: ObservableObject {
         stopAllTimers()
     }
 
+    func setupScene() {
+        // Sky and River Background
+        let skyHeight = screenSize.height * 0.35
+        let riverHeight = screenSize.height * 0.65
+        let horizonY = screenSize.height * 0.65
+
+        sceneNodes.sky.anchorPoint = CGPoint(x: 0.5, y: 0)
+        sceneNodes.sky.position = CGPoint(x: screenSize.width / 2, y: horizonY)
+        sceneNodes.sky.size = CGSize(width: screenSize.width, height: skyHeight)
+        sceneNodes.sky.zPosition = -10
+        sceneNodes.sky.alpha = 0
+
+        sceneNodes.river.anchorPoint = CGPoint(x: 0.5, y: 1.0)
+        sceneNodes.river.position = CGPoint(
+            x: screenSize.width / 2,
+            y: horizonY
+        )
+        sceneNodes.river.size = CGSize(
+            width: screenSize.width,
+            height: riverHeight
+        )
+        sceneNodes.river.zPosition = -8
+        sceneNodes.river.alpha = 0
+
+        // Islands
+        sceneNodes.leftIsland.anchorPoint = CGPoint(x: 1.0, y: 0.0)
+        sceneNodes.leftIsland.size = CGSize(
+            width: screenSize.width * 0.65,
+            height: screenSize.height * 0.8
+        )
+        let islandYPosition = screenSize.height * 0.05
+        sceneNodes.leftIsland.position = CGPoint(
+            x: -sceneNodes.leftIsland.size.width,
+            y: islandYPosition
+        )
+        sceneNodes.leftIsland.zPosition = 10
+
+        sceneNodes.rightIsland.anchorPoint = CGPoint(x: 0.1, y: 0.0)
+        sceneNodes.rightIsland.size = CGSize(
+            width: screenSize.width * 0.65,
+            height: screenSize.height * 0.8
+        )
+        sceneNodes.rightIsland.position = CGPoint(
+            x: screenSize.width + sceneNodes.rightIsland.size.width,
+            y: islandYPosition
+        )
+        sceneNodes.rightIsland.zPosition = 10
+
+        // Clouds
+        sceneNodes.clouds.anchorPoint = CGPoint(x: 0.5, y: 0)
+        sceneNodes.clouds.size = CGSize(
+            width: screenSize.width * 1.1,
+            height: screenSize.height * 0.25
+        )
+        sceneNodes.clouds.position = CGPoint(
+            x: screenSize.width / 2,
+            y: horizonY + 10
+        )
+        sceneNodes.clouds.zPosition = -8
+        sceneNodes.clouds.alpha = 0
+
+        // Waves
+        sceneNodes.waves.anchorPoint = CGPoint(x: 0.55, y: 1.0)
+        sceneNodes.waves.position = CGPoint(
+            x: screenSize.width / 2,
+            y: horizonY
+        )
+        sceneNodes.waves.size = CGSize(
+            width: screenSize.width * 1.8,
+            height: riverHeight * 1.5
+        )
+        sceneNodes.waves.zPosition = -5
+        sceneNodes.waves.alpha = 0
+
+        // Animations
+        let fadeInBackground = SKAction.fadeIn(withDuration: 0.5)
+        sceneNodes.sky.run(fadeInBackground)
+        sceneNodes.river.run(fadeInBackground)
+
+        let waitAndFadeIn = SKAction.sequence([
+            .wait(forDuration: 0.8), .fadeIn(withDuration: 0.6),
+        ])
+        sceneNodes.clouds.run(waitAndFadeIn)
+        sceneNodes.waves.run(waitAndFadeIn)
+
+        let waitAndMoveLeft = SKAction.sequence([
+            .wait(forDuration: 0.3),
+            .move(
+                to: CGPoint(
+                    x: sceneNodes.leftIsland.size.width / 2,
+                    y: islandYPosition
+                ),
+                duration: 1.0
+            ),
+        ])
+        waitAndMoveLeft.timingMode = .easeOut
+        sceneNodes.leftIsland.run(waitAndMoveLeft)
+
+        let waitAndMoveRight = SKAction.sequence([
+            .wait(forDuration: 0.3),
+            .move(
+                to: CGPoint(
+                    x: screenSize.width
+                        - (sceneNodes.rightIsland.size.width / 2),
+                    y: islandYPosition
+                ),
+                duration: 1.0
+            ),
+        ])
+        waitAndMoveRight.timingMode = .easeOut
+        sceneNodes.rightIsland.run(waitAndMoveRight)
+    }
+
     private func setupCatcher() {
         catcher.setup()
+    }
+
+    private func spawnCatcher() {
+        // Position the catcher
+        let catcherPosition = CGPoint(
+            x: screenSize.width / 2,
+            y: GameConfiguration.catcherBottomOffset
+        )
+        catcher.node.position = catcherPosition
+
+        let transition = SKAction.fadeIn(withDuration: 0.5)
+        catcher.node.run(transition)
     }
 
     private func setupBindings() {
@@ -103,18 +249,10 @@ class GameViewModel: ObservableObject {
     func setupGame(screenSize: CGSize, safeAreaInsets: UIEdgeInsets) {
         self.screenSize = screenSize
         self.safeAreaInsets = safeAreaInsets
-        
-        let catcherPosition = CGPoint(
-            x: screenSize.width / 2,
-            y: GameConfiguration.catcherBottomOffset
-        )
-        catcher.node.position = catcherPosition
-        
-        startGameplay()
     }
 
     func getCatcherNode() -> SKNode {
-        catcher.node
+        return catcher.node
     }
 
     func getFallingObjectNodes() -> [FallingObject] {
@@ -133,14 +271,16 @@ class GameViewModel: ObservableObject {
         return nodes
     }
 
-    private func startGameplay() {
-        guard gameState.playState == .playing else { return }
+    func startGameplay() {
+        gameState.playState = .playing
+
+        spawnCatcher()
         startSpawningObjects()
     }
 
     private func startSpawningObjects() {
         stopSpawnTimer()
-        
+
         spawnTimer = Timer.scheduledTimer(
             withTimeInterval: gameState.gameSpeed,
             repeats: true
@@ -155,13 +295,15 @@ class GameViewModel: ObservableObject {
         let objectType = FallingObjectType.random()
         let objectSize = objectType.size
         let halfWidth = objectSize.width / 2
-        let randomX = CGFloat.random(in: halfWidth...(screenSize.width - halfWidth))
+        let randomX = CGFloat.random(
+            in: halfWidth...(screenSize.width - halfWidth)
+        )
 
         let startPosition = CGPoint(
             x: randomX,
-            y: screenSize.height + objectSize.height
+            y: screenSize.height * 0.7
         )
-        
+
         let fallingObjectData = FallingObjectData(
             type: objectType,
             position: startPosition,
@@ -171,7 +313,7 @@ class GameViewModel: ObservableObject {
 
         let fallingObjectNode = FallingObject(type: objectType)
         fallingObjectNode.setup()
-        
+
         fallingObjectNodes[fallingObjectData.id] = fallingObjectNode
         newFallingObjectNodes.append(fallingObjectNode)
         fallingObjects.append(fallingObjectData)
@@ -180,11 +322,15 @@ class GameViewModel: ObservableObject {
     }
 
     private func animateFallingObject(_ object: FallingObjectData) {
-        guard let fallingObjectNode = fallingObjectNodes[object.id] else { return }
+        guard let fallingObjectNode = fallingObjectNodes[object.id] else {
+            return
+        }
 
         fallingObjectNode.startFallingWithTypeSpeed(
             from: object.position,
-            to: object.targetY
+            to: object.targetY,
+            initialScale: 0.6,
+            finalScale: 1.0
         ) { [weak self] in
             self?.handleObjectMissed(object.id)
         }
@@ -195,20 +341,22 @@ class GameViewModel: ObservableObject {
     private func scheduleObjectCleanup(for object: FallingObjectData) {
         let distance = abs(object.position.y - object.targetY)
         let expectedDuration = TimeInterval(distance / object.type.fallSpeed)
-        
+
         let timer = Timer.scheduledTimer(
             withTimeInterval: expectedDuration + 1.0,
             repeats: false
         ) { [weak self] _ in
             self?.cleanupFallingObject(object.id)
         }
-        
+
         objectTimers[object.id] = timer
     }
 
     func handleObjectCaught(_ objectId: UUID) {
-        guard let index = fallingObjects.firstIndex(where: { $0.id == objectId }) else { return }
-        
+        guard
+            let index = fallingObjects.firstIndex(where: { $0.id == objectId })
+        else { return }
+
         let object = fallingObjects[index]
         fallingObjects.remove(at: index)
 
@@ -236,8 +384,12 @@ class GameViewModel: ObservableObject {
 
     private func handleObjectMissed(_ objectId: UUID) {
         if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
+            let fallingObject = fallingObjects[index]
             fallingObjects.remove(at: index)
-            decreaseHealth()
+
+            if fallingObject.type.isCollectible == true {
+                decreaseHealth()
+            }
         }
         cleanupFallingObject(objectId)
     }
@@ -245,15 +397,15 @@ class GameViewModel: ObservableObject {
     private func cleanupFallingObject(_ objectId: UUID) {
         fallingObjectNodes[objectId]?.node.removeFromParent()
         fallingObjectNodes.removeValue(forKey: objectId)
-        
+
         objectTimers[objectId]?.invalidate()
         objectTimers.removeValue(forKey: objectId)
     }
 
     private func provideCatcherFeedback() {
         #if os(iOS)
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            impactFeedback.impactOccurred()
         #endif
     }
 
@@ -266,8 +418,9 @@ class GameViewModel: ObservableObject {
 
     private func checkForSpeedIncrease() {
         guard gameState.score % GameConfiguration.speedIncreaseInterval == 0,
-              gameState.gameSpeed > GameConfiguration.minimumSpawnInterval else { return }
-        
+            gameState.gameSpeed > GameConfiguration.minimumSpawnInterval
+        else { return }
+
         gameState.gameSpeed *= GameConfiguration.speedMultiplier
     }
 
@@ -290,11 +443,12 @@ class GameViewModel: ObservableObject {
 
     func touchesMoved(to location: CGPoint) {
         guard touchState == .dragging,
-              let startData = touchStartData else { return }
+            let startData = touchStartData
+        else { return }
 
         let deltaX = location.x - startData.touchPosition.x
         let newX = startData.catcherPosition.x + deltaX
-        
+
         catcher.moveTo(x: newX, constrainedTo: screenSize)
     }
 
@@ -309,13 +463,13 @@ class GameViewModel: ObservableObject {
     func pauseGame() {
         gameState.playState = .paused
         stopAllTimers()
-        
+
         fallingObjectNodes.values.forEach { $0.node.isPaused = true }
     }
 
     func resumeGame() {
         gameState.playState = .playing
-        
+
         fallingObjectNodes.values.forEach { $0.node.isPaused = false }
         startGameplay()
     }
@@ -323,15 +477,15 @@ class GameViewModel: ObservableObject {
     func resetGame() {
         gameState = GameState()
         fallingObjects.removeAll()
-        
+
         cleanupAllObjects()
         resetCatcherPosition()
         startGameplay()
     }
-    
+
     private func gameOver() {
         gameState.playState = .gameOver
-        
+
         fallingObjects.removeAll()
         cleanupAllObjects()
         stopAllTimers()
@@ -351,15 +505,22 @@ class GameViewModel: ObservableObject {
 
     func checkCollisions() {
         let catcherFrame = createCatcherFrame()
-        
+
         for (objectId, fallingObject) in fallingObjectNodes {
             let objectFrame = createObjectFrame(for: fallingObject)
-            
-            if catcherFrame.intersects(objectFrame) {
+
+            let topCatchZone = CGRect(
+                x: catcherFrame.minX,
+                y: catcherFrame.maxY - 30,
+                width: catcherFrame.width,
+                height: 30
+            )
+
+            if topCatchZone.intersects(objectFrame) {
                 handleObjectCaught(objectId)
             }
         }
-        
+
         cleanupOffScreenObjects()
     }
 
@@ -386,7 +547,7 @@ class GameViewModel: ObservableObject {
         let offScreenObjects = fallingObjectNodes.filter { _, fallingObject in
             fallingObject.node.position.y < GameConfiguration.offScreenBuffer
         }
-        
+
         offScreenObjects.forEach { objectId, _ in
             cleanupFallingObject(objectId)
         }
@@ -409,7 +570,8 @@ class GameViewModel: ObservableObject {
 
     func getFallingObjectsByType(_ type: FallingObjectType) -> [FallingObject] {
         fallingObjects.compactMap { data in
-            data.type.assetName == type.assetName ? fallingObjectNodes[data.id] : nil
+            data.type.assetName == type.assetName
+                ? fallingObjectNodes[data.id] : nil
         }
     }
 
