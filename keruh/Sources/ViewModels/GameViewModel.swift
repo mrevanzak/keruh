@@ -85,6 +85,14 @@ class GameViewModel: ObservableObject {
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
+    private var originalGameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
+    #if os(iOS)
+        private let hapticQueue = DispatchQueue(
+            label: "haptic.feedback",
+            qos: .userInitiated
+        )
+        private var impactFeedback: UIImpactFeedbackGenerator?
+    #endif
 
     var sceneNodes = SceneNode(
         sky: SKSpriteNode(imageNamed: "langit"),
@@ -228,6 +236,12 @@ class GameViewModel: ObservableObject {
 
     private func setupCatcher() {
         catcher.setup()
+        #if os(iOS)
+            hapticQueue.async {
+                self.impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                self.impactFeedback?.prepare()
+            }
+        #endif
     }
 
     private func spawnCatcher() {
@@ -315,12 +329,13 @@ class GameViewModel: ObservableObject {
         let objectSize = objectType.getSize()
         let halfWidth = objectSize.width / 2
         let randomX = CGFloat.random(
-            in: halfWidth...(screenSize.width - halfWidth)
+            in: (screenSize.width * (1 - 0.65) + halfWidth)...(screenSize.width
+                * 0.65 - halfWidth)
         )
 
         let startPosition = CGPoint(
             x: randomX,
-            y: screenSize.height * 0.7
+            y: screenSize.height * 0.65
         )
 
         let adjustedFallSpeed =
@@ -429,14 +444,18 @@ class GameViewModel: ObservableObject {
 
     private func provideCatcherFeedback() {
         #if os(iOS)
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-            impactFeedback.impactOccurred()
+            hapticQueue.async {
+                DispatchQueue.main.async {
+                    self.impactFeedback?.impactOccurred()
+                }
+            }
         #endif
     }
 
     private func decreaseHealth() {
         gameState.health -= 1
         if gameState.health == 0 {
+            touchesEnded()
             gameOver()
         }
     }
