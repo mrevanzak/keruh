@@ -44,10 +44,10 @@ private struct MenuContentView: View {
 
     var body: some View {
         VStack {
+            Spacer()
+
             // Title
             GameTitleView(namespace: namespace)
-
-            Spacer()
 
             // Animated Play Text
             AnimatedPlayText(isVisible: showPlayText)
@@ -62,7 +62,7 @@ private struct MenuContentView: View {
     }
 
     private func setupPlayTextAnimation() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation {
                 showPlayText = true
             }
@@ -76,8 +76,10 @@ private struct GameTitleView: View {
 
     var body: some View {
         Text("KERUH")
-            .font(.system(size: 42, weight: .bold))
+            .font(.system(size: 80, weight: .bold))
+            .padding(.vertical, 24)
             .foregroundColor(.white)
+            .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
             .fixedSize()
             .matchedGeometryEffect(id: "title", in: namespace)
     }
