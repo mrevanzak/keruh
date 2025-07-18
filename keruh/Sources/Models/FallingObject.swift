@@ -44,7 +44,7 @@ struct FallingObjectType {
 
     static let tire = FallingObjectType(
         assetName: "ban",
-        size: CGSize(width: 120, height: 120),
+        size: CGSize(width: 90, height: 90),
         points: 10,
         fallSpeed: 100,
         rarity: 0.1,
@@ -251,4 +251,32 @@ struct FallingObjectData {
     let targetY: CGFloat
     let fallDuration: TimeInterval
     var isActive: Bool = true
+}
+
+extension FallingObject {
+    func startFallingWithPerspective(
+        from startPosition: CGPoint,
+        to endPosition: CGPoint,
+        initialScale: CGFloat,
+        finalScale: CGFloat,
+        duration: TimeInterval,
+        completion: @escaping () -> Void
+    ) {
+        node.position = startPosition
+        node.setScale(initialScale)
+
+        let moveAction = SKAction.move(to: endPosition, duration: duration)
+        let scaleAction = SKAction.scale(to: finalScale, duration: duration)
+
+        moveAction.timingMode = .easeOut
+        scaleAction.timingMode = .easeOut
+
+        let combinedAction = SKAction.group([moveAction, scaleAction])
+        let sequenceAction = SKAction.sequence([
+            combinedAction,
+            SKAction.run(completion),
+        ])
+
+        node.run(sequenceAction)
+    }
 }
