@@ -22,7 +22,6 @@ struct MenuView: View {
         ZStack {
             SpriteView(scene: scene)
                 .ignoresSafeArea()
-                .transition(.opacity)
 
             VStack {
                 Spacer()

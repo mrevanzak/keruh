@@ -15,9 +15,8 @@ enum ScreenState {
 
 struct MainView: View {
     @State private var currentScreen: ScreenState = .splash
-    
     @Namespace private var heroAnimation
-    
+
     @State private var menuScene: MenuScene = {
         let scene = MenuScene()
         scene.size = UIScreen.main.bounds.size
@@ -27,11 +26,18 @@ struct MainView: View {
 
     var body: some View {
         ZStack {
+            Color(red: 38 / 255, green: 175 / 255, blue: 225 / 255)
+                .ignoresSafeArea()
+
             switch currentScreen {
             case .splash:
                 SplashScreenView(namespace: heroAnimation)
             case .menu:
-                MenuView(currentScreen: $currentScreen, scene: menuScene, namespace: heroAnimation)
+                MenuView(
+                    currentScreen: $currentScreen,
+                    scene: menuScene,
+                    namespace: heroAnimation
+                )
             case .game:
                 GameView()
             }

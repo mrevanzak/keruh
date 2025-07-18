@@ -12,8 +12,6 @@ struct SplashScreenView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 38/255, green: 175/255, blue: 225/255).ignoresSafeArea()
-            
             Text("KERUH")
                 .font(.system(size: 80, weight: .bold))
                 .foregroundColor(.white)
@@ -21,14 +19,4 @@ struct SplashScreenView: View {
                 .matchedGeometryEffect(id: "title", in: namespace)
         }
     }
-}
-
-#Preview {
-    struct SplashPreview: View {
-        @Namespace private var namespace
-        var body: some View {
-            SplashScreenView(namespace: namespace)
-        }
-    }
-    return SplashPreview()
 }
