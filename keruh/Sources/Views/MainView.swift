@@ -44,7 +44,7 @@ struct MainView: View {
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                withAnimation(.spring(response: 1.0, dampingFraction: 0.8)) {
+                withAnimation(.spring(response: 1.0, dampingFraction: 0.9)) {
                     currentScreen = .menu
                 }
             }
