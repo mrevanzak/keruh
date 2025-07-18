@@ -22,7 +22,9 @@ private enum GameConfiguration {
     static let labelSpacing: CGFloat = 35
     static let offScreenBuffer: CGFloat = -100.0
     static let doublePointDuration: TimeInterval = 10.0
-
+    static let slowMotionFallSpeedMultiplier: Double = 0.5
+    static let slowMotionSpawnMultiplier: Double = 1.5
+    static let slowMotionDuration: TimeInterval = 10.0
 }
 
 struct GameState {
@@ -77,6 +79,8 @@ class GameViewModel: ObservableObject {
     private var touchState: TouchState = .idle
     private var touchStartData: TouchStartData?
     private var doublePointTimer: Timer?
+    private var slowMotionTimer: Timer?
+    private var originalGameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
 
     var sceneNodes = SceneNode(
         sky: SKSpriteNode(imageNamed: "langit"),
@@ -311,6 +315,10 @@ class GameViewModel: ObservableObject {
             x: randomX,
             y: screenSize.height * 0.7
         )
+        
+        let adjustedFallSpeed = (slowMotionTimer != nil)
+            ? objectType.fallSpeed * GameConfiguration.slowMotionFallSpeedMultiplier
+            : objectType.fallSpeed
 
         let fallingObjectData = FallingObjectData(
             type: objectType,
@@ -630,4 +638,50 @@ class GameViewModel: ObservableObject {
 
         print("Double Point activated")
     }
+    
+    func activateSlowMotion() {
+            if slowMotionTimer != nil {
+                slowMotionTimer?.invalidate()
+                slowMotionTimer = Timer.scheduledTimer(
+                    withTimeInterval: GameConfiguration.slowMotionDuration,
+                    repeats: false
+                ) { [weak self] _ in
+                    guard let self = self else { return }
+                    self.gameState.gameSpeed = self.originalGameSpeed
+                    self.slowMotionTimer = nil
+                    print("Slow Motion expired")
+                }
+                print("Slow Motion extended")
+                return
+            }
+
+            print("Slow Motion activated")
+            originalGameSpeed = gameState.gameSpeed
+            gameState.gameSpeed *= GameConfiguration.slowMotionSpawnMultiplier
+
+            for (index, object) in fallingObjects.enumerated() {
+                let objectId = object.id
+                guard let node = fallingObjectNodes[objectId] else { continue }
+
+                let currentY = node.node.position.y
+                let remainingDistance = abs(currentY - GameConfiguration.offScreenBuffer)
+                let newFallSpeed = object.type.fallSpeed * GameConfiguration.slowMotionFallSpeedMultiplier
+                let newDuration = TimeInterval(remainingDistance / newFallSpeed)
+
+                node.node.removeAllActions()
+                node.node.run(SKAction.moveTo(y: GameConfiguration.offScreenBuffer, duration: newDuration)) { [weak self] in
+                    self?.handleObjectMissed(objectId)
+                }
+            }
+
+            slowMotionTimer = Timer.scheduledTimer(
+                withTimeInterval: GameConfiguration.slowMotionDuration,
+                repeats: false
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.gameState.gameSpeed = self.originalGameSpeed
+                self.slowMotionTimer = nil
+                print("Slow Motion expired")
+            }
+        }
 }
