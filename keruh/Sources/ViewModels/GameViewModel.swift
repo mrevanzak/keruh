@@ -148,14 +148,14 @@ class GameViewModel: ObservableObject {
         // Clouds
         sceneNodes.clouds.anchorPoint = CGPoint(x: 0.5, y: 0)
         sceneNodes.clouds.size = CGSize(
-            width: screenSize.width * 1.1,
+            width: screenSize.width * 1.2,
             height: screenSize.height * 0.25
         )
         sceneNodes.clouds.position = CGPoint(
             x: screenSize.width / 2,
-            y: horizonY + 10
+            y: horizonY - 50
         )
-        sceneNodes.clouds.zPosition = -8
+        sceneNodes.clouds.zPosition = -9
         sceneNodes.clouds.alpha = 0
 
         // Waves
@@ -172,42 +172,50 @@ class GameViewModel: ObservableObject {
         sceneNodes.waves.alpha = 0
 
         // Animations
-        let fadeInBackground = SKAction.fadeIn(withDuration: 0.5)
-        sceneNodes.sky.run(fadeInBackground)
-        sceneNodes.river.run(fadeInBackground)
+        let skyAndRiver = SKAction.sequence([
+            .wait(forDuration: 0.5), .fadeIn(withDuration: 1.0),
+        ])
+        sceneNodes.sky.run(skyAndRiver)
+        sceneNodes.river.run(skyAndRiver)
 
-        let waitAndFadeIn = SKAction.sequence([
+        let wave = SKAction.sequence([
             .wait(forDuration: 0.8), .fadeIn(withDuration: 0.6),
         ])
-        sceneNodes.clouds.run(waitAndFadeIn)
-        sceneNodes.waves.run(waitAndFadeIn)
+        sceneNodes.waves.run(wave)
 
-        let waitAndMoveLeft = SKAction.sequence([
-            .wait(forDuration: 0.3),
+        let cloud = SKAction.sequence([
+            .wait(forDuration: 1.5),
+            .fadeIn(withDuration: 0.2),
+            .moveBy(x: 0, y: 60, duration: 0.6),
+        ])
+        sceneNodes.clouds.run(cloud)
+
+        let islandLeft = SKAction.sequence([
+            .wait(forDuration: 0.1),
             .move(
                 to: CGPoint(
                     x: sceneNodes.leftIsland.size.width / 2,
                     y: islandYPosition
                 ),
-                duration: 1.0
+                duration: 0.8
             ),
         ])
-        waitAndMoveLeft.timingMode = .easeOut
-        sceneNodes.leftIsland.run(waitAndMoveLeft)
+        islandLeft.timingMode = .easeOut
+        sceneNodes.leftIsland.run(islandLeft)
 
-        let waitAndMoveRight = SKAction.sequence([
-            .wait(forDuration: 0.3),
+        let islandRight = SKAction.sequence([
+            .wait(forDuration: 0.1),
             .move(
                 to: CGPoint(
                     x: screenSize.width
                         - (sceneNodes.rightIsland.size.width / 2),
                     y: islandYPosition
                 ),
-                duration: 1.0
+                duration: 0.8
             ),
         ])
-        waitAndMoveRight.timingMode = .easeOut
-        sceneNodes.rightIsland.run(waitAndMoveRight)
+        islandRight.timingMode = .easeOut
+        sceneNodes.rightIsland.run(islandRight)
     }
 
     private func setupCatcher() {
@@ -598,8 +606,7 @@ class GameViewModel: ObservableObject {
             y: screenSize.height - safeAreaTop - GameConfiguration.labelSpacing
         )
     }
-    
-    
+
     //power up
     private func addHealth(_ amount: Int = 1) {
         let maxHealth = 5
@@ -609,11 +616,14 @@ class GameViewModel: ObservableObject {
             print("Health max")
         }
     }
-    
+
     private func activateDoublePoint() {
         doublePointTimer?.invalidate()
 
-        doublePointTimer = Timer.scheduledTimer(withTimeInterval: GameConfiguration.doublePointDuration, repeats: false) { [weak self] _ in
+        doublePointTimer = Timer.scheduledTimer(
+            withTimeInterval: GameConfiguration.doublePointDuration,
+            repeats: false
+        ) { [weak self] _ in
             self?.doublePointTimer = nil
             print("Double Point expired")
         }

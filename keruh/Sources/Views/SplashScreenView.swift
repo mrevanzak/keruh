@@ -12,8 +12,6 @@ struct SplashScreenView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.5, green: 0.8, blue: 0.95).ignoresSafeArea()
-            
             Text("KERUH")
                 .font(.system(size: 80, weight: .bold))
                 .foregroundColor(.white)

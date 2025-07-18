@@ -18,6 +18,13 @@ class GameScene: SKScene {
             safeAreaInsets: view.safeAreaInsets
         )
 
+        backgroundColor = SKColor(
+            red: 38 / 255,
+            green: 175 / 255,
+            blue: 225 / 255,
+            alpha: 1.0
+        )
+
         // Add scene nodes to the scene
         addChild(viewModel.sceneNodes.sky)
         addChild(viewModel.sceneNodes.river)
