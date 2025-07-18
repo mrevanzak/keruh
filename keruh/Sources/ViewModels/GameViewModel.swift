@@ -293,7 +293,7 @@ class GameViewModel: ObservableObject {
         guard gameState.playState == .playing else { return }
 
         let objectType = FallingObjectType.random()
-        let objectSize = objectType.size
+        let objectSize = objectType.getSize()
         let halfWidth = objectSize.width / 2
         let randomX = CGFloat.random(
             in: halfWidth...(screenSize.width - halfWidth)

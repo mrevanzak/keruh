@@ -9,54 +9,103 @@ import SpriteKit
 
 struct FallingObjectType {
     let assetName: String
-    let size: CGSize
+    private let size: CGSize?
     let points: Int
     let fallSpeed: CGFloat
     let rarity: Float
     let isSpecial: Bool
     let isCollectible: Bool
 
-    static let apple = FallingObjectType(
-        assetName: "orang",
-        size: CGSize(width: 35, height: 35),
+    // Default size for falling objects
+    static let defaultSize = CGSize(width: 48, height: 48)
+
+    init(
+        assetName: String,
+        size: CGSize? = nil,
+        points: Int,
+        fallSpeed: CGFloat,
+        rarity: Float,
+        isSpecial: Bool,
+        isCollectible: Bool
+    ) {
+        self.assetName = assetName
+        self.size = size
+        self.points = points
+        self.fallSpeed = fallSpeed
+        self.rarity = rarity
+        self.isSpecial = isSpecial
+        self.isCollectible = isCollectible
+    }
+
+    // Helper method to get the actual size to use
+    func getSize() -> CGSize {
+        return size ?? FallingObjectType.defaultSize
+    }
+
+    static let tire = FallingObjectType(
+        assetName: "ban",
+        size: CGSize(width: 120, height: 120),
         points: 10,
         fallSpeed: 100,
-        rarity: 0.4,
+        rarity: 0.1,
         isSpecial: false,
         isCollectible: false
     )
 
-    static let banana = FallingObjectType(
-        assetName: "orang",
-        size: CGSize(width: 25, height: 40),
+    static let bottle = FallingObjectType(
+        assetName: "botol",
         points: 15,
         fallSpeed: 120,
-        rarity: 0.3,
+        rarity: 0.1,
         isSpecial: false,
         isCollectible: true
     )
 
-    static let cherry = FallingObjectType(
-        assetName: "orang",
-        size: CGSize(width: 20, height: 20),
+    static let ciki = FallingObjectType(
+        assetName: "ciki",
         points: 20,
         fallSpeed: 80,
-        rarity: 0.25,
+        rarity: 0.1,
         isSpecial: false,
         isCollectible: true
     )
 
-    static let diamond = FallingObjectType(
-        assetName: "orang",
-        size: CGSize(width: 30, height: 30),
+    static let can = FallingObjectType(
+        assetName: "kaleng",
         points: 50,
         fallSpeed: 60,
-        rarity: 0.05,
+        rarity: 0.1,
         isSpecial: false,
         isCollectible: true
     )
-    
-    
+
+    static let plasticBag = FallingObjectType(
+        assetName: "kresek",
+        points: 50,
+        fallSpeed: 60,
+        rarity: 0.1,
+        isSpecial: false,
+        isCollectible: true
+    )
+
+    static let sandal = FallingObjectType(
+        assetName: "sandal",
+        points: 50,
+        fallSpeed: 60,
+        rarity: 0.1,
+        isSpecial: false,
+        isCollectible: true
+    )
+
+    static let diaper = FallingObjectType(
+        assetName: "popok",
+        points: 50,
+        fallSpeed: 60,
+        rarity: 0.1,
+        isSpecial: false,
+        isCollectible: true
+    )
+
     //power up
     static let heart = FallingObjectType(
         assetName: "heart",
@@ -67,7 +116,7 @@ struct FallingObjectType {
         isSpecial: true,
         isCollectible: true
     )
-    
+
     static let coin = FallingObjectType(
         assetName: "coin",
         size: CGSize(width: 30, height: 30),
@@ -77,7 +126,7 @@ struct FallingObjectType {
         isSpecial: true,
         isCollectible: true
     )
-    
+
     static let clock = FallingObjectType(
         assetName: "clock",
         size: CGSize(width: 30, height: 30),
@@ -88,7 +137,9 @@ struct FallingObjectType {
         isCollectible: true
     )
 
-    static let allTypes = [apple, banana, cherry, diamond, heart, coin, clock]
+    static let allTypes = [
+        tire, bottle, ciki, can, plasticBag, sandal, diaper, heart, coin, clock,
+    ]
 
     static func random() -> FallingObjectType {
         let randomValue = Float.random(in: 0...1)
@@ -101,7 +152,7 @@ struct FallingObjectType {
             }
         }
 
-        return apple
+        return tire
     }
 }
 
@@ -112,16 +163,18 @@ class FallingObject: BaseGameObject {
     init(type: FallingObjectType) {
         self.objectType = type
         self.spriteNode = SKSpriteNode()
-        super.init(size: type.size)
+        super.init(size: type.getSize())
         node.addChild(spriteNode)
     }
 
     override func setup() {
         // Load custom asset texture
         spriteNode.texture = loadTexture(named: objectType.assetName)
-        spriteNode.size = size
+        spriteNode.size = objectType.getSize()
 
-        spriteNode.physicsBody = SKPhysicsBody(rectangleOf: size)
+        spriteNode.physicsBody = SKPhysicsBody(
+            rectangleOf: objectType.getSize()
+        )
         spriteNode.physicsBody?.isDynamic = true
         spriteNode.physicsBody?.categoryBitMask = PhysicsCategory.fallingObject
         spriteNode.physicsBody?.contactTestBitMask = PhysicsCategory.catcher
@@ -182,7 +235,7 @@ class FallingObject: BaseGameObject {
         let fallAction = SKAction.moveTo(y: targetY, duration: duration)
         let scaleAction = SKAction.scale(to: finalScale, duration: duration)
         let completeAction = SKAction.run(onComplete)
-        
+
         // Use group to run fall and scale together, then run complete
         let simultaneousActions = SKAction.group([fallAction, scaleAction])
         let sequence = SKAction.sequence([simultaneousActions, completeAction])
