@@ -32,6 +32,13 @@ struct GameView: View {
                 GameOverlayView(viewModel: viewModel)
             }
         }
+        .onTapGesture {
+            // Make the whole screen clickable when in menu state
+            if viewModel.gameState.playState == .menu {
+                print("startGameplay")
+                viewModel.startGameplay()
+            }
+        }
     }
 }
 
@@ -53,9 +60,6 @@ private struct MenuContentView: View {
             AnimatedPlayText(isVisible: showPlayText)
         }
         .padding(.vertical, 72)
-        .onTapGesture {
-            onStartGame()
-        }
         .onAppear {
             setupPlayTextAnimation()
         }

@@ -77,6 +77,13 @@ class GameViewModel: ObservableObject {
     private var touchState: TouchState = .idle
     private var touchStartData: TouchStartData?
     private var doublePointTimer: Timer?
+    #if os(iOS)
+        private let hapticQueue = DispatchQueue(
+            label: "haptic.feedback",
+            qos: .userInitiated
+        )
+        private var impactFeedback: UIImpactFeedbackGenerator?
+    #endif
 
     var sceneNodes = SceneNode(
         sky: SKSpriteNode(imageNamed: "langit"),
@@ -212,6 +219,12 @@ class GameViewModel: ObservableObject {
 
     private func setupCatcher() {
         catcher.setup()
+        #if os(iOS)
+            hapticQueue.async {
+                self.impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                self.impactFeedback?.prepare()
+            }
+        #endif
     }
 
     private func spawnCatcher() {
@@ -296,12 +309,13 @@ class GameViewModel: ObservableObject {
         let objectSize = objectType.size
         let halfWidth = objectSize.width / 2
         let randomX = CGFloat.random(
-            in: halfWidth...(screenSize.width - halfWidth)
+            in: (screenSize.width * (1 - 0.65) + halfWidth)...(screenSize.width
+                * 0.65 - halfWidth)
         )
 
         let startPosition = CGPoint(
             x: randomX,
-            y: screenSize.height * 0.7
+            y: screenSize.height * 0.65
         )
 
         let fallingObjectData = FallingObjectData(
@@ -404,14 +418,18 @@ class GameViewModel: ObservableObject {
 
     private func provideCatcherFeedback() {
         #if os(iOS)
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-            impactFeedback.impactOccurred()
+            hapticQueue.async {
+                DispatchQueue.main.async {
+                    self.impactFeedback?.impactOccurred()
+                }
+            }
         #endif
     }
 
     private func decreaseHealth() {
         gameState.health -= 1
         if gameState.health == 0 {
+            touchesEnded()
             gameOver()
         }
     }
@@ -598,8 +616,7 @@ class GameViewModel: ObservableObject {
             y: screenSize.height - safeAreaTop - GameConfiguration.labelSpacing
         )
     }
-    
-    
+
     //power up
     private func addHealth(_ amount: Int = 1) {
         let maxHealth = 5
@@ -609,11 +626,14 @@ class GameViewModel: ObservableObject {
             print("Health max")
         }
     }
-    
+
     private func activateDoublePoint() {
         doublePointTimer?.invalidate()
 
-        doublePointTimer = Timer.scheduledTimer(withTimeInterval: GameConfiguration.doublePointDuration, repeats: false) { [weak self] _ in
+        doublePointTimer = Timer.scheduledTimer(
+            withTimeInterval: GameConfiguration.doublePointDuration,
+            repeats: false
+        ) { [weak self] _ in
             self?.doublePointTimer = nil
             print("Double Point expired")
         }
