@@ -138,7 +138,7 @@ struct FallingObjectType {
     )
 
     static let allTypes = [
-        tire, bottle, ciki, can, plasticBag, sandal, diaper, heart, coin, clock,
+        tire, ciki, bottle, can, plasticBag, heart, coin, clock,
     ]
 
     static func random() -> FallingObjectType {
@@ -152,7 +152,7 @@ struct FallingObjectType {
             }
         }
 
-        return tire
+        return bottle 
     }
 }
 
@@ -221,6 +221,7 @@ class FallingObject: BaseGameObject {
     func startFallingWithTypeSpeed(
         from position: CGPoint,
         to targetY: CGFloat,
+        duration: TimeInterval,
         initialScale: CGFloat = 1.0,
         finalScale: CGFloat = 1.0,
         onComplete: @escaping () -> Void
@@ -228,15 +229,10 @@ class FallingObject: BaseGameObject {
         node.position = position
         node.setScale(initialScale)
 
-        // Calculate duration based on distance and fall speed
-        let distance = abs(position.y - targetY)
-        let duration = TimeInterval(distance / objectType.fallSpeed)
-
         let fallAction = SKAction.moveTo(y: targetY, duration: duration)
         let scaleAction = SKAction.scale(to: finalScale, duration: duration)
         let completeAction = SKAction.run(onComplete)
 
-        // Use group to run fall and scale together, then run complete
         let simultaneousActions = SKAction.group([fallAction, scaleAction])
         let sequence = SKAction.sequence([simultaneousActions, completeAction])
 
