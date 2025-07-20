@@ -20,8 +20,8 @@ struct GameView: View {
             // Background Game Scene
             BackgroundSceneView(viewModel: viewModel)
 
-            // Menu Content
-            if viewModel.gameState.playState == .menu {
+            switch viewModel.gameState.playState {
+            case .menu:
                 MenuContentView(
                     onStartGame: {
                         viewModel.startGameplay()
@@ -29,37 +29,43 @@ struct GameView: View {
                     tutorialManager: tutorialManager,
                     namespace: namespace,
                 )
-            } else {
+            case .playing, .paused:
                 GameOverlayView(
                     viewModel: viewModel,
                     tutorialManager: tutorialManager
                 )
-            }
-
-            // Tutorial Overlay
-            TutorialOverlayView(tutorialManager: tutorialManager)
-        }
-        .onAppear {
-            // Set up tutorial trigger when catcher spawns
-            viewModel.onCatcherSpawned = {
-                if tutorialManager.shouldShowTutorial() {
-                    viewModel.pauseGame()
-                    tutorialManager.startTutorial()
-                    tutorialManager.onCompleted(
-                        completion: {
-                            viewModel.resumeGame()
+                .onAppear {
+                    // Set up tutorial trigger when catcher spawns
+                    viewModel.onCatcherSpawned = {
+                        if tutorialManager.shouldShowTutorial() {
+                            viewModel.pauseGame()
+                            tutorialManager.startTutorial()
+                            tutorialManager.onCompleted(
+                                completion: {
+                                    viewModel.resumeGame()
+                                }
+                            )
                         }
-                    )
+                    }
                 }
+            case .gameOver:
+                GameOverView(
+                    score: viewModel.gameState.score,
+                    onReplay: {
+                        viewModel.resetGame()
+                    },
+                    onHome: {
+                        viewModel.resetToMenu()
+                        currentScreen = .menu
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
             }
         }
-        .onTapGesture {
-            // Make the whole screen clickable when in menu state
-            if viewModel.gameState.playState == .menu {
-                print("startGameplay")
-                viewModel.startGameplay()
-            }
-        }
+        .animation(
+            .spring(response: 0.4, dampingFraction: 0.8),
+            value: viewModel.gameState.playState
+        )
     }
 }
 
@@ -198,6 +204,67 @@ private struct GameOverlayView: View {
             }
             Spacer()
         }
+    }
+}
+
+// MARK: - Game Over View
+private struct GameOverView: View {
+    let score: Int
+    let onReplay: () -> Void
+    let onHome: () -> Void
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Text("Game Over")
+                .font(.system(size: 50, weight: .bold))
+                .foregroundColor(.white)
+                .shadow(radius: 3)
+
+            Text("Score: \(score)")
+                .font(.title)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+
+            VStack(spacing: 16) {
+                Button(action: onReplay) {
+                    Text("Replay")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(
+                            Color(
+                                red: 38 / 255,
+                                green: 175 / 255,
+                                blue: 225 / 255
+                            )
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(20)
+                }
+
+                Button(action: onHome) {
+                    Text("Home")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.black.opacity(0.2))
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white, lineWidth: 1)
+                        )
+                }
+            }
+        }
+        .padding(40)
+        .background(.black.opacity(0.6))
+        .background(.ultraThinMaterial)
+        .cornerRadius(25)
+        .shadow(color: .black.opacity(0.4), radius: 15, x: 0, y: 10)
+        .padding(.horizontal, 30)
     }
 }
 
