@@ -11,6 +11,7 @@ import SwiftUI
 struct GameView: View {
     @Binding var currentScreen: ScreenState
     @StateObject private var viewModel = GameViewModel()
+    @StateObject private var tutorialManager = TutorialManager()
 
     let namespace: Namespace.ID
 
@@ -23,13 +24,33 @@ struct GameView: View {
             if viewModel.gameState.playState == .menu {
                 MenuContentView(
                     onStartGame: {
-                        print("startGameplay")
                         viewModel.startGameplay()
                     },
-                    namespace: namespace
+                    tutorialManager: tutorialManager,
+                    namespace: namespace,
                 )
             } else {
-                GameOverlayView(viewModel: viewModel)
+                GameOverlayView(
+                    viewModel: viewModel,
+                    tutorialManager: tutorialManager
+                )
+            }
+
+            // Tutorial Overlay
+            TutorialOverlayView(tutorialManager: tutorialManager)
+        }
+        .onAppear {
+            // Set up tutorial trigger when catcher spawns
+            viewModel.onCatcherSpawned = {
+                if tutorialManager.shouldShowTutorial() {
+                    viewModel.pauseGame()
+                    tutorialManager.startTutorial()
+                    tutorialManager.onCompleted(
+                        completion: {
+                            viewModel.resumeGame()
+                        }
+                    )
+                }
             }
         }
     }
@@ -39,6 +60,7 @@ struct GameView: View {
 private struct MenuContentView: View {
     let onStartGame: () -> Void
     @State private var showPlayText = false
+    @ObservedObject var tutorialManager: TutorialManager
 
     let namespace: Namespace.ID
 
@@ -51,6 +73,16 @@ private struct MenuContentView: View {
 
             // Animated Play Text
             AnimatedPlayText(isVisible: showPlayText)
+
+            // Tutorial button
+            if showPlayText {
+                Button("Show Tutorial") {
+                    tutorialManager.forceStartTutorial()
+                }
+                .padding(.top, 20)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.8))
+            }
         }
         .padding(.vertical, 72)
         .onTapGesture {
@@ -140,12 +172,25 @@ private struct BackgroundSceneView: View {
 // MARK: - Game Overlay View
 private struct GameOverlayView: View {
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var tutorialManager: TutorialManager
 
     var body: some View {
         VStack {
             HStack {
                 GameStatsView(viewModel: viewModel)
                 Spacer()
+
+                // Tutorial button during gameplay
+                if viewModel.gameState.playState == .playing {
+                    Button("?") {
+                        tutorialManager.forceStartTutorial()
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(width: 30, height: 30)
+                    .background(Circle().fill(.black.opacity(0.3)))
+                    .padding(.trailing)
+                }
             }
             Spacer()
         }
