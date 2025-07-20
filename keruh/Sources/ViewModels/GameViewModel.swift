@@ -753,10 +753,9 @@ class GameViewModel: ObservableObject {
             repeats: false
         ) { [weak self] _ in
             self?.doublePointTimer = nil
-            print("Double Point expired")
+            print("[\(self?.currentTimestamp() ?? "")] Double Point expired")
         }
-
-        print("Double Point activated")
+        print("[\(currentTimestamp())] Double Point activated")
     }
 
     func activateSlowMotion() {
@@ -769,44 +768,39 @@ class GameViewModel: ObservableObject {
                 guard let self = self else { return }
                 self.gameState.gameSpeed = self.originalGameSpeed
                 self.slowMotionTimer = nil
-                print("Slow Motion expired")
+                print("[\(self.currentTimestamp())] Slow Motion expired")
             }
-            print("Slow Motion extended")
+            print("[\(currentTimestamp())] Slow Motion extended")
             return
         }
-        
-        print("Slow Motion activated")
+
+        print("[\(currentTimestamp())] Slow Motion activated")
         originalGameSpeed = gameState.gameSpeed
         gameState.gameSpeed *= GameConfiguration.slowMotionSpawnMultiplier
-        
-        // PERLAMBAT objek yang sudah jatuh
-        for (_index, object) in fallingObjects.enumerated() {
+
+        for (_, object) in fallingObjects.enumerated() {
             let objectId = object.id
             guard let node = fallingObjectNodes[objectId] else { continue }
-            
+
             let currentY = node.node.position.y
             let remainingDistance = abs(currentY - GameConfiguration.offScreenBuffer)
             let newFallSpeed = object.type.fallSpeed * GameConfiguration.slowMotionFallSpeedMultiplier
             let newDuration = TimeInterval(remainingDistance / newFallSpeed)
-            
-            // stop animasi & timer lama
+
             objectTimers[objectId]?.invalidate()
             objectTimers.removeValue(forKey: objectId)
             node.node.removeAllActions()
-            
-            // jalankan ulang animasi dengan durasi lambat
+
             node.node.run(SKAction.moveTo(y: GameConfiguration.offScreenBuffer, duration: newDuration)) { [weak self] in
                 self?.handleObjectMissed(objectId)
             }
-            
-            // buat timer cleanup baru
+
             let timer = Timer.scheduledTimer(withTimeInterval: newDuration + 1.0, repeats: false) { [weak self] _ in
                 self?.cleanupFallingObject(objectId)
             }
             objectTimers[objectId] = timer
         }
-        
-        // Timer slow motion selesai
+
         slowMotionTimer = Timer.scheduledTimer(
             withTimeInterval: GameConfiguration.slowMotionDuration,
             repeats: false
@@ -814,32 +808,40 @@ class GameViewModel: ObservableObject {
             guard let self = self else { return }
             self.gameState.gameSpeed = self.originalGameSpeed
             self.slowMotionTimer = nil
-            
-            // KEMBALIKAN kecepatan normal
-            for (index, object) in self.fallingObjects.enumerated() {
+
+            for (_, object) in self.fallingObjects.enumerated() {
                 let objectId = object.id
                 guard let node = self.fallingObjectNodes[objectId] else { continue }
-                
+
                 let currentY = node.node.position.y
                 let remainingDistance = abs(currentY - object.targetY)
                 let normalSpeed = object.type.fallSpeed
                 let newDuration = TimeInterval(remainingDistance / normalSpeed)
-                
+
                 self.objectTimers[objectId]?.invalidate()
                 self.objectTimers.removeValue(forKey: objectId)
                 node.node.removeAllActions()
-                
+
                 node.node.run(SKAction.moveTo(y: object.targetY, duration: newDuration)) { [weak self] in
                     self?.handleObjectMissed(objectId)
                 }
-                
+
                 let timer = Timer.scheduledTimer(withTimeInterval: newDuration + 1.0, repeats: false) { [weak self] _ in
                     self?.cleanupFallingObject(objectId)
                 }
                 self.objectTimers[objectId] = timer
             }
-            
-            print("Slow Motion expired")
+
+            print("[\(self.currentTimestamp())] Slow Motion expired")
         }
     }
+
+    
+    //helper untuk debug
+    private func currentTimestamp() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss.SSS"
+        return formatter.string(from: Date())
+    }
+
 }

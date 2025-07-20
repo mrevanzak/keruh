@@ -49,7 +49,7 @@ struct FallingObjectType {
         fallSpeed: 100,
         rarity: 0.1,
         isSpecial: false,
-        isCollectible: false
+        isCollectible: true
     )
 
     static let bottle = FallingObjectType(
@@ -228,6 +228,10 @@ class FallingObject: BaseGameObject {
     ) {
         node.position = position
         node.setScale(initialScale)
+        
+//        // Calculate duration based on distance and fall speed
+//        let distance = abs(position.y - targetY)
+//        let duration = TimeInterval(distance / objectType.fallSpeed)
 
         let fallAction = SKAction.moveTo(y: targetY, duration: duration)
         let scaleAction = SKAction.scale(to: finalScale, duration: duration)
