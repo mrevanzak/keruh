@@ -13,7 +13,7 @@ import SwiftUI
 private enum GameConfiguration {
     static let catcherBottomOffset: CGFloat = 100
     static let speedIncreaseInterval = 5
-    static let speedMultiplier: TimeInterval = 1.1
+    static let speedMultiplier: TimeInterval = 0.9
     static let minimumSpawnInterval: TimeInterval = 0.5
     static let defaultSpawnInterval: TimeInterval = 2.0
     static let initialHealth = 3
@@ -413,9 +413,6 @@ class GameViewModel: ObservableObject {
                 * GameConfiguration.slowMotionFallSpeedMultiplier
             : objectType.fallSpeed * (gameState.gameSpeed / 2)
 
-        let distance = startPosition.y - (-objectSize.height)
-        let fallDuration = max(TimeInterval(distance / objectType.fallSpeed), 0.1)
-
         let fallingObjectData = FallingObjectData(
             type: objectType,
             position: startPosition,
@@ -470,9 +467,6 @@ class GameViewModel: ObservableObject {
     }
 
     private func scheduleObjectCleanup(for object: FallingObjectData) {
-        let distance = abs(object.position.y - object.targetY)
-        let expectedDuration = TimeInterval(distance / object.type.fallSpeed)
-
         let timer = Timer.scheduledTimer(
             withTimeInterval: object.fallDuration + 1.0,
             repeats: false
