@@ -66,9 +66,8 @@ class TutorialManager: ObservableObject {
 
   func shouldShowTutorial() -> Bool {
     // Check if user has seen tutorial before
-    // let hasSeenTutorial = userDefaults.bool(forKey: hasSeenTutorialKey)
-    // return !hasSeenTutorial
-    return true
+    let hasSeenTutorial = userDefaults.bool(forKey: hasSeenTutorialKey)
+    return !hasSeenTutorial
   }
 
   func startTutorial() {
