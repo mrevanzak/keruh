@@ -49,17 +49,23 @@ struct GameView: View {
                     }
                 }
             case .gameOver:
-                GameOverView(
-                    score: viewModel.gameState.score,
-                    onReplay: {
-                        viewModel.resetGame()
-                    },
-                    onHome: {
-                        viewModel.resetToMenu()
-                        currentScreen = .menu
-                    }
-                )
-                .transition(.scale.combined(with: .opacity))
+                ZStack {
+                    Color.black.opacity(0.6)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+
+                    GameOverView(
+                        score: viewModel.gameState.score,
+                        onReplay: {
+                            viewModel.resetGame()
+                        },
+                        onHome: {
+                            viewModel.resetToMenu()
+                            currentScreen = .menu
+                        }
+                    )
+                    .transition(.scale.combined(with: .opacity))
+                }
             }
         }
         .animation(
@@ -214,57 +220,65 @@ private struct GameOverView: View {
     let onHome: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Game Over")
-                .font(.system(size: 50, weight: .bold))
-                .foregroundColor(.white)
-                .shadow(radius: 3)
+        ZStack {
+            Image("game_over")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 480)
 
-            Text("Score: \(score)")
-                .font(.title)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
+            GeometryReader { geo in
+                let imageHeight = geo.size.height
+                let buttonTopPadding = imageHeight * 0.67
 
-            VStack(spacing: 16) {
-                Button(action: onReplay) {
-                    Text("Replay")
-                        .font(.title2)
+                VStack(spacing: 16) {
+                    (Text("\(score) KG\n")
+                        .font(.custom("PaperInko", size: 36))
                         .fontWeight(.bold)
                         .foregroundColor(
                             Color(
-                                red: 38 / 255,
+                                red: 251 / 255,
                                 green: 175 / 255,
-                                blue: 225 / 255
+                                blue: 23 / 255
                             )
                         )
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(20)
-                }
+                        + Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
+                        .font(.custom("PaperInko", size: 28))
+                        .fontWeight(.black)
+                        .foregroundColor(.black))
+                        .multilineTextAlignment(.center)
 
-                Button(action: onHome) {
-                    Text("Home")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.black.opacity(0.2))
-                        .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white, lineWidth: 1)
-                        )
+                    Text(
+                        "KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!"
+                    )
+                    .font(.custom("PaperInko", size: 14))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(
+                        Color(red: 51 / 255, green: 178 / 255, blue: 199 / 255)
+                    )
                 }
+                .frame(width: geo.size.width, height: geo.size.height * 1.1)
+
+                VStack {
+                    HStack(spacing: 8) {
+                        Button(action: onReplay) {
+                            Image("replay")
+                                .resizable()
+                                .frame(width: 88, height: 88)
+                        }
+
+                        Button(action: onHome) {
+                            Image("home")
+                                .resizable()
+                                .frame(width: 88, height: 88)
+                        }
+                    }
+                }
+                .padding(.top, buttonTopPadding)
+                .frame(width: geo.size.width)
             }
         }
-        .padding(40)
-        .background(.black.opacity(0.6))
-        .background(.ultraThinMaterial)
-        .cornerRadius(25)
-        .shadow(color: .black.opacity(0.4), radius: 15, x: 0, y: 10)
-        .padding(.horizontal, 30)
+        .padding(.horizontal, 16)
+        .ignoresSafeArea(.all)
     }
 }
 
