@@ -13,7 +13,7 @@ import SwiftUI
 private enum GameConfiguration {
     static let catcherBottomOffset: CGFloat = 100
     static let speedIncreaseInterval = 5
-    static let speedMultiplier: TimeInterval = 0.9
+    static let speedMultiplier: TimeInterval = 1.1
     static let minimumSpawnInterval: TimeInterval = 0.5
     static let defaultSpawnInterval: TimeInterval = 2.0
     static let initialHealth = 3
@@ -85,6 +85,15 @@ class GameViewModel: ObservableObject {
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
+    private var originalGameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
+    private var latestXDrop: CGFloat?
+    #if os(iOS)
+        private let hapticQueue = DispatchQueue(
+            label: "haptic.feedback",
+            qos: .userInitiated
+        )
+        private var impactFeedback: UIImpactFeedbackGenerator?
+    #endif
 
     var sceneNodes = SceneNode(
         sky: SKSpriteNode(imageNamed: "langit"),
@@ -132,7 +141,7 @@ class GameViewModel: ObservableObject {
         // Islands
         sceneNodes.leftIsland.anchorPoint = CGPoint(x: 1.0, y: 0.0)
         sceneNodes.leftIsland.size = CGSize(
-            width: screenSize.width * 0.65,
+            width: screenSize.width * 0.55,
             height: screenSize.height * 0.8
         )
         let islandYPosition = screenSize.height * 0.05
@@ -144,7 +153,7 @@ class GameViewModel: ObservableObject {
 
         sceneNodes.rightIsland.anchorPoint = CGPoint(x: 0.1, y: 0.0)
         sceneNodes.rightIsland.size = CGSize(
-            width: screenSize.width * 0.65,
+            width: screenSize.width * 0.55,
             height: screenSize.height * 0.8
         )
         sceneNodes.rightIsland.position = CGPoint(
@@ -228,6 +237,12 @@ class GameViewModel: ObservableObject {
 
     private func setupCatcher() {
         catcher.setup()
+        #if os(iOS)
+            hapticQueue.async {
+                self.impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                self.impactFeedback?.prepare()
+            }
+        #endif
     }
 
     private func spawnCatcher() {
@@ -308,32 +323,101 @@ class GameViewModel: ObservableObject {
         }
     }
 
+    private func calculateSpawnX(for objectSize: CGSize) -> CGFloat {
+        let halfWidth = objectSize.width / 2
+        let preferredLeftBound = screenSize.width * 0.35 + halfWidth
+        let preferredRightBound = screenSize.width * 0.65 - halfWidth
+
+        // Ensure we always have a valid range within preferred bounds
+        let actualLeftBound = max(preferredLeftBound, halfWidth)
+        let actualRightBound = min(
+            preferredRightBound,
+            screenSize.width - halfWidth
+        )
+
+        // If the preferred bounds are invalid (object too wide), adjust them
+        if actualLeftBound >= actualRightBound {
+            // Object is too wide for preferred area, use the center of preferred area
+            let preferredCenter =
+                (screenSize.width * 0.35 + screenSize.width * 0.65) / 2
+            latestXDrop = preferredCenter
+            return preferredCenter
+        }
+
+        // Define minimum distance between spawns (adjust this value as needed)
+        let minDistance: CGFloat = max(
+            objectSize.width * 1.5,
+            screenSize.width * 0.08
+        )
+
+        var attempts = 0
+        let maxAttempts = 20
+
+        while attempts < maxAttempts {
+            let randomX = CGFloat.random(in: actualLeftBound...actualRightBound)
+
+            // Check if this position is far enough from the last drop
+            if latestXDrop == nil || abs(randomX - latestXDrop!) >= minDistance
+            {
+                latestXDrop = randomX
+                return randomX
+            }
+
+            attempts += 1
+        }
+
+        if let lastDrop = latestXDrop {
+            // Choose the position that's farthest from the last drop
+            let leftOption = actualLeftBound
+            let rightOption = actualRightBound
+            let centerOption = (actualLeftBound + actualRightBound) / 2
+
+            let leftDistance = abs(leftOption - lastDrop)
+            let rightDistance = abs(rightOption - lastDrop)
+            let centerDistance = abs(centerOption - lastDrop)
+
+            let bestX: CGFloat
+            if leftDistance >= rightDistance && leftDistance >= centerDistance {
+                bestX = leftOption
+            } else if rightDistance >= centerDistance {
+                bestX = rightOption
+            } else {
+                bestX = centerOption
+            }
+
+            latestXDrop = bestX
+            return bestX
+        }
+
+        // Fallback: random position
+        let fallbackX = CGFloat.random(in: actualLeftBound...actualRightBound)
+        latestXDrop = fallbackX
+        return fallbackX
+    }
+
     private func spawnFallingObject() {
         guard gameState.playState == .playing else { return }
 
         let objectType = FallingObjectType.random()
         let objectSize = objectType.getSize()
-        let halfWidth = objectSize.width / 2
-        let randomX = CGFloat.random(
-            in: halfWidth...(screenSize.width - halfWidth)
-        )
+        let randomX = calculateSpawnX(for: objectSize)
 
         let startPosition = CGPoint(
             x: randomX,
-            y: screenSize.height * 0.7
+            y: screenSize.height * 0.65
         )
 
         let adjustedFallSpeed =
             (slowMotionTimer != nil)
             ? objectType.fallSpeed
                 * GameConfiguration.slowMotionFallSpeedMultiplier
-            : objectType.fallSpeed
+            : objectType.fallSpeed * (gameState.gameSpeed / 2)
 
         let fallingObjectData = FallingObjectData(
             type: objectType,
             position: startPosition,
             targetY: -objectSize.height,
-            fallDuration: objectType.fallSpeed
+            fallDuration: adjustedFallSpeed
         )
 
         let fallingObjectNode = FallingObject(type: objectType)
@@ -343,19 +427,38 @@ class GameViewModel: ObservableObject {
         newFallingObjectNodes.append(fallingObjectNode)
         fallingObjects.append(fallingObjectData)
 
-        animateFallingObject(fallingObjectData)
+        animateFallingObjectSimplePerspective(fallingObjectData)
     }
 
-    private func animateFallingObject(_ object: FallingObjectData) {
+    private func animateFallingObjectSimplePerspective(
+        _ object: FallingObjectData
+    ) {
         guard let fallingObjectNode = fallingObjectNodes[object.id] else {
             return
         }
 
-        fallingObjectNode.startFallingWithTypeSpeed(
+        let screenCenter = screenSize.width / 2
+
+        let finalX: CGFloat
+        if object.position.x < screenCenter {
+            finalX =
+                object.position.x - (screenCenter - object.position.x)
+        } else {
+            finalX =
+                object.position.x + (object.position.x - screenCenter)
+        }
+
+        let finalPosition = CGPoint(x: finalX, y: object.targetY)
+
+        let fallDistance = abs(object.position.y - object.targetY)
+        let actualDuration = TimeInterval(fallDistance / object.type.fallSpeed)
+
+        fallingObjectNode.startFallingWithPerspective(
             from: object.position,
-            to: object.targetY,
-            initialScale: 0.6,
-            finalScale: 1.0
+            to: finalPosition,
+            initialScale: 0.3,
+            finalScale: 1.0,
+            duration: actualDuration
         ) { [weak self] in
             self?.handleObjectMissed(object.id)
         }
@@ -429,14 +532,18 @@ class GameViewModel: ObservableObject {
 
     private func provideCatcherFeedback() {
         #if os(iOS)
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-            impactFeedback.impactOccurred()
+            hapticQueue.async {
+                DispatchQueue.main.async {
+                    self.impactFeedback?.impactOccurred()
+                }
+            }
         #endif
     }
 
     private func decreaseHealth() {
         gameState.health -= 1
         if gameState.health == 0 {
+            touchesEnded()
             gameOver()
         }
     }
@@ -536,11 +643,10 @@ class GameViewModel: ObservableObject {
 
             let topCatchZone = CGRect(
                 x: catcherFrame.minX,
-                y: catcherFrame.maxY - 30,
-                width: catcherFrame.width,
-                height: 30
+                y: catcherFrame.maxY - 80,
+                width: catcherFrame.width - 50,
+                height: 10
             )
-
             if topCatchZone.intersects(objectFrame) {
                 handleObjectCaught(objectId)
             }
@@ -668,7 +774,7 @@ class GameViewModel: ObservableObject {
         originalGameSpeed = gameState.gameSpeed
         gameState.gameSpeed *= GameConfiguration.slowMotionSpawnMultiplier
 
-        for (index, object) in fallingObjects.enumerated() {
+        for object in fallingObjects {
             let objectId = object.id
             guard let node = fallingObjectNodes[objectId] else { continue }
 
