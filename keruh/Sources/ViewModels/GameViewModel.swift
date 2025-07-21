@@ -85,7 +85,7 @@ class GameViewModel: ObservableObject {
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
-    private var originalGameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
+    
     private var latestXDrop: CGFloat?
     #if os(iOS)
         private let hapticQueue = DispatchQueue(
@@ -414,13 +414,13 @@ class GameViewModel: ObservableObject {
             : objectType.fallSpeed * (gameState.gameSpeed / 2)
 
         let distance = startPosition.y - (-objectSize.height)
-        let fallDuration = max(TimeInterval(distance / effectiveFallSpeed), 0.1)
+        let fallDuration = max(TimeInterval(distance / objectType.fallSpeed), 0.1)
 
         let fallingObjectData = FallingObjectData(
             type: objectType,
             position: startPosition,
             targetY: -objectSize.height,
-            fallDuration: fallDuration
+            fallDuration: adjustedFallSpeed
         )
 
         let fallingObjectNode = FallingObject(type: objectType)
