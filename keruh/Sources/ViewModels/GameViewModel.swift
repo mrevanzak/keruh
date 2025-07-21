@@ -417,7 +417,7 @@ class GameViewModel: ObservableObject {
             type: objectType,
             position: startPosition,
             targetY: -objectSize.height,
-            fallDuration: objectType.fallSpeed
+            fallDuration: adjustedFallSpeed
         )
 
         let fallingObjectNode = FallingObject(type: objectType)
