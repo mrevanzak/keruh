@@ -85,7 +85,7 @@ class GameViewModel: ObservableObject {
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
-    private var originalGameSpeed: TimeInterval = GameConfiguration.defaultSpawnInterval
+    
     private var latestXDrop: CGFloat?
     #if os(iOS)
         private let hapticQueue = DispatchQueue(
@@ -413,6 +413,9 @@ class GameViewModel: ObservableObject {
                 * GameConfiguration.slowMotionFallSpeedMultiplier
             : objectType.fallSpeed * (gameState.gameSpeed / 2)
 
+        let distance = startPosition.y - (-objectSize.height)
+        let fallDuration = max(TimeInterval(distance / objectType.fallSpeed), 0.1)
+
         let fallingObjectData = FallingObjectData(
             type: objectType,
             position: startPosition,
@@ -471,12 +474,12 @@ class GameViewModel: ObservableObject {
         let expectedDuration = TimeInterval(distance / object.type.fallSpeed)
 
         let timer = Timer.scheduledTimer(
-            withTimeInterval: expectedDuration + 1.0,
+            withTimeInterval: object.fallDuration + 1.0,
             repeats: false
         ) { [weak self] _ in
             self?.cleanupFallingObject(object.id)
         }
-
+        
         objectTimers[object.id] = timer
     }
 
@@ -498,8 +501,10 @@ class GameViewModel: ObservableObject {
         switch object.type.assetName {
         case "heart":
             addHealth()
-        case "star":
+        case "coin":
             activateDoublePoint()
+        case "clock":
+            activateSlowMotion()
         default:
             if object.type.isCollectible {
                 let multiplier = (doublePointTimer != nil) ? 2 : 1
@@ -748,10 +753,9 @@ class GameViewModel: ObservableObject {
             repeats: false
         ) { [weak self] _ in
             self?.doublePointTimer = nil
-            print("Double Point expired")
+            print("[\(self?.currentTimestamp() ?? "")] Double Point expired")
         }
-
-        print("Double Point activated")
+        print("[\(currentTimestamp())] Double Point activated")
     }
 
     func activateSlowMotion() {
@@ -764,39 +768,37 @@ class GameViewModel: ObservableObject {
                 guard let self = self else { return }
                 self.gameState.gameSpeed = self.originalGameSpeed
                 self.slowMotionTimer = nil
-                print("Slow Motion expired")
+                print("[\(self.currentTimestamp())] Slow Motion expired")
             }
-            print("Slow Motion extended")
+            print("[\(currentTimestamp())] Slow Motion extended")
             return
         }
 
-        print("Slow Motion activated")
+        print("[\(currentTimestamp())] Slow Motion activated")
         originalGameSpeed = gameState.gameSpeed
         gameState.gameSpeed *= GameConfiguration.slowMotionSpawnMultiplier
 
-        for object in fallingObjects {
+        for (_, object) in fallingObjects.enumerated() {
             let objectId = object.id
             guard let node = fallingObjectNodes[objectId] else { continue }
 
             let currentY = node.node.position.y
-            let remainingDistance = abs(
-                currentY - GameConfiguration.offScreenBuffer
-            )
-            let newFallSpeed =
-                object.type.fallSpeed
-                * GameConfiguration.slowMotionFallSpeedMultiplier
+            let remainingDistance = abs(currentY - GameConfiguration.offScreenBuffer)
+            let newFallSpeed = object.type.fallSpeed * GameConfiguration.slowMotionFallSpeedMultiplier
             let newDuration = TimeInterval(remainingDistance / newFallSpeed)
 
+            objectTimers[objectId]?.invalidate()
+            objectTimers.removeValue(forKey: objectId)
             node.node.removeAllActions()
-            node.node.run(
-                SKAction.moveTo(
-                    y: GameConfiguration.offScreenBuffer,
-                    duration: newDuration
-                )
-            ) {
-                [weak self] in
+
+            node.node.run(SKAction.moveTo(y: GameConfiguration.offScreenBuffer, duration: newDuration)) { [weak self] in
                 self?.handleObjectMissed(objectId)
             }
+
+            let timer = Timer.scheduledTimer(withTimeInterval: newDuration + 1.0, repeats: false) { [weak self] _ in
+                self?.cleanupFallingObject(objectId)
+            }
+            objectTimers[objectId] = timer
         }
 
         slowMotionTimer = Timer.scheduledTimer(
@@ -806,7 +808,40 @@ class GameViewModel: ObservableObject {
             guard let self = self else { return }
             self.gameState.gameSpeed = self.originalGameSpeed
             self.slowMotionTimer = nil
-            print("Slow Motion expired")
+
+            for (_, object) in self.fallingObjects.enumerated() {
+                let objectId = object.id
+                guard let node = self.fallingObjectNodes[objectId] else { continue }
+
+                let currentY = node.node.position.y
+                let remainingDistance = abs(currentY - object.targetY)
+                let normalSpeed = object.type.fallSpeed
+                let newDuration = TimeInterval(remainingDistance / normalSpeed)
+
+                self.objectTimers[objectId]?.invalidate()
+                self.objectTimers.removeValue(forKey: objectId)
+                node.node.removeAllActions()
+
+                node.node.run(SKAction.moveTo(y: object.targetY, duration: newDuration)) { [weak self] in
+                    self?.handleObjectMissed(objectId)
+                }
+
+                let timer = Timer.scheduledTimer(withTimeInterval: newDuration + 1.0, repeats: false) { [weak self] _ in
+                    self?.cleanupFallingObject(objectId)
+                }
+                self.objectTimers[objectId] = timer
+            }
+
+            print("[\(self.currentTimestamp())] Slow Motion expired")
         }
     }
+
+    
+    //helper untuk debug
+    private func currentTimestamp() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss.SSS"
+        return formatter.string(from: Date())
+    }
+
 }
