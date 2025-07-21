@@ -13,7 +13,7 @@ import SwiftUI
 private enum GameConfiguration {
     static let catcherBottomOffset: CGFloat = 100
     static let speedIncreaseInterval = 5
-    static let speedMultiplier: TimeInterval = 0.9
+    static let speedMultiplier: TimeInterval = 1.1
     static let minimumSpawnInterval: TimeInterval = 0.5
     static let defaultSpawnInterval: TimeInterval = 2.0
     static let initialHealth = 3
@@ -411,7 +411,7 @@ class GameViewModel: ObservableObject {
             (slowMotionTimer != nil)
             ? objectType.fallSpeed
                 * GameConfiguration.slowMotionFallSpeedMultiplier
-            : objectType.fallSpeed
+            : objectType.fallSpeed * (gameState.gameSpeed / 2)
 
         let fallingObjectData = FallingObjectData(
             type: objectType,
@@ -640,7 +640,7 @@ class GameViewModel: ObservableObject {
 
         for (objectId, fallingObject) in fallingObjectNodes {
             let objectFrame = createObjectFrame(for: fallingObject)
-            
+
             let topCatchZone = CGRect(
                 x: catcherFrame.minX,
                 y: catcherFrame.maxY - 80,
@@ -651,7 +651,6 @@ class GameViewModel: ObservableObject {
                 handleObjectCaught(objectId)
             }
         }
-
 
         cleanupOffScreenObjects()
     }
@@ -775,7 +774,7 @@ class GameViewModel: ObservableObject {
         originalGameSpeed = gameState.gameSpeed
         gameState.gameSpeed *= GameConfiguration.slowMotionSpawnMultiplier
 
-        for (index, object) in fallingObjects.enumerated() {
+        for object in fallingObjects {
             let objectId = object.id
             guard let node = fallingObjectNodes[objectId] else { continue }
 
