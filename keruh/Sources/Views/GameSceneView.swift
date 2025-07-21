@@ -18,6 +18,21 @@ class GameScene: SKScene {
             safeAreaInsets: view.safeAreaInsets
         )
 
+        backgroundColor = SKColor(
+            red: 38 / 255,
+            green: 175 / 255,
+            blue: 225 / 255,
+            alpha: 1.0
+        )
+
+        // Add scene nodes to the scene
+        addChild(viewModel.sceneNodes.sky)
+        addChild(viewModel.sceneNodes.river)
+        addChild(viewModel.sceneNodes.leftIsland)
+        addChild(viewModel.sceneNodes.rightIsland)
+        addChild(viewModel.sceneNodes.clouds)
+        addChild(viewModel.sceneNodes.waves)
+
         // Add game nodes to the scene
         addChild(viewModel.getCatcherNode())
 
@@ -81,6 +96,7 @@ struct GameSceneView: UIViewRepresentable {
         scene.size = UIScreen.main.bounds.size
         scene.scaleMode = .aspectFill
         scene.viewModel = viewModel
+        scene.backgroundColor = .clear
 
         skView.presentScene(scene)
         return skView
