@@ -27,7 +27,7 @@ struct GameView: View {
                         viewModel.startGameplay()
                     },
                     tutorialManager: tutorialManager,
-                    namespace: namespace,
+                    namespace: namespace
                 )
             } else {
                 GameOverlayView(
