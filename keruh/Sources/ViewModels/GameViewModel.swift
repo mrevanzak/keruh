@@ -23,7 +23,7 @@ private enum GameConfiguration {
     static let offScreenBuffer: CGFloat = -100.0
     static let doublePointDuration: TimeInterval = 10.0
     static let slowMotionFallSpeedMultiplier: Double = 0.5
-    static let slowMotionSpawnMultiplier: Double = 1.5
+    static let slowMotionSpawnMultiplier: Double = 3
     static let slowMotionDuration: TimeInterval = 10.0
 }
 
@@ -407,17 +407,17 @@ class GameViewModel: ObservableObject {
             y: screenSize.height * 0.65
         )
 
-        let adjustedFallSpeed =
-            (slowMotionTimer != nil)
-            ? objectType.fallSpeed
-                * GameConfiguration.slowMotionFallSpeedMultiplier
-            : objectType.fallSpeed * (gameState.gameSpeed / 2)
+        let adjustedFallSpeed = (slowMotionTimer != nil)
+            ? objectType.fallSpeed * GameConfiguration.slowMotionFallSpeedMultiplier
+            : objectType.fallSpeed
+
+        let fallDuration = TimeInterval(abs(startPosition.y + objectSize.height) / adjustedFallSpeed)
 
         let fallingObjectData = FallingObjectData(
             type: objectType,
             position: startPosition,
             targetY: -objectSize.height,
-            fallDuration: adjustedFallSpeed
+            fallDuration: fallDuration
         )
 
         let fallingObjectNode = FallingObject(type: objectType)
@@ -427,11 +427,16 @@ class GameViewModel: ObservableObject {
         newFallingObjectNodes.append(fallingObjectNode)
         fallingObjects.append(fallingObjectData)
 
-        animateFallingObjectSimplePerspective(fallingObjectData)
+        animateFallingObjectSimplePerspectiveWithAdjustedSpeed(
+            fallingObjectData,
+            adjustedFallSpeed: adjustedFallSpeed
+        )
     }
 
-    private func animateFallingObjectSimplePerspective(
-        _ object: FallingObjectData
+
+    private func animateFallingObjectSimplePerspectiveWithAdjustedSpeed(
+        _ object: FallingObjectData,
+        adjustedFallSpeed: CGFloat
     ) {
         guard let fallingObjectNode = fallingObjectNodes[object.id] else {
             return
@@ -441,17 +446,15 @@ class GameViewModel: ObservableObject {
 
         let finalX: CGFloat
         if object.position.x < screenCenter {
-            finalX =
-                object.position.x - (screenCenter - object.position.x)
+            finalX = object.position.x - (screenCenter - object.position.x)
         } else {
-            finalX =
-                object.position.x + (object.position.x - screenCenter)
+            finalX = object.position.x + (object.position.x - screenCenter)
         }
 
         let finalPosition = CGPoint(x: finalX, y: object.targetY)
 
         let fallDistance = abs(object.position.y - object.targetY)
-        let actualDuration = TimeInterval(fallDistance / object.type.fallSpeed)
+        let actualDuration = TimeInterval(fallDistance / adjustedFallSpeed)
 
         fallingObjectNode.startFallingWithPerspective(
             from: object.position,
@@ -760,86 +763,51 @@ class GameViewModel: ObservableObject {
         }
         print("[\(currentTimestamp())] Double Point activated")
     }
-
-    func activateSlowMotion() {
-        if slowMotionTimer != nil {
-            slowMotionTimer?.invalidate()
-            slowMotionTimer = Timer.scheduledTimer(
-                withTimeInterval: GameConfiguration.slowMotionDuration,
-                repeats: false
-            ) { [weak self] _ in
-                guard let self = self else { return }
-                self.gameState.gameSpeed = self.originalGameSpeed
-                self.slowMotionTimer = nil
-                print("[\(self.currentTimestamp())] Slow Motion expired")
-            }
+    
+    private func activateSlowMotion() {
+        if let timer = slowMotionTimer {
+            timer.invalidate()
             print("[\(currentTimestamp())] Slow Motion extended")
-            return
+        } else {
+            originalGameSpeed = gameState.gameSpeed
+            gameState.gameSpeed *= GameConfiguration.slowMotionSpawnMultiplier
+            adjustFallingObjectSpeeds(multiplier: GameConfiguration.slowMotionFallSpeedMultiplier)
+            print("[\(currentTimestamp())] Slow Motion activated")
         }
-
-        print("[\(currentTimestamp())] Slow Motion activated")
-        originalGameSpeed = gameState.gameSpeed
-        gameState.gameSpeed *= GameConfiguration.slowMotionSpawnMultiplier
-
-        for (_, object) in fallingObjects.enumerated() {
-            let objectId = object.id
-            guard let node = fallingObjectNodes[objectId] else { continue }
-
-            let currentY = node.node.position.y
-            let remainingDistance = abs(currentY - GameConfiguration.offScreenBuffer)
-            let newFallSpeed = object.type.fallSpeed * GameConfiguration.slowMotionFallSpeedMultiplier
-            let newDuration = TimeInterval(remainingDistance / newFallSpeed)
-
-            objectTimers[objectId]?.invalidate()
-            objectTimers.removeValue(forKey: objectId)
-            node.node.removeAllActions()
-
-            node.node.run(SKAction.moveTo(y: GameConfiguration.offScreenBuffer, duration: newDuration)) { [weak self] in
-                self?.handleObjectMissed(objectId)
-            }
-
-            let timer = Timer.scheduledTimer(withTimeInterval: newDuration + 1.0, repeats: false) { [weak self] _ in
-                self?.cleanupFallingObject(objectId)
-            }
-            objectTimers[objectId] = timer
-        }
-
         slowMotionTimer = Timer.scheduledTimer(
             withTimeInterval: GameConfiguration.slowMotionDuration,
             repeats: false
         ) { [weak self] _ in
             guard let self = self else { return }
             self.gameState.gameSpeed = self.originalGameSpeed
+            self.adjustFallingObjectSpeeds(multiplier: 1.0)
             self.slowMotionTimer = nil
-
-            for (_, object) in self.fallingObjects.enumerated() {
-                let objectId = object.id
-                guard let node = self.fallingObjectNodes[objectId] else { continue }
-
-                let currentY = node.node.position.y
-                let remainingDistance = abs(currentY - object.targetY)
-                let normalSpeed = object.type.fallSpeed
-                let newDuration = TimeInterval(remainingDistance / normalSpeed)
-
-                self.objectTimers[objectId]?.invalidate()
-                self.objectTimers.removeValue(forKey: objectId)
-                node.node.removeAllActions()
-
-                node.node.run(SKAction.moveTo(y: object.targetY, duration: newDuration)) { [weak self] in
-                    self?.handleObjectMissed(objectId)
-                }
-
-                let timer = Timer.scheduledTimer(withTimeInterval: newDuration + 1.0, repeats: false) { [weak self] _ in
-                    self?.cleanupFallingObject(objectId)
-                }
-                self.objectTimers[objectId] = timer
+            print("[\(self.currentTimestamp())] Slow Motion ended")
+        }
+    }
+    
+    private func adjustFallingObjectSpeeds(multiplier: Double) {
+        for (objectId, fallingObject) in fallingObjectNodes {
+            let currentPos = fallingObject.node.position
+            let targetY = -fallingObject.size.height
+            
+            let remainingDistance = abs(currentPos.y - targetY)
+            let newDuration = TimeInterval(remainingDistance / (fallingObject.getFallSpeed() * multiplier))
+            
+            fallingObject.node.removeAllActions()
+            
+            fallingObject.startFallingWithPerspective(
+                from: currentPos,
+                to: CGPoint(x: currentPos.x, y: targetY),
+                initialScale: fallingObject.node.xScale,
+                finalScale: 1.0,
+                duration: newDuration
+            ) { [weak self] in
+                self?.handleObjectMissed(objectId)
             }
-
-            print("[\(self.currentTimestamp())] Slow Motion expired")
         }
     }
 
-    
     //helper untuk debug
     private func currentTimestamp() -> String {
         let formatter = DateFormatter()
