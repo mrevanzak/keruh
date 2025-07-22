@@ -85,7 +85,7 @@ class GameViewModel: ObservableObject {
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
-    
+
     private var latestXDrop: CGFloat?
     #if os(iOS)
         private let hapticQueue = DispatchQueue(
@@ -407,11 +407,15 @@ class GameViewModel: ObservableObject {
             y: screenSize.height * 0.65
         )
 
-        let adjustedFallSpeed = (slowMotionTimer != nil)
-            ? objectType.fallSpeed * GameConfiguration.slowMotionFallSpeedMultiplier
+        let adjustedFallSpeed =
+            (slowMotionTimer != nil)
+            ? objectType.fallSpeed
+                * GameConfiguration.slowMotionFallSpeedMultiplier
             : objectType.fallSpeed
 
-        let fallDuration = TimeInterval(abs(startPosition.y + objectSize.height) / adjustedFallSpeed)
+        let fallDuration = TimeInterval(
+            abs(startPosition.y + objectSize.height) / adjustedFallSpeed
+        )
 
         let fallingObjectData = FallingObjectData(
             type: objectType,
@@ -432,7 +436,6 @@ class GameViewModel: ObservableObject {
             adjustedFallSpeed: adjustedFallSpeed
         )
     }
-
 
     private func animateFallingObjectSimplePerspectiveWithAdjustedSpeed(
         _ object: FallingObjectData,
@@ -476,7 +479,7 @@ class GameViewModel: ObservableObject {
         ) { [weak self] _ in
             self?.cleanupFallingObject(object.id)
         }
-        
+
         objectTimers[object.id] = timer
     }
 
@@ -496,13 +499,19 @@ class GameViewModel: ObservableObject {
 
     private func updateScoreAndHealth(for object: FallingObjectData) {
         if object.type.isCollectible {
-            let playSound = SKAction.playSoundFileNamed("correct.mp3", waitForCompletion: false)
+            let playSound = SKAction.playSoundFileNamed(
+                "correct.mp3",
+                waitForCompletion: false
+            )
             catcher.node.run(playSound)
         } else {
-            let playSound = SKAction.playSoundFileNamed("incorrect.mp3", waitForCompletion: false)
+            let playSound = SKAction.playSoundFileNamed(
+                "incorrect.mp3",
+                waitForCompletion: false
+            )
             catcher.node.run(playSound)
         }
-        
+
         switch object.type.assetName {
         case "heart":
             addHealth()
@@ -525,14 +534,15 @@ class GameViewModel: ObservableObject {
             let fallingObject = fallingObjects[index]
             fallingObjects.remove(at: index)
 
-            if fallingObject.type.isCollectible == true {
-                if fallingObject.type.isSpecial {
-                    return
-                } else {
-                    let playSound = SKAction.playSoundFileNamed("incorrect.mp3", waitForCompletion: false)
-                    catcher.node.run(playSound)
-                    decreaseHealth()
-                }
+            if fallingObject.type.isCollectible == true
+                && fallingObject.type.isSpecial
+            {
+                let playSound = SKAction.playSoundFileNamed(
+                    "incorrect.mp3",
+                    waitForCompletion: false
+                )
+                catcher.node.run(playSound)
+                decreaseHealth()
             }
         }
         cleanupFallingObject(objectId)
@@ -630,12 +640,12 @@ class GameViewModel: ObservableObject {
         resetCatcherPosition()
         startGameplay()
     }
-    
+
     func resetToMenu() {
         stopAllTimers()
         cleanupAllObjects()
         resetCatcherPosition()
-        
+
         catcher.node.alpha = 0
         gameState = GameState()
     }
@@ -777,7 +787,7 @@ class GameViewModel: ObservableObject {
         }
         print("[\(currentTimestamp())] Double Point activated")
     }
-    
+
     private func activateSlowMotion() {
         if let timer = slowMotionTimer {
             timer.invalidate()
@@ -785,7 +795,9 @@ class GameViewModel: ObservableObject {
         } else {
             originalGameSpeed = gameState.gameSpeed
             gameState.gameSpeed *= GameConfiguration.slowMotionSpawnMultiplier
-            adjustFallingObjectSpeeds(multiplier: GameConfiguration.slowMotionFallSpeedMultiplier)
+            adjustFallingObjectSpeeds(
+                multiplier: GameConfiguration.slowMotionFallSpeedMultiplier
+            )
             print("[\(currentTimestamp())] Slow Motion activated")
         }
         slowMotionTimer = Timer.scheduledTimer(
@@ -799,17 +811,19 @@ class GameViewModel: ObservableObject {
             print("[\(self.currentTimestamp())] Slow Motion ended")
         }
     }
-    
+
     private func adjustFallingObjectSpeeds(multiplier: Double) {
         for (objectId, fallingObject) in fallingObjectNodes {
             let currentPos = fallingObject.node.position
             let targetY = -fallingObject.size.height
-            
+
             let remainingDistance = abs(currentPos.y - targetY)
-            let newDuration = TimeInterval(remainingDistance / (fallingObject.getFallSpeed() * multiplier))
-            
+            let newDuration = TimeInterval(
+                remainingDistance / (fallingObject.getFallSpeed() * multiplier)
+            )
+
             fallingObject.node.removeAllActions()
-            
+
             fallingObject.startFallingWithPerspective(
                 from: currentPos,
                 to: CGPoint(x: currentPos.x, y: targetY),
