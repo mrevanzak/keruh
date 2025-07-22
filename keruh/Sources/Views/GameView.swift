@@ -23,31 +23,16 @@ struct GameView: View {
             switch viewModel.gameState.playState {
             case .menu:
                 MenuContentView(
-                    onStartGame: {
-                        viewModel.startGameplay()
-                    },
                     tutorialManager: tutorialManager,
                     namespace: namespace,
-                )
+                ).onTapGesture {
+                    viewModel.startGameplay()
+                }
             case .playing, .paused:
                 GameOverlayView(
                     viewModel: viewModel,
                     tutorialManager: tutorialManager
                 )
-                .onAppear {
-                    // Set up tutorial trigger when catcher spawns
-                    viewModel.onCatcherSpawned = {
-                        if tutorialManager.shouldShowTutorial() {
-                            viewModel.pauseGame()
-                            tutorialManager.startTutorial()
-                            tutorialManager.onCompleted(
-                                completion: {
-                                    viewModel.resumeGame()
-                                }
-                            )
-                        }
-                    }
-                }
             case .gameOver:
                 ZStack {
                     Color.black.opacity(0.6)
@@ -67,6 +52,22 @@ struct GameView: View {
                     .transition(.scale.combined(with: .opacity))
                 }
             }
+
+            TutorialOverlayView(tutorialManager: tutorialManager)
+        }
+        .onAppear {
+            // Set up tutorial trigger when catcher spawns
+            viewModel.onCatcherSpawned = {
+                if tutorialManager.shouldShowTutorial() {
+                    viewModel.pauseGame()
+                    tutorialManager.startTutorial()
+                    tutorialManager.onCompleted(
+                        completion: {
+                            viewModel.resumeGame()
+                        }
+                    )
+                }
+            }
         }
         .animation(
             .spring(response: 0.4, dampingFraction: 0.8),
@@ -77,7 +78,6 @@ struct GameView: View {
 
 // MARK: - Menu Content View
 private struct MenuContentView: View {
-    let onStartGame: () -> Void
     @State private var showPlayText = false
     @ObservedObject var tutorialManager: TutorialManager
 
