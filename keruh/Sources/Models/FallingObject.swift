@@ -43,7 +43,7 @@ struct FallingObjectType {
     }
 
     static let tire = FallingObjectType(
-        assetName: "ban",
+        assetName: "collect_ban",
         size: CGSize(width: 90, height: 90),
         points: 10,
         fallSpeed: 100,
@@ -53,7 +53,7 @@ struct FallingObjectType {
     )
 
     static let bottle = FallingObjectType(
-        assetName: "botol",
+        assetName: "collect_botol",
         points: 15,
         fallSpeed: 120,
         rarity: 0.1,
@@ -62,7 +62,7 @@ struct FallingObjectType {
     )
 
     static let ciki = FallingObjectType(
-        assetName: "ciki",
+        assetName: "collect_ciki",
         points: 20,
         fallSpeed: 80,
         rarity: 0.1,
@@ -71,7 +71,7 @@ struct FallingObjectType {
     )
 
     static let can = FallingObjectType(
-        assetName: "kaleng",
+        assetName: "collect_kaleng",
         points: 50,
         fallSpeed: 60,
         rarity: 0.1,
@@ -80,7 +80,7 @@ struct FallingObjectType {
     )
 
     static let plasticBag = FallingObjectType(
-        assetName: "kresek",
+        assetName: "collect_kresek",
         points: 50,
         fallSpeed: 60,
         rarity: 0.1,
@@ -89,7 +89,7 @@ struct FallingObjectType {
     )
 
     static let sandal = FallingObjectType(
-        assetName: "sandal",
+        assetName: "collect_sandal",
         points: 50,
         fallSpeed: 60,
         rarity: 0.1,
@@ -98,7 +98,7 @@ struct FallingObjectType {
     )
 
     static let diaper = FallingObjectType(
-        assetName: "popok",
+        assetName: "collect_popmie",
         points: 50,
         fallSpeed: 60,
         rarity: 0.1,
@@ -108,7 +108,7 @@ struct FallingObjectType {
 
     //power up
     static let heart = FallingObjectType(
-        assetName: "heart",
+        assetName: "power_extralive",
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
@@ -118,7 +118,7 @@ struct FallingObjectType {
     )
 
     static let coin = FallingObjectType(
-        assetName: "coin",
+        assetName: "power_doublepoint",
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
@@ -128,7 +128,7 @@ struct FallingObjectType {
     )
 
     static let clock = FallingObjectType(
-        assetName: "clock",
+        assetName: "power_slowdown",
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,

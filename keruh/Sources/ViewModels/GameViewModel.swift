@@ -96,12 +96,12 @@ class GameViewModel: ObservableObject {
     #endif
 
     var sceneNodes = SceneNode(
-        sky: SKSpriteNode(imageNamed: "langit"),
+        sky: SKSpriteNode(imageNamed: "bg_langit"),
         river: SKSpriteNode(imageNamed: "bg_sungai"),
         leftIsland: SKSpriteNode(imageNamed: "pulau_kiri"),
         rightIsland: SKSpriteNode(imageNamed: "pulau_kanan"),
         clouds: SKSpriteNode(imageNamed: "awan"),
-        waves: SKSpriteNode(imageNamed: "ombak")
+        waves: SKSpriteNode(imageNamed: "air_sungai")
     )
 
     init() {
@@ -182,7 +182,7 @@ class GameViewModel: ObservableObject {
             y: horizonY
         )
         sceneNodes.waves.size = CGSize(
-            width: screenSize.width * 1.8,
+            width: screenSize.width * 2.2,
             height: riverHeight * 1.5
         )
         sceneNodes.waves.zPosition = -5

@@ -25,7 +25,7 @@ class Catcher: BaseGameObject {
 
     override func setup() {
         // Load texture from assets
-        spriteNode.texture = SKTexture(imageNamed: "orang")
+        spriteNode.texture = SKTexture(imageNamed: "lutfi")
         spriteNode.size = Catcher.size
         spriteNode.zPosition = 1
 

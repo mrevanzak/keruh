@@ -147,7 +147,7 @@ struct MovementDemoView: View {
             HStack {
                 Spacer()
 
-                Image("orang")
+                Image("lutfi")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 60, height: 80)

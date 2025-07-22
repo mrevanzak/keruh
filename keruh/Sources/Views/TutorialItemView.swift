@@ -76,25 +76,25 @@ struct TutorialItemView: View {
 extension FallingObjectType {
     var displayName: String {
         switch assetName {
-        case "botol": return "Bottles"
-        case "kaleng": return "Cans"
-        case "kresek": return "Plastic Bags"
-        case "ban": return "Tires"
-        case "ciki": return "Snack Wrappers"
-        case "sandal": return "Sandals"
-        case "popok": return "Diapers"
-        case "heart": return "Health"
-        case "coin": return "Double Points"
-        case "clock": return "Slow Motion"
+        case "collect_botol": return "Bottles"
+        case "collect_kaleng": return "Cans"
+        case "collect_kresek": return "Plastic Bags"
+        case "collect_ban": return "Tires"
+        case "collect_ciki": return "Snack Wrappers"
+        case "collect_sandal": return "Sandals"
+        case "collect_popmie": return "Popmie"
+        case "power_extralive": return "Health"
+        case "power_doublepoint": return "Double Points"
+        case "power_slowdown": return "Slow Motion"
         default: return "Unknown Item"
         }
     }
 
     var tutorialDescription: String {
         switch assetName {
-        case "heart": return "Restores health"
-        case "coin": return "2x points for 10s"
-        case "clock": return "Slows falling items"
+        case "power_extralive": return "Restores health"
+        case "power_doublepoint": return "2x points for 10s"
+        case "power_slowdown": return "Slows falling items"
         default: return ""
         }
     }

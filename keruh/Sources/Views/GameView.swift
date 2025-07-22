@@ -223,7 +223,7 @@ private struct GameOverView: View {
 
     var body: some View {
         ZStack {
-            Image("game_over")
+            Image("bg_game_over")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: 480)
@@ -263,13 +263,13 @@ private struct GameOverView: View {
                 VStack {
                     HStack(spacing: 8) {
                         Button(action: onReplay) {
-                            Image("replay")
+                            Image("icon_replay")
                                 .resizable()
                                 .frame(width: 88, height: 88)
                         }
 
                         Button(action: onHome) {
-                            Image("home")
+                            Image("icon_home")
                                 .resizable()
                                 .frame(width: 88, height: 88)
                         }
