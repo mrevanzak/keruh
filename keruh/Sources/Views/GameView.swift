@@ -20,23 +20,39 @@ struct GameView: View {
             // Background Game Scene
             BackgroundSceneView(viewModel: viewModel)
 
-            // Menu Content
-            if viewModel.gameState.playState == .menu {
+            switch viewModel.gameState.playState {
+            case .menu:
                 MenuContentView(
-                    onStartGame: {
-                        viewModel.startGameplay()
-                    },
                     tutorialManager: tutorialManager,
-                    namespace: namespace
-                )
-            } else {
+                    namespace: namespace,
+                ).onTapGesture {
+                    viewModel.startGameplay()
+                }
+            case .playing, .paused:
                 GameOverlayView(
                     viewModel: viewModel,
                     tutorialManager: tutorialManager
                 )
+            case .gameOver:
+                ZStack {
+                    Color.black.opacity(0.6)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+
+                    GameOverView(
+                        score: viewModel.gameState.score,
+                        onReplay: {
+                            viewModel.resetGame()
+                        },
+                        onHome: {
+                            viewModel.resetToMenu()
+                            currentScreen = .menu
+                        }
+                    )
+                    .transition(.scale.combined(with: .opacity))
+                }
             }
 
-            // Tutorial Overlay
             TutorialOverlayView(tutorialManager: tutorialManager)
         }
         .onAppear {
@@ -53,19 +69,15 @@ struct GameView: View {
                 }
             }
         }
-        .onTapGesture {
-            // Make the whole screen clickable when in menu state
-            if viewModel.gameState.playState == .menu {
-                print("startGameplay")
-                viewModel.startGameplay()
-            }
-        }
+        .animation(
+            .spring(response: 0.4, dampingFraction: 0.8),
+            value: viewModel.gameState.playState
+        )
     }
 }
 
 // MARK: - Menu Content View
 private struct MenuContentView: View {
-    let onStartGame: () -> Void
     @State private var showPlayText = false
     @ObservedObject var tutorialManager: TutorialManager
 
@@ -198,6 +210,75 @@ private struct GameOverlayView: View {
             }
             Spacer()
         }
+    }
+}
+
+// MARK: - Game Over View
+private struct GameOverView: View {
+    let score: Int
+    let onReplay: () -> Void
+    let onHome: () -> Void
+
+    var body: some View {
+        ZStack {
+            Image("game_over")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 480)
+
+            GeometryReader { geo in
+                let imageHeight = geo.size.height
+                let buttonTopPadding = imageHeight * 0.67
+
+                VStack(spacing: 16) {
+                    (Text("\(score) KG\n")
+                        .font(.custom("PaperInko", size: 36))
+                        .fontWeight(.bold)
+                        .foregroundColor(
+                            Color(
+                                red: 251 / 255,
+                                green: 175 / 255,
+                                blue: 23 / 255
+                            )
+                        )
+                        + Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
+                        .font(.custom("PaperInko", size: 28))
+                        .fontWeight(.black)
+                        .foregroundColor(.black))
+                        .multilineTextAlignment(.center)
+
+                    Text(
+                        "KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!"
+                    )
+                    .font(.custom("PaperInko", size: 14))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(
+                        Color(red: 51 / 255, green: 178 / 255, blue: 199 / 255)
+                    )
+                }
+                .frame(width: geo.size.width, height: geo.size.height * 1.1)
+
+                VStack {
+                    HStack(spacing: 8) {
+                        Button(action: onReplay) {
+                            Image("replay")
+                                .resizable()
+                                .frame(width: 88, height: 88)
+                        }
+
+                        Button(action: onHome) {
+                            Image("home")
+                                .resizable()
+                                .frame(width: 88, height: 88)
+                        }
+                    }
+                }
+                .padding(.top, buttonTopPadding)
+                .frame(width: geo.size.width)
+            }
+        }
+        .padding(.horizontal, 16)
+        .ignoresSafeArea(.all)
     }
 }
 

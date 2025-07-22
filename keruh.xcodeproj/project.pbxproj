@@ -10,9 +10,22 @@
 		C56B3CFA2E20AC260017AFBA /* keruh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = keruh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1B21F6D62E2DD6000058B7E5 /* Exceptions for "keruh" folder in "keruh" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C56B3CF92E20AC260017AFBA /* keruh */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C56B3CFC2E20AC260017AFBA /* keruh */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1B21F6D62E2DD6000058B7E5 /* Exceptions for "keruh" folder in "keruh" target */,
+			);
 			path = keruh;
 			sourceTree = "<group>";
 		};
@@ -257,6 +270,7 @@
 				DEVELOPMENT_TEAM = QMV7N4KZBR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = keruh/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Keruh;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -289,6 +303,7 @@
 				DEVELOPMENT_TEAM = QMV7N4KZBR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = keruh/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Keruh;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
