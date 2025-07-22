@@ -12,7 +12,8 @@ struct LeaderboardPopUpView: View {
     @State private var scale: CGFloat = 0.8
     @State private var bgOpacity: Double = 0.1
     @State private var contentOpacity: Double = 0.1
-
+    @StateObject private var viewModel = LeaderboardViewModel()
+    
     var body: some View {
         ZStack {
             Color.black.opacity(bgOpacity)
@@ -20,7 +21,7 @@ struct LeaderboardPopUpView: View {
                 .onTapGesture {
                     closeLeaderboard()
                 }
-
+            
             VStack {
                 ZStack {
                     Image("Bg_full")
@@ -29,27 +30,34 @@ struct LeaderboardPopUpView: View {
                         .frame(maxWidth: 1500, maxHeight: 1500)
                         .cornerRadius(20)
                         .overlay(
-                            VStack(spacing: 12) {
-                                Text("Leaderboard")
-                                    .font(.title2.bold())
-                                    .foregroundColor(.black)
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("1. Rani - 340 KG")
-                                    Text("2. Budi - 320 KG")
-                                    Text("3. Andi - 295 KG")
+                            VStack(spacing: 16) {
+                                if viewModel.topPlayers.isEmpty {
+                                    Text("Loading...")
+                                        .foregroundColor(.gray)
+                                } else {
+                                    VStack(spacing: 0.3) {
+                                        ForEach(viewModel.topPlayers.prefix(3)) { player in
+                                            LeaderboardRowView(
+                                                rank: player.rank,
+                                                name: player.playerName,
+                                                score: player.score
+                                            )
+                                            .scaleEffect(0.5)
+                                        }
+                                    }
+                                    .offset(x:10)
+                                    
                                 }
-                                .font(.subheadline)
-                                .foregroundColor(.black)
-
-                                Button("Tutup") {
-                                    closeLeaderboard()
+                                
+                                Button("Refresh Leaderboard") {
+                                    viewModel.loadTopPlayers()
                                 }
-                                .padding(.top, 10)
-                                .font(.caption)
-                                .foregroundColor(.yellow)
+                                .padding(.bottom)
                             }
-                            .padding()
+                                .onAppear {
+                                    viewModel.authenticate()
+                                    viewModel.loadTopPlayers()
+                                }
                         )
                 }
                 .offset(x: -15, y: 40)
@@ -67,14 +75,14 @@ struct LeaderboardPopUpView: View {
             }
         }
     }
-
+    
     private func closeLeaderboard() {
         withAnimation {
             scale = 0.8
             bgOpacity = 0.0
             contentOpacity = 0.0
         }
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             showLeaderboard = false
         }
