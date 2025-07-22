@@ -535,7 +535,7 @@ class GameViewModel: ObservableObject {
             fallingObjects.remove(at: index)
 
             if fallingObject.type.isCollectible == true
-                && fallingObject.type.isSpecial
+                || fallingObject.type.isSpecial
             {
                 let playSound = SKAction.playSoundFileNamed(
                     "incorrect.mp3",
