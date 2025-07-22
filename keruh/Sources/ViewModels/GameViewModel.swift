@@ -492,6 +492,14 @@ class GameViewModel: ObservableObject {
     }
 
     private func updateScoreAndHealth(for object: FallingObjectData) {
+        if object.type.isCollectible {
+            let playSound = SKAction.playSoundFileNamed("correct.mp3", waitForCompletion: false)
+            catcher.node.run(playSound)
+        } else {
+            let playSound = SKAction.playSoundFileNamed("incorrect.mp3", waitForCompletion: false)
+            catcher.node.run(playSound)
+        }
+        
         switch object.type.assetName {
         case "heart":
             addHealth()

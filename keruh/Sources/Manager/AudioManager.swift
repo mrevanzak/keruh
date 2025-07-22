@@ -10,11 +10,16 @@ import AVFoundation
 class AudioManager {
     static let shared = AudioManager()
     private var player: AVAudioPlayer?
+    private var sfx: AVAudioPlayer?
 
     private init() {}
     
     func playBackgroundMusic() {
         playMusic(named: "BGM.mp3", withExtension: "mp3")
+    }
+    
+    func playGameOverSFX() {
+        playSFX(named: "game_over.mp3", withExtension: "mp3")
     }
     
     private func playMusic(named name: String, withExtension ext: String) {
@@ -30,6 +35,22 @@ class AudioManager {
             player?.play()
             player?.volume = 0.2
             player?.numberOfLoops = -1
+        } catch {
+            print("Failed to play sound: \(error.localizedDescription)")
+        }
+    }
+    
+    private func playSFX(named name: String, withExtension ext: String) {
+        guard let path = Bundle.main.path(forResource: name, ofType: nil) else {
+            print("Sound file \(name).\(ext) not found.")
+            return 
+        }
+
+        let url = URL(fileURLWithPath: path)
+
+        do {
+            sfx = try AVAudioPlayer(contentsOf: url)
+            sfx?.play()
         } catch {
             print("Failed to play sound: \(error.localizedDescription)")
         }
