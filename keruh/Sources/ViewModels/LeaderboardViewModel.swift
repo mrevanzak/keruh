@@ -10,6 +10,8 @@ import Foundation
 class LeaderboardViewModel: ObservableObject {
     @Published var isAuthenticated = false
     @Published var topPlayers: [Leaderboard] = []
+    @Published var isShowingLeaderboard = false
+
 
     let leaderboardID = "com.keruh.leaderboard"
 

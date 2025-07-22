@@ -12,12 +12,12 @@ struct GameView: View {
     @Binding var currentScreen: ScreenState
     @StateObject private var viewModel = GameViewModel()
     @StateObject private var tutorialManager = TutorialManager()
+    @StateObject private var leaderboardViewModel = LeaderboardViewModel()
 
     let namespace: Namespace.ID
 
     var body: some View {
         ZStack {
-            // Background Game Scene
             BackgroundSceneView(viewModel: viewModel)
 
             switch viewModel.gameState.playState {
@@ -25,6 +25,7 @@ struct GameView: View {
                 MenuContentView(
                     tutorialManager: tutorialManager,
                     viewModel: viewModel,
+                    leaderboardViewModel: leaderboardViewModel,
                     namespace: namespace,
                 )
             case .playing, .paused:
@@ -32,6 +33,7 @@ struct GameView: View {
                     viewModel: viewModel,
                     tutorialManager: tutorialManager
                 )
+
             case .gameOver:
                 ZStack {
                     Color.black.opacity(0.6)
@@ -40,16 +42,15 @@ struct GameView: View {
 
                     GameOverView(
                         score: viewModel.gameState.score,
-                        onReplay: {
-                            viewModel.resetGame()
-                        },
+                        onReplay: { viewModel.resetGame() },
                         onHome: {
                             viewModel.resetToMenu()
                             currentScreen = .menu
                         }
                     )
                     .transition(.scale.combined(with: .opacity))
-                }.onAppear {
+                }
+                .onAppear {
                     AudioManager.shared.playGameOverSFX()
                 }
             case .settings:
@@ -76,6 +77,15 @@ struct GameView: View {
             }
 
             TutorialOverlayView(tutorialManager: tutorialManager)
+
+            if leaderboardViewModel.isShowingLeaderboard {
+                LeaderboardPopUpView(
+                    showLeaderboard: $leaderboardViewModel.isShowingLeaderboard
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(10)
+            }
+
         }
         .onTapGesture {
             if viewModel.gameState.playState == .menu {
@@ -105,9 +115,11 @@ struct GameView: View {
 
 // MARK: - Menu Content View
 private struct MenuContentView: View {
-    @State private var showPlayText = false
     @ObservedObject var tutorialManager: TutorialManager
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var leaderboardViewModel: LeaderboardViewModel
+    
+    @State private var showPlayText = false
 
     let namespace: Namespace.ID
 
@@ -121,11 +133,29 @@ private struct MenuContentView: View {
 
                 // Animated Play Text
                 AnimatedPlayText(isVisible: showPlayText)
+
+                // Tutorial button
+                if showPlayText {
+                    Button("Show Tutorial") {
+                        tutorialManager.forceStartTutorial()
+                    }
+                    .padding(.top, 20)
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.8))
+
+                    Button("Leaderboard") {
+                        leaderboardViewModel.isShowingLeaderboard = true
+                    }
+                    .padding(.top, 10)
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.8))
+                }
             }
             .padding(.vertical, 72)
             .onAppear {
                 setupPlayTextAnimation()
             }
+
         }
         VStack {
             HStack {

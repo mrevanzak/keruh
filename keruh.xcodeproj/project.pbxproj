@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C523347E2E2F4A1000B33364 /* Exceptions for "keruh" folder in "keruh" target */ = {
+		1B21F6D62E2DD6000058B7E5 /* Exceptions for "keruh" folder in "keruh" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -24,7 +24,7 @@
 		C56B3CFC2E20AC260017AFBA /* keruh */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C523347E2E2F4A1000B33364 /* Exceptions for "keruh" folder in "keruh" target */,
+				1B21F6D62E2DD6000058B7E5 /* Exceptions for "keruh" folder in "keruh" target */,
 			);
 			path = keruh;
 			sourceTree = "<group>";
