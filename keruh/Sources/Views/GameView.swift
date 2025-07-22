@@ -50,6 +50,8 @@ struct GameView: View {
                         }
                     )
                     .transition(.scale.combined(with: .opacity))
+                }.onAppear {
+                    AudioManager.shared.playGameOverSFX()
                 }
             }
 

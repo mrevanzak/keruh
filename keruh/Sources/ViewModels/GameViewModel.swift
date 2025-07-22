@@ -526,6 +526,8 @@ class GameViewModel: ObservableObject {
             fallingObjects.remove(at: index)
 
             if fallingObject.type.isCollectible == true {
+                let playSound = SKAction.playSoundFileNamed("incorrect.mp3", waitForCompletion: false)
+                catcher.node.run(playSound)
                 decreaseHealth()
             }
         }
