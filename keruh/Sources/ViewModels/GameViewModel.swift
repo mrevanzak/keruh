@@ -613,6 +613,15 @@ class GameViewModel: ObservableObject {
         resetCatcherPosition()
         startGameplay()
     }
+    
+    func resetToMenu() {
+        stopAllTimers()
+        cleanupAllObjects()
+        resetCatcherPosition()
+        
+        catcher.node.alpha = 0
+        gameState = GameState()
+    }
 
     private func gameOver() {
         gameState.playState = .gameOver
