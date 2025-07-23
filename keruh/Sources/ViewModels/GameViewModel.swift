@@ -64,12 +64,11 @@ struct SceneNode {
 class GameViewModel: ObservableObject {
     @Published var gameState = GameState()
     @Published var fallingObjects: [FallingObjectData] = []
-    @Published var scoreText: String =
-        "Score: \(GameConfiguration.initialScore)"
-    @Published var healthText: String =
-        "Health: \(GameConfiguration.initialHealth)"
+    @Published var scoreText: Int = GameConfiguration.initialScore
+    @Published var healthText: Int = GameConfiguration.initialHealth
     @Published var doublePointTimeRemaining: Double = 0.0
     @Published var slowMotionTimeRemaining: Double = 0.0
+    @Published var extraLive: Int = 0
 
     private(set) var catcher: Catcher
     private var fallingObjectNodes: [UUID: FallingObject] = [:]
@@ -245,7 +244,7 @@ class GameViewModel: ObservableObject {
         let cloud = SKAction.sequence([
             .wait(forDuration: 1.5),
             .fadeIn(withDuration: 0.2),
-            .moveBy(x: 0, y: 60, duration: 0.6),
+            .moveBy(x: 0, y: 30, duration: 0.6),
         ])
         sceneNodes.clouds.run(cloud)
 
@@ -307,12 +306,12 @@ class GameViewModel: ObservableObject {
 
     private func setupBindings() {
         $gameState
-            .map { "Score: \($0.score)" }
+            .map { ($0.score) }
             .assign(to: \.scoreText, on: self)
             .store(in: &cancellables)
 
         $gameState
-            .map { "Health: \($0.health)" }
+            .map { ($0.health) }
             .assign(to: \.healthText, on: self)
             .store(in: &cancellables)
 
@@ -659,6 +658,9 @@ class GameViewModel: ObservableObject {
 
     private func decreaseHealth() {
         gameState.health -= 1
+        if extraLive > 0 {
+            extraLive -= 1
+        }
         if gameState.health == 0 {
             touchesEnded()
             gameOver()
@@ -980,6 +982,7 @@ class GameViewModel: ObservableObject {
         let maxHealth = 5
         if gameState.health < maxHealth {
             gameState.health = min(gameState.health + amount, maxHealth)
+            extraLive += 1
         } else {
             print("Health max")
         }

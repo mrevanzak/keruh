@@ -408,15 +408,59 @@ private struct GameStatsView: View {
     @ObservedObject var viewModel: GameViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(viewModel.scoreText)
-                .foregroundColor(.white)
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 2) {
+            ZStack {
+                Image("icon_score view")
+                    .resizable()
+                    .scaledToFit()
 
-            Text(viewModel.healthText)
-                .foregroundColor(.white)
-                .font(.subheadline)
+                HStack {
+                    Text("Skor")
+                        .font(.custom("PaperInko", size: 18))
+                        .foregroundColor(Color(red: 199 / 255, green: 255 / 255, blue: 255 / 255))
+                        .shadow(
+                            color: .black.opacity(0.4),
+                            radius: 2,
+                            x: 1,
+                            y: 1
+                        )
+
+                    Text("\(viewModel.scoreText)")
+                        .font(.custom("PaperInko", size: 24))
+                        .foregroundColor(.white)
+                        .shadow(
+                            color: .black.opacity(0.4),
+                            radius: 2,
+                            x: 1,
+                            y: 1
+                        )
+                        .padding(.leading, 8)
+                    Spacer()
+                }
+                .padding(.top, 8)
+                .padding(.leading, 48)
+                .padding(.trailing, 18)
+            }.frame(maxWidth: 250)
+
+            HStack(spacing: 2) {
+                let red = viewModel.healthText - viewModel.extraLive
+                ForEach(0..<red, id: \.self) { _ in
+                    Image("icon_live")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 32, height: 32)
+                        .transition(.scale)
+                }
+                ForEach(0..<viewModel.extraLive, id: \.self) { _ in
+                    Image("power_extralive")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 32, height: 32)
+                        .transition(.scale)
+                }
+            }
         }
+        .animation(.spring(), value: viewModel.healthText)
     }
 }
 
