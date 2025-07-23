@@ -15,7 +15,6 @@ struct GameOverlayContentView<
     let actionContent: ActionContent
     let onClose: (() -> Void)?
     let showCloseButton: Bool
-    let titleImage: String
 
     init(
         showCloseButton: Bool = false,
@@ -26,7 +25,6 @@ struct GameOverlayContentView<
     ) {
         self.showCloseButton = showCloseButton
         self.onClose = onClose
-        self.titleImage = titleImage
         self.mainContent = mainContent()
         self.actionContent = actionContent()
     }
@@ -48,13 +46,6 @@ struct GameOverlayContentView<
                         height: outerGeo.size.height
                     )
                     .overlay {
-                        Image(titleImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: outerGeo.size.width / 1.7)
-                            .padding(.bottom, outerGeo.size.height * 0.24)
-                    }
-                    .overlay {
                         // Main Content Area
                         VStack {
                             mainContent
@@ -75,7 +66,7 @@ struct GameOverlayContentView<
                                     }
                                 }
                                 .padding(.bottom, outerGeo.size.height * 0.5)
-                                .padding(.leading, outerGeo.size.width * 0.5)
+                                .padding(.leading, outerGeo.size.width * 0.8)
                             }
 
                             // Action Content
