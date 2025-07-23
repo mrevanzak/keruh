@@ -664,6 +664,12 @@ class GameViewModel: ObservableObject {
         fallingObjectNodes.values.forEach { $0.node.isPaused = true }
 
         stopSpawnTimer()
+        objectTimers.values.forEach { $0.invalidate() }
+        objectTimers.removeAll()
+
+        missTimers.values.forEach { $0.invalidate() }
+        missTimers.removeAll()
+        
         uiUpdateTimer?.invalidate()
 
         if let timer = doublePointTimer, timer.isValid {
