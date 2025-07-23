@@ -183,12 +183,6 @@ class GameViewModel: ObservableObject {
         let maxRiverWidth: CGFloat = 120  // Maximum river width for larger screens
         let minIslandOverlap: CGFloat = 50  // Minimum island overlap into river
 
-        // Calculate proper aligned positions based on anchor points
-        // Left island: anchor at right edge (x=1.0), so position = right edge of island
-        // Right island: anchor at left edge (x=0.0), so position = left edge of island
-        let idealLeftFinalX = maxRiverWidth / 2  // Position of left island's right edge
-        let idealRightFinalX = screenSize.width - (maxRiverWidth / 2)  // Position of right island's left edge
-
         let centerX = screenSize.width / 2
         let clampedLeftFinalX = max(
             centerX - maxRiverWidth / 2,
