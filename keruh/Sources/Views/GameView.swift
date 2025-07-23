@@ -188,7 +188,8 @@ private struct MenuContentView: View {
                         )
                     }
                 }
-            }.padding(.trailing, 20)
+            }
+            .padding(.trailing, 20)
             Spacer()
         }
     }
@@ -497,7 +498,7 @@ private struct SettingsView: View {
                 GeometryReader { geo in
                     let isLargeScreen = geo.size.width > 800
                     let scaleFactor = isLargeScreen ? 1.2 : 1.0
-                    let fontSize = 20 * scaleFactor
+                    let fontSize = 25 * scaleFactor
                     let gridSpacing = 12 * scaleFactor
 
                     VStack(spacing: 20 * scaleFactor) {
@@ -533,7 +534,7 @@ private struct SettingsView: View {
                                 .labelsHidden()
                                 .toggleStyle(
                                     WhiteBlueToggleStyle(
-                                        scaleFactor: scaleFactor * 0.7
+                                        scaleFactor: scaleFactor
                                     )
                                 )
                             }
@@ -558,7 +559,7 @@ private struct SettingsView: View {
                                 .labelsHidden()
                                 .toggleStyle(
                                     WhiteBlueToggleStyle(
-                                        scaleFactor: scaleFactor * 0.7
+                                        scaleFactor: scaleFactor
                                     )
                                 )
                             }
@@ -583,7 +584,7 @@ private struct SettingsView: View {
                                 .labelsHidden()
                                 .toggleStyle(
                                     WhiteBlueToggleStyle(
-                                        scaleFactor: scaleFactor * 0.7
+                                        scaleFactor: scaleFactor
                                     )
                                 )
                             }
