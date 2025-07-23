@@ -87,6 +87,8 @@ class GameViewModel: ObservableObject {
     private var originalGameSpeed: TimeInterval = GameConfiguration
         .defaultSpawnInterval
     private var uiUpdateTimer: Timer?
+    private var pausedDoublePointTime: TimeInterval?
+        private var pausedSlowMotionTime: TimeInterval?
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
@@ -657,14 +659,53 @@ class GameViewModel: ObservableObject {
 
     func pauseGame() {
         gameState.playState = .paused
-        stopAllTimers()
 
         catcher.node.isPaused = true
         fallingObjectNodes.values.forEach { $0.node.isPaused = true }
+
+        stopSpawnTimer()
+        uiUpdateTimer?.invalidate()
+
+        if let timer = doublePointTimer, timer.isValid {
+            pausedDoublePointTime = timer.fireDate.timeIntervalSinceNow
+            timer.invalidate()
+            doublePointTimer = nil
+        }
+
+        if let timer = slowMotionTimer, timer.isValid {
+            pausedSlowMotionTime = timer.fireDate.timeIntervalSinceNow
+            timer.invalidate()
+            slowMotionTimer = nil
+        }
     }
 
     func resumeGame() {
         gameState.playState = .playing
+
+        if let remainingTime = pausedDoublePointTime {
+            doublePointTimer = Timer.scheduledTimer(
+                withTimeInterval: remainingTime,
+                repeats: false
+            ) { [weak self] _ in
+                self?.doublePointTimer = nil
+            }
+            pausedDoublePointTime = nil
+        }
+
+        if let remainingTime = pausedSlowMotionTime {
+            slowMotionTimer = Timer.scheduledTimer(
+                withTimeInterval: remainingTime,
+                repeats: false
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.gameState.gameSpeed = self.originalGameSpeed
+                self.adjustFallingObjectSpeeds(multiplier: 1.0)
+                self.slowMotionTimer = nil
+            }
+            pausedSlowMotionTime = nil
+        }
+        
+        startUIUpdater()
 
         catcher.node.isPaused = false
         fallingObjectNodes.values.forEach { $0.node.isPaused = false }
