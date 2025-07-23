@@ -398,7 +398,7 @@ private struct SettingsView: View {
                         Toggle("", isOn: $settings.bgmEnabled).labelsHidden()
                     }
                     GridRow {
-                        Text("sfx")
+                        Text("SFX")
                             .font(.custom("PaperInko", size: 28))
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
