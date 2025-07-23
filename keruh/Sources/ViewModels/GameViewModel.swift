@@ -77,6 +77,7 @@ class GameViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var spawnTimer: Timer?
     private var objectTimers: [UUID: Timer] = [:]
+    private var missTimers: [UUID: Timer] = [:]
     private var screenSize: CGSize = .zero
     private var safeAreaInsets: UIEdgeInsets = .zero
     private var touchState: TouchState = .idle
@@ -310,10 +311,13 @@ class GameViewModel: ObservableObject {
         return nodes
     }
 
-    func startGameplay() {
+    func startGameplay(isResuming: Bool = false) {
         gameState.playState = .playing
 
-        spawnCatcher()
+        if !isResuming {
+            spawnCatcher()
+        }
+
         startSpawningObjects()
     }
 
@@ -467,10 +471,18 @@ class GameViewModel: ObservableObject {
         // Trigger miss early (e.g. 100 points above targetY or 0.2 seconds before actual hit)
         let earlyMissTime = max(actualDuration - 1, 0.05)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + earlyMissTime) {
-            [weak self] in
+        //        DispatchQueue.main.asyncAfter(deadline: .now() + earlyMissTime) {
+        //            [weak self] in
+        //            self?.handleObjectMissed(object.id)
+        //        }
+
+        let missTimer = Timer.scheduledTimer(
+            withTimeInterval: earlyMissTime,
+            repeats: false
+        ) { [weak self] _ in
             self?.handleObjectMissed(object.id)
         }
+        missTimers[object.id] = missTimer
 
         // Start the visual fall animation
         fallingObjectNode.startFallingWithPerspective(
@@ -497,6 +509,9 @@ class GameViewModel: ObservableObject {
     }
 
     func handleObjectCaught(_ objectId: UUID) {
+        missTimers[objectId]?.invalidate()
+        missTimers.removeValue(forKey: objectId)
+
         guard
             let index = fallingObjects.firstIndex(where: { $0.id == objectId })
         else { return }
@@ -573,6 +588,9 @@ class GameViewModel: ObservableObject {
 
         objectTimers[objectId]?.invalidate()
         objectTimers.removeValue(forKey: objectId)
+
+        missTimers[objectId]?.invalidate()
+        missTimers.removeValue(forKey: objectId)
     }
 
     private func provideCatcherFeedback() {
@@ -641,14 +659,16 @@ class GameViewModel: ObservableObject {
         gameState.playState = .paused
         stopAllTimers()
 
+        catcher.node.isPaused = true
         fallingObjectNodes.values.forEach { $0.node.isPaused = true }
     }
 
     func resumeGame() {
         gameState.playState = .playing
 
+        catcher.node.isPaused = false
         fallingObjectNodes.values.forEach { $0.node.isPaused = false }
-        startGameplay()
+        startGameplay(isResuming: true)
     }
 
     func resetGame() {
@@ -657,7 +677,7 @@ class GameViewModel: ObservableObject {
         stopAllTimers()
         doublePointTimeRemaining = 0.0
         slowMotionTimeRemaining = 0.0
-
+        
         startUIUpdater()
         fallingObjects.removeAll()
 
@@ -755,6 +775,9 @@ class GameViewModel: ObservableObject {
         stopSpawnTimer()
         objectTimers.values.forEach { $0.invalidate() }
         objectTimers.removeAll()
+
+        missTimers.values.forEach { $0.invalidate() }
+        missTimers.removeAll()
 
         doublePointTimer?.invalidate()
         doublePointTimer = nil
