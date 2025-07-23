@@ -17,7 +17,7 @@ struct FallingObjectType {
     let isCollectible: Bool
 
     // Default size for falling objects
-    static let defaultSize = CGSize(width: 48, height: 48)
+    static let defaultSize = CGSize(width: 60, height: 60)
 
     init(
         assetName: String,
@@ -44,7 +44,7 @@ struct FallingObjectType {
 
     static let tire = FallingObjectType(
         assetName: "collect_ban",
-        size: CGSize(width: 90, height: 90),
+        size: CGSize(width: 96, height: 72),
         points: 10,
         fallSpeed: 100,
         rarity: 0.1,
@@ -54,6 +54,7 @@ struct FallingObjectType {
 
     static let bottle = FallingObjectType(
         assetName: "collect_botol",
+        size: CGSize(width: 52, height: 52),
         points: 15,
         fallSpeed: 120,
         rarity: 0.1,
@@ -81,6 +82,7 @@ struct FallingObjectType {
 
     static let plasticBag = FallingObjectType(
         assetName: "collect_kresek",
+        size: CGSize(width: 96, height: 96),
         points: 50,
         fallSpeed: 60,
         rarity: 0.1,
@@ -152,7 +154,7 @@ struct FallingObjectType {
             }
         }
 
-        return bottle 
+        return bottle
     }
 }
 
@@ -173,7 +175,8 @@ class FallingObject: BaseGameObject {
         spriteNode.size = objectType.getSize()
 
         spriteNode.physicsBody = SKPhysicsBody(
-            rectangleOf: objectType.getSize()
+            texture: spriteNode.texture!,
+            size: objectType.getSize()
         )
         spriteNode.physicsBody?.isDynamic = true
         spriteNode.physicsBody?.categoryBitMask = PhysicsCategory.fallingObject
@@ -228,10 +231,10 @@ class FallingObject: BaseGameObject {
     ) {
         node.position = position
         node.setScale(initialScale)
-        
-//        // Calculate duration based on distance and fall speed
-//        let distance = abs(position.y - targetY)
-//        let duration = TimeInterval(distance / objectType.fallSpeed)
+
+        //        // Calculate duration based on distance and fall speed
+        //        let distance = abs(position.y - targetY)
+        //        let duration = TimeInterval(distance / objectType.fallSpeed)
 
         let fallAction = SKAction.moveTo(y: targetY, duration: duration)
         let scaleAction = SKAction.scale(to: finalScale, duration: duration)
