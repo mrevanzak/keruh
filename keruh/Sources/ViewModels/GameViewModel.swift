@@ -96,10 +96,6 @@ class GameViewModel: ObservableObject {
     private var riverLeftBound: CGFloat = 0
     private var riverRightBound: CGFloat = 0
 
-    // Store clamped island positions for spawn calculations
-    private var riverLeftBound: CGFloat = 0
-    private var riverRightBound: CGFloat = 0
-
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
 
