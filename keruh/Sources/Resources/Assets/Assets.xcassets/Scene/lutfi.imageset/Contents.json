@@ -1,11 +1,11 @@
 {
   "images" : [
     {
+      "filename" : "lutfi.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "lutfi.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

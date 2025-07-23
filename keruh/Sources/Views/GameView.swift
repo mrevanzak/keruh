@@ -17,7 +17,6 @@ struct GameView: View {
 
     var body: some View {
         ZStack {
-            // Background Game Scene
             BackgroundSceneView(viewModel: viewModel)
 
             switch viewModel.gameState.playState {
@@ -32,6 +31,7 @@ struct GameView: View {
                     viewModel: viewModel,
                     tutorialManager: tutorialManager
                 )
+
             case .gameOver:
                 ZStack {
                     Color.black.opacity(0.6)
@@ -40,16 +40,15 @@ struct GameView: View {
 
                     GameOverView(
                         score: viewModel.gameState.score,
-                        onReplay: {
-                            viewModel.resetGame()
-                        },
+                        onReplay: { viewModel.resetGame() },
                         onHome: {
                             viewModel.resetToMenu()
-                            currentScreen = .menu
+                            currentScreen = .game
                         }
                     )
                     .transition(.scale.combined(with: .opacity))
-                }.onAppear {
+                }
+                .onAppear {
                     AudioManager.shared.playGameOverSFX()
                 }
             case .settings:
@@ -64,7 +63,7 @@ struct GameView: View {
                         },
                         onHome: {
                             viewModel.resetToMenu()
-                            currentScreen = .menu
+                            currentScreen = .game
                         },
                         onPlay: {
                             viewModel.resumeGame()
@@ -73,6 +72,14 @@ struct GameView: View {
                     )
                     .transition(.scale.combined(with: .opacity))
                 }
+
+            case .leaderboard:
+                LeaderboardPopUpView(
+                    onClose: {
+                        viewModel.resetToMenu()
+                        currentScreen = .game
+                    }
+                )
             }
 
             TutorialOverlayView(tutorialManager: tutorialManager)
@@ -105,9 +112,10 @@ struct GameView: View {
 
 // MARK: - Menu Content View
 private struct MenuContentView: View {
-    @State private var showPlayText = false
     @ObservedObject var tutorialManager: TutorialManager
     @ObservedObject var viewModel: GameViewModel
+
+    @State private var showPlayText = false
 
     let namespace: Namespace.ID
 
@@ -126,12 +134,17 @@ private struct MenuContentView: View {
             .onAppear {
                 setupPlayTextAnimation()
             }
+
         }
         VStack {
             HStack {
                 Spacer()
                 VStack {
-                    MenuButton(icon: "medal.fill", size: 50, padding: 10)
+                    Button {
+                        viewModel.gameState.playState = .leaderboard
+                    } label: {
+                        MenuButton(icon: "medal.fill", size: 50, padding: 10)
+                    }
                     Button {
                         viewModel.gameState.playState = .settings
                     } label: {
@@ -525,7 +538,7 @@ extension Color {
 
         var body: some View {
             GameView(
-                currentScreen: .constant(.menu),
+                currentScreen: .constant(.game),
                 namespace: namespace
             )
         }

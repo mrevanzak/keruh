@@ -40,6 +40,7 @@ enum GamePlayState {
     case paused
     case gameOver
     case settings
+    case leaderboard
 }
 
 private enum TouchState {
@@ -553,11 +554,11 @@ class GameViewModel: ObservableObject {
         }
 
         switch object.type.assetName {
-        case "heart":
+        case "power_extralive":
             addHealth()
-        case "coin":
+        case "power_doublepoint":
             activateDoublePoint()
-        case "clock":
+        case "power_slowdown":
             activateSlowMotion()
         default:
             if object.type.isCollectible {
