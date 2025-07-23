@@ -6,10 +6,17 @@
 //
 
 import Foundation
+import GameKit
 
 struct Leaderboard: Identifiable {
     let id = UUID()
-    let playerName: String
+    let player: GKPlayer
     let score: Int
     let rank: Int
+    var playerImage: UIImage? = nil
+
+    var playerName: String {
+        player.displayName
+    }
 }
+

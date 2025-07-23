@@ -9,7 +9,7 @@ import SwiftUI
 
 enum ScreenState {
     case splash
-    case menu
+    case game
 }
 
 struct MainView: View {
@@ -27,7 +27,7 @@ struct MainView: View {
             switch currentScreen {
             case .splash:
                 SplashScreenView(namespace: heroAnimation)
-            case .menu:
+            case .game:
                 GameView(
                     currentScreen: $currentScreen,
                     namespace: heroAnimation
@@ -39,7 +39,7 @@ struct MainView: View {
             AudioManager.shared.playBackgroundMusic()
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 withAnimation(.spring(response: 1.0, dampingFraction: 0.9)) {
-                    currentScreen = .menu
+                    currentScreen = .game
                 }
             }
         }
