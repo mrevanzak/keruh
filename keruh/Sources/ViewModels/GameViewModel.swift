@@ -39,6 +39,7 @@ enum GamePlayState {
     case playing
     case paused
     case gameOver
+    case settings
 }
 
 private enum TouchState {
