@@ -108,6 +108,52 @@ struct FallingObjectType {
         isCollectible: true
     )
 
+    // non-collectible
+    static let gabus = FallingObjectType(
+        assetName: "noncollect_gabus",
+        points: 0,
+        fallSpeed: 60,
+        rarity: 0.12,
+        isSpecial: false,
+        isCollectible: false
+    )
+
+    static let ganggang = FallingObjectType(
+        assetName: "noncollect_ganggang",
+        points: 0,
+        fallSpeed: 60,
+        rarity: 0.12,
+        isSpecial: false,
+        isCollectible: false
+    )
+
+    static let lele = FallingObjectType(
+        assetName: "noncollect_lele",
+        points: 0,
+        fallSpeed: 60,
+        rarity: 0.12,
+        isSpecial: false,
+        isCollectible: false
+    )
+
+    static let nila = FallingObjectType(
+        assetName: "noncollect_nila",
+        points: 0,
+        fallSpeed: 60,
+        rarity: 0.12,
+        isSpecial: false,
+        isCollectible: false
+    )
+
+    static let teratai = FallingObjectType(
+        assetName: "noncollect_teratai",
+        points: 0,
+        fallSpeed: 60,
+        rarity: 0.12,
+        isSpecial: false,
+        isCollectible: false
+    )
+
     //power up
     static let heart = FallingObjectType(
         assetName: "power_extralive",
@@ -141,6 +187,7 @@ struct FallingObjectType {
 
     static let allTypes = [
         tire, ciki, bottle, can, plasticBag, sandal, diaper, heart, coin, clock,
+        gabus, ganggang, nila, lele, teratai,
     ]
 
     static func random() -> FallingObjectType {

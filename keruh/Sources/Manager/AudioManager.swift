@@ -16,10 +16,12 @@ class AudioManager {
     
     func playBackgroundMusic() {
         playMusic(named: "BGM.mp3", withExtension: "mp3")
+        updateVolumeBGM()
     }
     
     func playGameOverSFX() {
         playSFX(named: "game_over.mp3", withExtension: "mp3")
+        updateVolumeSFX()
     }
     
     private func playMusic(named name: String, withExtension ext: String) {
@@ -54,6 +56,14 @@ class AudioManager {
         } catch {
             print("Failed to play sound: \(error.localizedDescription)")
         }
+    }
+    
+    func updateVolumeSFX() {
+        sfx?.volume = SettingsManager.shared.soundEnabled ? 1.0 : 0.0
+    }
+    
+    func updateVolumeBGM() {
+        player?.volume = SettingsManager.shared.bgmEnabled ? 0.5 : 0.0
     }
 
     func stopSound() {

@@ -86,10 +86,19 @@ class GameViewModel: ObservableObject {
     private var slowMotionTimer: Timer?
     private var originalGameSpeed: TimeInterval = GameConfiguration
         .defaultSpawnInterval
+    
     private var uiUpdateTimer: Timer?
     private var pausedMissTimers: [UUID: TimeInterval] = [:]
     private var pausedDoublePointTime: TimeInterval?
     private var pausedSlowMotionTime: TimeInterval?
+
+    // Store clamped island positions for spawn calculations
+    private var riverLeftBound: CGFloat = 0
+    private var riverRightBound: CGFloat = 0
+
+    // Store clamped island positions for spawn calculations
+    private var riverLeftBound: CGFloat = 0
+    private var riverRightBound: CGFloat = 0
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
@@ -101,6 +110,7 @@ class GameViewModel: ObservableObject {
             qos: .userInitiated
         )
         private var impactFeedback: UIImpactFeedbackGenerator?
+        private var hardImpactFeedback: UIImpactFeedbackGenerator?
     #endif
 
     var sceneNodes = SceneNode(
@@ -147,20 +157,23 @@ class GameViewModel: ObservableObject {
         sceneNodes.river.zPosition = -8
         sceneNodes.river.alpha = 0
 
-        // Islands
+        // Islands with clamping for larger screens
+        let islandYPosition = screenSize.height * 0.01
+
+        // Configure left island
         sceneNodes.leftIsland.anchorPoint = CGPoint(x: 1.0, y: 0.0)
         sceneNodes.leftIsland.size = CGSize(
             width: screenSize.width * 0.55,
             height: screenSize.height * 0.8
         )
-        let islandYPosition = screenSize.height * 0.05
         sceneNodes.leftIsland.position = CGPoint(
             x: -sceneNodes.leftIsland.size.width,
             y: islandYPosition
         )
         sceneNodes.leftIsland.zPosition = 10
 
-        sceneNodes.rightIsland.anchorPoint = CGPoint(x: 0.1, y: 0.0)
+        // Configure right island
+        sceneNodes.rightIsland.anchorPoint = CGPoint(x: 0.0, y: 0.0)
         sceneNodes.rightIsland.size = CGSize(
             width: screenSize.width * 0.55,
             height: screenSize.height * 0.8
@@ -170,6 +183,30 @@ class GameViewModel: ObservableObject {
             y: islandYPosition
         )
         sceneNodes.rightIsland.zPosition = 10
+
+        // Calculate clamped positions to prevent river from being too wide
+        let maxRiverWidth: CGFloat = 120  // Maximum river width for larger screens
+        let minIslandOverlap: CGFloat = 50  // Minimum island overlap into river
+
+        // Calculate proper aligned positions based on anchor points
+        // Left island: anchor at right edge (x=1.0), so position = right edge of island
+        // Right island: anchor at left edge (x=0.0), so position = left edge of island
+        let idealLeftFinalX = maxRiverWidth / 2  // Position of left island's right edge
+        let idealRightFinalX = screenSize.width - (maxRiverWidth / 2)  // Position of right island's left edge
+
+        let centerX = screenSize.width / 2
+        let clampedLeftFinalX = max(
+            centerX - maxRiverWidth / 2,
+            minIslandOverlap
+        )
+        let clampedRightFinalX = min(
+            centerX + maxRiverWidth / 2,
+            screenSize.width - minIslandOverlap
+        )
+
+        // Store river bounds for spawn calculations
+        riverLeftBound = clampedLeftFinalX
+        riverRightBound = clampedRightFinalX
 
         // Clouds
         sceneNodes.clouds.anchorPoint = CGPoint(x: 0.5, y: 0)
@@ -220,7 +257,7 @@ class GameViewModel: ObservableObject {
             .wait(forDuration: 0.1),
             .move(
                 to: CGPoint(
-                    x: sceneNodes.leftIsland.size.width / 2,
+                    x: clampedLeftFinalX,
                     y: islandYPosition
                 ),
                 duration: 0.8
@@ -233,8 +270,7 @@ class GameViewModel: ObservableObject {
             .wait(forDuration: 0.1),
             .move(
                 to: CGPoint(
-                    x: screenSize.width
-                        - (sceneNodes.rightIsland.size.width / 2),
+                    x: clampedRightFinalX,
                     y: islandYPosition
                 ),
                 duration: 0.8
@@ -248,8 +284,12 @@ class GameViewModel: ObservableObject {
         catcher.setup()
         #if os(iOS)
             hapticQueue.async {
-                self.impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                self.impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                self.hardImpactFeedback = UIImpactFeedbackGenerator(
+                    style: .heavy
+                )
                 self.impactFeedback?.prepare()
+                self.hardImpactFeedback?.prepare()
             }
         #endif
     }
@@ -337,23 +377,23 @@ class GameViewModel: ObservableObject {
 
     private func calculateSpawnX(for objectSize: CGSize) -> CGFloat {
         let halfWidth = objectSize.width / 2
-        let preferredLeftBound = screenSize.width * 0.35 + halfWidth
-        let preferredRightBound = screenSize.width * 0.65 - halfWidth
 
-        // Ensure we always have a valid range within preferred bounds
+        // Use the actual aligned river bounds
+        let preferredLeftBound = riverLeftBound + halfWidth
+        let preferredRightBound = riverRightBound - halfWidth
+
+        // Ensure we always have a valid range within river bounds
         let actualLeftBound = max(preferredLeftBound, halfWidth)
         let actualRightBound = min(
             preferredRightBound,
             screenSize.width - halfWidth
         )
 
-        // If the preferred bounds are invalid (object too wide), adjust them
+        // If the bounds are invalid (object too wide), use river center
         if actualLeftBound >= actualRightBound {
-            // Object is too wide for preferred area, use the center of preferred area
-            let preferredCenter =
-                (screenSize.width * 0.35 + screenSize.width * 0.65) / 2
-            latestXDrop = preferredCenter
-            return preferredCenter
+            let riverCenter = (riverLeftBound + riverRightBound) / 2
+            latestXDrop = riverCenter
+            return riverCenter
         }
 
         // Define minimum distance between spawns (adjust this value as needed)
@@ -529,24 +569,20 @@ class GameViewModel: ObservableObject {
     }
 
     private func updateScoreAndHealth(for object: FallingObjectData) {
-        if object.type.isSpecial {
-            let playSound = SKAction.playSoundFileNamed(
-                "power_up.mp3",
-                waitForCompletion: false
-            )
-            catcher.node.run(playSound)
-        } else if object.type.isCollectible {
-            let playSound = SKAction.playSoundFileNamed(
-                "correct.mp3",
-                waitForCompletion: false
-            )
-            catcher.node.run(playSound)
-        } else {
-            let playSound = SKAction.playSoundFileNamed(
-                "incorrect.mp3",
-                waitForCompletion: false
-            )
-            catcher.node.run(playSound)
+        if SettingsManager.shared.soundEnabled {
+            if object.type.isCollectible {
+                let playSound = SKAction.playSoundFileNamed(
+                    "correct.mp3",
+                    waitForCompletion: false
+                )
+                catcher.node.run(playSound)
+            } else {
+                let playSound = SKAction.playSoundFileNamed(
+                    "incorrect.mp3",
+                    waitForCompletion: false
+                )
+                catcher.node.run(playSound)
+            }
         }
 
         switch object.type.assetName {
@@ -561,6 +597,7 @@ class GameViewModel: ObservableObject {
                 let multiplier = (doublePointTimer != nil) ? 2 : 1
                 gameState.score += object.type.points * multiplier
             } else {
+                provideInvalidFeedback()
                 decreaseHealth()
             }
         }
@@ -574,11 +611,15 @@ class GameViewModel: ObservableObject {
             if fallingObject.type.isCollectible == true
                 && fallingObject.type.isSpecial == false
             {
-                let playSound = SKAction.playSoundFileNamed(
-                    "incorrect.mp3",
-                    waitForCompletion: false
-                )
-                catcher.node.run(playSound)
+                if SettingsManager.shared.soundEnabled {
+                    let playSound = SKAction.playSoundFileNamed(
+                        "incorrect.mp3",
+                        waitForCompletion: false
+                    )
+                    catcher.node.run(playSound)
+                }
+                
+                provideInvalidFeedback()
                 decreaseHealth()
             }
         }
@@ -598,9 +639,23 @@ class GameViewModel: ObservableObject {
 
     private func provideCatcherFeedback() {
         #if os(iOS)
-            hapticQueue.async {
-                DispatchQueue.main.async {
-                    self.impactFeedback?.impactOccurred()
+            if SettingsManager.shared.hapticsEnabled {
+                hapticQueue.async {
+                    DispatchQueue.main.async {
+                        self.impactFeedback?.impactOccurred()
+                    }
+                }
+            }
+        #endif
+    }
+    
+    private func provideInvalidFeedback() {
+        #if os(iOS)
+            if SettingsManager.shared.hapticsEnabled {
+                hapticQueue.async {
+                    DispatchQueue.main.async {
+                        self.hardImpactFeedback?.impactOccurred()
+                    }
                 }
             }
         #endif

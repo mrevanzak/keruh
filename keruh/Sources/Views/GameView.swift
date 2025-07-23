@@ -345,7 +345,7 @@ private struct GameOverView: View {
 
             GeometryReader { geo in
                 let imageHeight = geo.size.height
-                let buttonTopPadding = imageHeight * 0.67
+                let buttonTopPadding = imageHeight * 0.77
 
                 VStack(spacing: 16) {
                     (Text("\(score) KG\n")
@@ -378,15 +378,19 @@ private struct GameOverView: View {
                 VStack {
                     HStack(spacing: 8) {
                         Button(action: onReplay) {
-                            Image("icon_replay")
-                                .resizable()
-                                .frame(width: 88, height: 88)
+                            MenuButton(
+                                icon: "arrow.counterclockwise",
+                                size: 70,
+                                padding: 10
+                            )
                         }
 
                         Button(action: onHome) {
-                            Image("icon_home")
-                                .resizable()
-                                .frame(width: 88, height: 88)
+                            MenuButton(
+                                icon: "house.fill",
+                                size: 70,
+                                padding: 10
+                            )
                         }
                     }
                 }
