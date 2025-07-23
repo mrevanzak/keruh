@@ -38,15 +38,23 @@ struct GameView: View {
                         viewModel: viewModel,
                         tutorialManager: tutorialManager
                     )
-
-                    PauseView(
-                        onContinue: {
-                            viewModel.resumeGame()
-                        },
-                        onReplay: {
-                            viewModel.resetGame()
-                        }
+                    Color.black.opacity(0.6).ignoresSafeArea().transition(
+                        .opacity
                     )
+
+                    SettingsView(
+                        title: "Paused",
+                        showActionButtons: true,
+                        onContinue: { viewModel.resumeGame() },
+                        onReplay: { viewModel.resetGame() },
+                        onHome: {
+                            viewModel.resetToMenu()
+                            currentScreen = .game
+                        },
+                        showCloseButton: false,
+                        onClose: {}
+                    )
+                    .transition(.scale.combined(with: .opacity))
                 }
 
             case .gameOver:
@@ -70,22 +78,21 @@ struct GameView: View {
                 }
             case .settings:
                 ZStack {
-                    Color.black.opacity(0.6)
-                        .ignoresSafeArea()
-                        .transition(.opacity)
+                    Color.black.opacity(0.6).ignoresSafeArea().transition(
+                        .opacity
+                    )
 
                     SettingsView(
-                        onReplay: {
-                            viewModel.resetGame()
-                        },
-                        onHome: {
+                        title: "",
+                        showActionButtons: false,
+                        onContinue: {},
+                        onReplay: {},
+                        onHome: {},
+                        showCloseButton: true,
+                        onClose: {
                             viewModel.resetToMenu()
                             currentScreen = .game
-                        },
-                        onPlay: {
-                            viewModel.resumeGame()
-                        },
-                        viewModel: viewModel
+                        }
                     )
                     .transition(.scale.combined(with: .opacity))
                 }
@@ -416,7 +423,13 @@ private struct GameStatsView: View {
                 HStack {
                     Text("Skor")
                         .font(.custom("PaperInko", size: 18))
-                        .foregroundColor(Color(red: 199 / 255, green: 255 / 255, blue: 255 / 255))
+                        .foregroundColor(
+                            Color(
+                                red: 199 / 255,
+                                green: 255 / 255,
+                                blue: 255 / 255
+                            )
+                        )
                         .shadow(
                             color: .black.opacity(0.4),
                             radius: 2,
@@ -465,17 +478,21 @@ private struct GameStatsView: View {
 
 // MARK: - Settings View
 private struct SettingsView: View {
+    let title: String
+    let showActionButtons: Bool
+    let onContinue: () -> Void
     let onReplay: () -> Void
     let onHome: () -> Void
-    let onPlay: () -> Void
-    @ObservedObject var viewModel: GameViewModel
+    let showCloseButton: Bool
+    let onClose: () -> Void
+
     @ObservedObject var settings = SettingsManager.shared
 
     var body: some View {
         GameOverlayContentView(
-            showCloseButton: true,
-            onClose: onHome,
-            titleImage: "title_settings",
+            showCloseButton: showCloseButton,
+            onClose: onClose,
+            titleImage: "title_\(title.lowercased())",
             mainContent: {
                 GeometryReader { geo in
                     let isLargeScreen = geo.size.width > 800
@@ -484,6 +501,12 @@ private struct SettingsView: View {
                     let gridSpacing = 12 * scaleFactor
 
                     VStack(spacing: 20 * scaleFactor) {
+                        Text(title)
+                            .font(.custom("PaperInko", size: 48))
+                            .fontWeight(.bold)
+                            .foregroundColor(.black)
+                            .padding(.bottom)
+
                         Grid(
                             horizontalSpacing: gridSpacing,
                             verticalSpacing: gridSpacing
@@ -575,8 +598,9 @@ private struct SettingsView: View {
                     let isLargeScreen = geo.size.width > 800
                     let scaleFactor = isLargeScreen ? 1.2 : 1.0
 
-                    if viewModel.gameState.playState == .playing {
-                        HStack(spacing: 8 * scaleFactor) {
+                    if showActionButtons {
+                        HStack(spacing: 25 * scaleFactor) {
+                            Spacer()
                             Button(action: onReplay) {
                                 MenuButton(
                                     icon: "arrow.counterclockwise",
@@ -584,7 +608,13 @@ private struct SettingsView: View {
                                     padding: 6 * scaleFactor
                                 )
                             }
-
+                            Button(action: onContinue) {
+                                MenuButton(
+                                    icon: "play.fill",
+                                    size: 50 * scaleFactor,
+                                    padding: 10 * scaleFactor
+                                )
+                            }
                             Button(action: onHome) {
                                 MenuButton(
                                     icon: "house.fill",
@@ -592,60 +622,16 @@ private struct SettingsView: View {
                                     padding: 6 * scaleFactor
                                 )
                             }
-
-                            Button(action: onPlay) {
-                                MenuButton(
-                                    icon: "play.fill",
-                                    size: 50 * scaleFactor,
-                                    padding: 10 * scaleFactor
-                                )
-                            }
+                            Spacer()
                         }
+
                     } else {
-                        EmptyView()
+                        Spacer().frame(height: 60)
                     }
                 }
                 .frame(height: 60)
             }
         )
-    }
-}
-
-// MARK: - Pause View
-private struct PauseView: View {
-    let onContinue: () -> Void
-    let onReplay: () -> Void
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
-                .transition(.opacity)
-
-            VStack(spacing: 25) {
-                Text("Paused")
-                    .font(.custom("PaperInko", size: 48))
-                    .foregroundColor(.white)
-
-                HStack(spacing: 30) {
-                    Button(action: onReplay) {
-                        MenuButton(
-                            icon: "arrow.counterclockwise",
-                            size: 64,
-                            padding: 14
-                        )
-                    }
-
-                    Button(action: onContinue) {
-                        MenuButton(
-                            icon: "play.fill",
-                            size: 64,
-                            padding: 14
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
