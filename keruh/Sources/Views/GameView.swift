@@ -27,11 +27,29 @@ struct GameView: View {
                     viewModel: viewModel,
                     namespace: namespace,
                 )
-            case .playing, .paused:
+            case .playing:
                 GameOverlayView(
                     viewModel: viewModel,
                     tutorialManager: tutorialManager
                 )
+
+            case .paused:
+                ZStack {
+                    GameOverlayView(
+                        viewModel: viewModel,
+                        tutorialManager: tutorialManager
+                    )
+
+                    PauseView(
+                        onContinue: {
+                            viewModel.resumeGame()
+                        },
+                        onReplay: {
+                            viewModel.resetGame()
+                        }
+                    )
+                }
+
             case .gameOver:
                 ZStack {
                     Color.black.opacity(0.6)
@@ -242,21 +260,21 @@ private struct PowerUpTimerView: View {
             Image(iconName)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 68, height: 68)
+                .frame(width: 50, height: 50)
                 .shadow(color: .black.opacity(0.6), radius: 5, x: 8, y: 0)
 
             Circle()
                 .trim(from: 0.0, to: CGFloat(progress))
                 .stroke(
                     Color.white,
-                    style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
                 .animation(.linear, value: progress)
-                .frame(width: 54, height: 54)
+                .frame(width: 38, height: 38)
 
         }
-        .frame(width: 68, height: 68)
+        .frame(width: 50, height: 50)
     }
 }
 
@@ -272,16 +290,12 @@ private struct GameOverlayView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 8) {
-                    // Tutorial button during gameplay
-                    if viewModel.gameState.playState == .playing {
-                        Button("?") {
-                            tutorialManager.forceStartTutorial()
-                        }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(width: 30, height: 30)
-                        .background(Circle().fill(.black.opacity(0.3)))
-                        .padding(.trailing)
+                    Button(action: viewModel.pauseGame) {
+                        MenuButton(
+                            icon: "pause.fill",
+                            size: 50,
+                            padding: 12
+                        )
                     }
 
                     if viewModel.doublePointTimeRemaining > 0 {
@@ -463,10 +477,11 @@ private struct SettingsView: View {
                             .font(.custom("PaperInko", size: 28))
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
-                        Toggle("", isOn: $settings.hapticsEnabled).labelsHidden()
+                        Toggle("", isOn: $settings.hapticsEnabled)
+                            .labelsHidden()
                     }
                 }
-                .frame(width: geo.size.width / 2)                .labelsHidden()
+                .frame(width: geo.size.width / 2).labelsHidden()
                 .toggleStyle(WhiteBlueToggleStyle())
                 .frame(width: geo.size.width, height: geo.size.height * 1.1)
 
@@ -521,6 +536,44 @@ private struct SettingsView: View {
         }
         .padding(.horizontal, 16)
         .ignoresSafeArea(.all)
+    }
+}
+
+// MARK: - Pause View
+private struct PauseView: View {
+    let onContinue: () -> Void
+    let onReplay: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+                .transition(.opacity)
+
+            VStack(spacing: 25) {
+                Text("Paused")
+                    .font(.custom("PaperInko", size: 48))
+                    .foregroundColor(.white)
+
+                HStack(spacing: 30) {
+                    Button(action: onReplay) {
+                        MenuButton(
+                            icon: "arrow.counterclockwise",
+                            size: 64,
+                            padding: 14
+                        )
+                    }
+
+                    Button(action: onContinue) {
+                        MenuButton(
+                            icon: "play.fill",
+                            size: 64,
+                            padding: 14
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
