@@ -40,6 +40,7 @@ enum GamePlayState {
     case paused
     case gameOver
     case settings
+    case leaderboard
 }
 
 private enum TouchState {

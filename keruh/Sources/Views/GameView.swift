@@ -12,7 +12,6 @@ struct GameView: View {
     @Binding var currentScreen: ScreenState
     @StateObject private var viewModel = GameViewModel()
     @StateObject private var tutorialManager = TutorialManager()
-    @StateObject private var leaderboardViewModel = LeaderboardViewModel()
 
     let namespace: Namespace.ID
 
@@ -25,7 +24,6 @@ struct GameView: View {
                 MenuContentView(
                     tutorialManager: tutorialManager,
                     viewModel: viewModel,
-                    leaderboardViewModel: leaderboardViewModel,
                     namespace: namespace,
                 )
             case .playing, .paused:
@@ -45,7 +43,7 @@ struct GameView: View {
                         onReplay: { viewModel.resetGame() },
                         onHome: {
                             viewModel.resetToMenu()
-                            currentScreen = .menu
+                            currentScreen = .game
                         }
                     )
                     .transition(.scale.combined(with: .opacity))
@@ -65,7 +63,7 @@ struct GameView: View {
                         },
                         onHome: {
                             viewModel.resetToMenu()
-                            currentScreen = .menu
+                            currentScreen = .game
                         },
                         onPlay: {
                             viewModel.resumeGame()
@@ -74,18 +72,17 @@ struct GameView: View {
                     )
                     .transition(.scale.combined(with: .opacity))
                 }
+
+            case .leaderboard:
+                LeaderboardPopUpView(
+                    onClose: {
+                        viewModel.resetToMenu()
+                        currentScreen = .game
+                    }
+                )
             }
 
             TutorialOverlayView(tutorialManager: tutorialManager)
-
-            if leaderboardViewModel.isShowingLeaderboard {
-                LeaderboardPopUpView(
-                    showLeaderboard: $leaderboardViewModel.isShowingLeaderboard
-                )
-                .transition(.scale.combined(with: .opacity))
-                .zIndex(10)
-            }
-
         }
         .onTapGesture {
             if viewModel.gameState.playState == .menu {
@@ -117,8 +114,7 @@ struct GameView: View {
 private struct MenuContentView: View {
     @ObservedObject var tutorialManager: TutorialManager
     @ObservedObject var viewModel: GameViewModel
-    @ObservedObject var leaderboardViewModel: LeaderboardViewModel
-    
+
     @State private var showPlayText = false
 
     let namespace: Namespace.ID
@@ -133,23 +129,6 @@ private struct MenuContentView: View {
 
                 // Animated Play Text
                 AnimatedPlayText(isVisible: showPlayText)
-
-                // Tutorial button
-                if showPlayText {
-                    Button("Show Tutorial") {
-                        tutorialManager.forceStartTutorial()
-                    }
-                    .padding(.top, 20)
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
-
-                    Button("Leaderboard") {
-                        leaderboardViewModel.isShowingLeaderboard = true
-                    }
-                    .padding(.top, 10)
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
-                }
             }
             .padding(.vertical, 72)
             .onAppear {
@@ -161,7 +140,11 @@ private struct MenuContentView: View {
             HStack {
                 Spacer()
                 VStack {
-                    MenuButton(icon: "medal.fill", size: 50, padding: 10)
+                    Button {
+                        viewModel.gameState.playState = .leaderboard
+                    } label: {
+                        MenuButton(icon: "medal.fill", size: 50, padding: 10)
+                    }
                     Button {
                         viewModel.gameState.playState = .settings
                     } label: {
@@ -555,7 +538,7 @@ extension Color {
 
         var body: some View {
             GameView(
-                currentScreen: .constant(.menu),
+                currentScreen: .constant(.game),
                 namespace: namespace
             )
         }

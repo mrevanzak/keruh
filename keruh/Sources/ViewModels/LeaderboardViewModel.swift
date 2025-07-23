@@ -10,8 +10,6 @@ import Foundation
 class LeaderboardViewModel: ObservableObject {
     @Published var isAuthenticated = false
     @Published var topPlayers: [Leaderboard] = []
-    @Published var isShowingLeaderboard = false
-
 
     let leaderboardID = "com.keruh.leaderboard"
 
@@ -39,10 +37,6 @@ class LeaderboardViewModel: ObservableObject {
                 self.loadProfileImages()
             }
         }
-    }
-    
-    func forceStartLeaderboard() {
-        isShowingLeaderboard = true
     }
 
     private func loadProfileImages() {
