@@ -5,6 +5,7 @@
 //  Created by Richie Reuben Hermanto on 22/07/25.
 //
 
+import GameKit
 import SwiftUI
 
 struct LeaderboardPopUpView: View {
@@ -13,6 +14,8 @@ struct LeaderboardPopUpView: View {
     @State private var bgOpacity: Double = 0.1
     @State private var contentOpacity: Double = 0.1
     @StateObject private var viewModel = LeaderboardViewModel()
+    let currentID = GameCenterManager.shared.currentPlayerID
+
     
     var body: some View {
         ZStack {
@@ -38,11 +41,10 @@ struct LeaderboardPopUpView: View {
                                             if viewModel.topPlayers.count >= 2 {
                                                 LeaderboardTopThreeView(
                                                     rank: viewModel.topPlayers[1].rank,
-                                                    name: viewModel.topPlayers[1].playerName,
+                                                    name: displayName(for: viewModel.topPlayers[1]),
                                                     score: viewModel.topPlayers[1].score,
                                                     image: viewModel.topPlayers[1].playerImage
                                                 )
-                                                //                                                LeaderboardTopThreeView(rank: 2, name: "-", score: 0)
                                             } else {
                                                 LeaderboardTopThreeView(rank: 2, name: "-", score: 0)
                                             }
@@ -55,11 +57,10 @@ struct LeaderboardPopUpView: View {
                                             if viewModel.topPlayers.count >= 1 {
                                                 LeaderboardTopThreeView(
                                                     rank: viewModel.topPlayers[0].rank,
-                                                    name: viewModel.topPlayers[0].playerName,
+                                                    name: displayName(for: viewModel.topPlayers[0]),
                                                     score: viewModel.topPlayers[0].score,
                                                     image: viewModel.topPlayers[0].playerImage
                                                 )
-                                                //                                                LeaderboardTopThreeView(rank: 1, name: "-", score: 0, rankFrameImage: Image("rankframe_rank1"), borderRankImage: Image("border_rank1"), scoreViewImage: Image("score_view"))
                                             } else {
                                                 LeaderboardTopThreeView(rank: 1, name: "-", score: 0, rankFrameImage: Image("rankframe_rank1"), borderRankImage: Image("border_rank1"), scoreViewImage: Image("score_view"))
                                             }
@@ -72,11 +73,10 @@ struct LeaderboardPopUpView: View {
                                             if viewModel.topPlayers.count >= 3 {
                                                 LeaderboardTopThreeView(
                                                     rank: viewModel.topPlayers[2].rank,
-                                                    name: viewModel.topPlayers[2].playerName,
+                                                    name: displayName(for: viewModel.topPlayers[2]),
                                                     score: viewModel.topPlayers[2].score,
                                                     image: viewModel.topPlayers[2].playerImage
                                                 )
-                                                //                                                LeaderboardTopThreeView(rank: 3, name: "-", score: 0)
                                             } else {
                                                 LeaderboardTopThreeView(rank: 3, name: "-", score: 0)
                                             }
@@ -93,14 +93,12 @@ struct LeaderboardPopUpView: View {
                                             if i < viewModel.topPlayers.count {
                                                 LeaderboardRowView(
                                                     rank: viewModel.topPlayers[i].rank,
-                                                    name: viewModel.topPlayers[i].playerName,
+                                                    name: displayName(for: viewModel.topPlayers[i]),
                                                     score: viewModel.topPlayers[i].score
                                                 )
                                                 .scaleEffect(0.5)
-                                                //                                                LeaderboardRowView(rank: i + 1, name: "-", score: 0)
-                                                //                                                    .scaleEffect(0.5)
                                             } else {
-                                                LeaderboardRowView(rank: i + 1, name: "No Name", score: 1230)
+                                                LeaderboardRowView(rank: i + 1, name: "-", score: 0)
                                                     .scaleEffect(0.5)
                                             }
                                         }
@@ -166,6 +164,10 @@ struct LeaderboardPopUpView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             showLeaderboard = false
         }
+    }
+    
+    private func displayName(for entry: Leaderboard) -> String {
+        return entry.player.gamePlayerID == currentID ? "You" : entry.playerName
     }
 }
 

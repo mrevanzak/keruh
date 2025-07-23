@@ -30,6 +30,10 @@ class GameCenterManager {
             }
         }
     }
+    
+    var currentPlayerID: String {
+        GKLocalPlayer.local.gamePlayerID
+    }
 
     func submitScore(_ score: Int, leaderboardID: String) {
         GKLeaderboard.submitScore(score, context: 0, player: GKLocalPlayer.local, leaderboardIDs: [leaderboardID]) { error in
