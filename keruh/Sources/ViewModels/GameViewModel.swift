@@ -87,8 +87,9 @@ class GameViewModel: ObservableObject {
     private var originalGameSpeed: TimeInterval = GameConfiguration
         .defaultSpawnInterval
     private var uiUpdateTimer: Timer?
+    private var pausedMissTimers: [UUID: TimeInterval] = [:]
     private var pausedDoublePointTime: TimeInterval?
-        private var pausedSlowMotionTime: TimeInterval?
+    private var pausedSlowMotionTime: TimeInterval?
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
@@ -667,9 +668,15 @@ class GameViewModel: ObservableObject {
         objectTimers.values.forEach { $0.invalidate() }
         objectTimers.removeAll()
 
-        missTimers.values.forEach { $0.invalidate() }
+        pausedMissTimers.removeAll()
+        for (id, timer) in missTimers {
+            if timer.isValid {
+                pausedMissTimers[id] = timer.fireDate.timeIntervalSinceNow
+            }
+            timer.invalidate()
+        }
         missTimers.removeAll()
-        
+
         uiUpdateTimer?.invalidate()
 
         if let timer = doublePointTimer, timer.isValid {
@@ -710,7 +717,18 @@ class GameViewModel: ObservableObject {
             }
             pausedSlowMotionTime = nil
         }
-        
+
+        for (id, remainingTime) in pausedMissTimers {
+            let timer = Timer.scheduledTimer(
+                withTimeInterval: remainingTime,
+                repeats: false
+            ) { [weak self] _ in
+                self?.handleObjectMissed(id)
+            }
+            missTimers[id] = timer
+        }
+        pausedMissTimers.removeAll()
+
         startUIUpdater()
 
         catcher.node.isPaused = false
@@ -724,7 +742,7 @@ class GameViewModel: ObservableObject {
         stopAllTimers()
         doublePointTimeRemaining = 0.0
         slowMotionTimeRemaining = 0.0
-        
+
         startUIUpdater()
         fallingObjects.removeAll()
 
