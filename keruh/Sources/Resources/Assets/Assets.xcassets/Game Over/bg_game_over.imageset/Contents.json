@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "game_over.png",
+      "filename" : "bg_game_over.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
