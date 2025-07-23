@@ -88,14 +88,13 @@ class GameCenterManager {
                     return
                 }
                 
-                let leaderboardEntries: [Leaderboard] = entries.map { entry in
+                let leaderboardEntries: [Leaderboard] = entries.enumerated().map { index, entry in
                     Leaderboard(
-                        playerName: entry.player.alias,
+                        player: entry.player,
                         score: Int(entry.score),
-                        rank: entry.rank
+                        rank: index + 1
                     )
                 }
-                
                 completion(leaderboardEntries)
             }
         }

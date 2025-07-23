@@ -36,7 +36,26 @@ class LeaderboardViewModel: ObservableObject {
         GameCenterManager.shared.loadTopScores(leaderboardID: leaderboardID, count: 10) { players in
             DispatchQueue.main.async {
                 self.topPlayers = players
+                self.loadProfileImages() // muat foto setelah data topPlayers didapat
             }
         }
     }
+    
+    func forceStartLeaderboard() {
+        isShowingLeaderboard = true
+    }
+
+    private func loadProfileImages() {
+        for (index, player) in topPlayers.enumerated() {
+            player.player.loadPhoto(for: .small) { image, error in
+                guard let image = image, error == nil else { return }
+                DispatchQueue.main.async {
+                    self.topPlayers[index].playerImage = image
+                    // Trigger UI update
+                    self.objectWillChange.send()
+                }
+            }
+        }
+    }
+
 }
