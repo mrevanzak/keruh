@@ -98,6 +98,7 @@ class GameViewModel: ObservableObject {
             qos: .userInitiated
         )
         private var impactFeedback: UIImpactFeedbackGenerator?
+        private var hardImpactFeedback: UIImpactFeedbackGenerator?
     #endif
 
     var sceneNodes = SceneNode(
@@ -270,8 +271,12 @@ class GameViewModel: ObservableObject {
         catcher.setup()
         #if os(iOS)
             hapticQueue.async {
-                self.impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                self.impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                self.hardImpactFeedback = UIImpactFeedbackGenerator(
+                    style: .heavy
+                )
                 self.impactFeedback?.prepare()
+                self.hardImpactFeedback?.prepare()
             }
         #endif
     }
@@ -565,6 +570,7 @@ class GameViewModel: ObservableObject {
                 let multiplier = (doublePointTimer != nil) ? 2 : 1
                 gameState.score += object.type.points * multiplier
             } else {
+                provideInvalidFeedback()
                 decreaseHealth()
             }
         }
@@ -585,7 +591,8 @@ class GameViewModel: ObservableObject {
                     )
                     catcher.node.run(playSound)
                 }
-
+                
+                provideInvalidFeedback()
                 decreaseHealth()
             }
         }
@@ -606,6 +613,18 @@ class GameViewModel: ObservableObject {
                 hapticQueue.async {
                     DispatchQueue.main.async {
                         self.impactFeedback?.impactOccurred()
+                    }
+                }
+            }
+        #endif
+    }
+    
+    private func provideInvalidFeedback() {
+        #if os(iOS)
+            if SettingsManager.shared.hapticsEnabled {
+                hapticQueue.async {
+                    DispatchQueue.main.async {
+                        self.hardImpactFeedback?.impactOccurred()
                     }
                 }
             }
