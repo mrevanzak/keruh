@@ -160,7 +160,7 @@ struct FallingObjectType {
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
-        rarity: 0.4,
+        rarity: 0.03,
         isSpecial: true,
         isCollectible: true
     )
