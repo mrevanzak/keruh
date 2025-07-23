@@ -460,15 +460,23 @@ class GameViewModel: ObservableObject {
         let fallDistance = abs(object.position.y - object.targetY)
         let actualDuration = TimeInterval(fallDistance / adjustedFallSpeed)
 
+        // Trigger miss early (e.g. 100 points above targetY or 0.2 seconds before actual hit)
+        let earlyMissTime = max(actualDuration - 1, 0.05)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + earlyMissTime) {
+            [weak self] in
+            self?.handleObjectMissed(object.id)
+        }
+
+        // Start the visual fall animation
         fallingObjectNode.startFallingWithPerspective(
             from: object.position,
             to: finalPosition,
             initialScale: 0.3,
             finalScale: 1.0,
-            duration: actualDuration
-        ) { [weak self] in
-            self?.handleObjectMissed(object.id)
-        }
+            duration: actualDuration,
+            completion: {}
+        )
 
         scheduleObjectCleanup(for: object)
     }
@@ -755,14 +763,6 @@ class GameViewModel: ObservableObject {
         return CGPoint(
             x: GameConfiguration.uiPadding,
             y: screenSize.height - safeAreaTop
-        )
-    }
-
-    func getMissedPosition() -> CGPoint {
-        let safeAreaTop = safeAreaInsets.top + GameConfiguration.uiPadding
-        return CGPoint(
-            x: GameConfiguration.uiPadding,
-            y: screenSize.height - safeAreaTop - GameConfiguration.labelSpacing
         )
     }
 
