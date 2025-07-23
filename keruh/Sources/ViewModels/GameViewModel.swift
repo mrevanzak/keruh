@@ -65,10 +65,11 @@ struct SceneNode {
 class GameViewModel: ObservableObject {
     @Published var gameState = GameState()
     @Published var fallingObjects: [FallingObjectData] = []
-    @Published var scoreText: String =
-        "Score: \(GameConfiguration.initialScore)"
-    @Published var healthText: String =
-        "Health: \(GameConfiguration.initialHealth)"
+    @Published var scoreText: Int = GameConfiguration.initialScore
+    @Published var healthText: Int = GameConfiguration.initialHealth
+    @Published var doublePointTimeRemaining: Double = 0.0
+    @Published var slowMotionTimeRemaining: Double = 0.0
+    @Published var extraLive: Int = 0
 
     private(set) var catcher: Catcher
     private var fallingObjectNodes: [UUID: FallingObject] = [:]
@@ -76,6 +77,7 @@ class GameViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var spawnTimer: Timer?
     private var objectTimers: [UUID: Timer] = [:]
+    private var missTimers: [UUID: Timer] = [:]
     private var screenSize: CGSize = .zero
     private var safeAreaInsets: UIEdgeInsets = .zero
     private var touchState: TouchState = .idle
@@ -84,6 +86,11 @@ class GameViewModel: ObservableObject {
     private var slowMotionTimer: Timer?
     private var originalGameSpeed: TimeInterval = GameConfiguration
         .defaultSpawnInterval
+    
+    private var uiUpdateTimer: Timer?
+    private var pausedMissTimers: [UUID: TimeInterval] = [:]
+    private var pausedDoublePointTime: TimeInterval?
+    private var pausedSlowMotionTime: TimeInterval?
 
     // Store clamped island positions for spawn calculations
     private var riverLeftBound: CGFloat = 0
@@ -115,6 +122,7 @@ class GameViewModel: ObservableObject {
         self.catcher = Catcher()
         setupBindings()
         setupCatcher()
+        startUIUpdater()
     }
 
     deinit {
@@ -231,7 +239,7 @@ class GameViewModel: ObservableObject {
         let cloud = SKAction.sequence([
             .wait(forDuration: 1.5),
             .fadeIn(withDuration: 0.2),
-            .moveBy(x: 0, y: 60, duration: 0.6),
+            .moveBy(x: 0, y: 30, duration: 0.6),
         ])
         sceneNodes.clouds.run(cloud)
 
@@ -293,12 +301,12 @@ class GameViewModel: ObservableObject {
 
     private func setupBindings() {
         $gameState
-            .map { "Score: \($0.score)" }
+            .map { ($0.score) }
             .assign(to: \.scoreText, on: self)
             .store(in: &cancellables)
 
         $gameState
-            .map { "Health: \($0.health)" }
+            .map { ($0.health) }
             .assign(to: \.healthText, on: self)
             .store(in: &cancellables)
 
@@ -336,10 +344,13 @@ class GameViewModel: ObservableObject {
         return nodes
     }
 
-    func startGameplay() {
+    func startGameplay(isResuming: Bool = false) {
         gameState.playState = .playing
 
-        spawnCatcher()
+        if !isResuming {
+            spawnCatcher()
+        }
+
         startSpawningObjects()
     }
 
@@ -493,10 +504,18 @@ class GameViewModel: ObservableObject {
         // Trigger miss early (e.g. 100 points above targetY or 0.2 seconds before actual hit)
         let earlyMissTime = max(actualDuration - 1, 0.05)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + earlyMissTime) {
-            [weak self] in
+        //        DispatchQueue.main.asyncAfter(deadline: .now() + earlyMissTime) {
+        //            [weak self] in
+        //            self?.handleObjectMissed(object.id)
+        //        }
+
+        let missTimer = Timer.scheduledTimer(
+            withTimeInterval: earlyMissTime,
+            repeats: false
+        ) { [weak self] _ in
             self?.handleObjectMissed(object.id)
         }
+        missTimers[object.id] = missTimer
 
         // Start the visual fall animation
         fallingObjectNode.startFallingWithPerspective(
@@ -523,6 +542,9 @@ class GameViewModel: ObservableObject {
     }
 
     func handleObjectCaught(_ objectId: UUID) {
+        missTimers[objectId]?.invalidate()
+        missTimers.removeValue(forKey: objectId)
+
         guard
             let index = fallingObjects.firstIndex(where: { $0.id == objectId })
         else { return }
@@ -577,7 +599,7 @@ class GameViewModel: ObservableObject {
             fallingObjects.remove(at: index)
 
             if fallingObject.type.isCollectible == true
-                || fallingObject.type.isSpecial
+                && fallingObject.type.isSpecial == false
             {
                 if SettingsManager.shared.soundEnabled {
                     let playSound = SKAction.playSoundFileNamed(
@@ -600,6 +622,9 @@ class GameViewModel: ObservableObject {
 
         objectTimers[objectId]?.invalidate()
         objectTimers.removeValue(forKey: objectId)
+
+        missTimers[objectId]?.invalidate()
+        missTimers.removeValue(forKey: objectId)
     }
 
     private func provideCatcherFeedback() {
@@ -628,6 +653,9 @@ class GameViewModel: ObservableObject {
 
     private func decreaseHealth() {
         gameState.health -= 1
+        if extraLive > 0 {
+            extraLive -= 1
+        }
         if gameState.health == 0 {
             touchesEnded()
             gameOver()
@@ -680,20 +708,90 @@ class GameViewModel: ObservableObject {
 
     func pauseGame() {
         gameState.playState = .paused
-        stopAllTimers()
 
+        catcher.node.isPaused = true
         fallingObjectNodes.values.forEach { $0.node.isPaused = true }
+
+        stopSpawnTimer()
+        objectTimers.values.forEach { $0.invalidate() }
+        objectTimers.removeAll()
+
+        pausedMissTimers.removeAll()
+        for (id, timer) in missTimers {
+            if timer.isValid {
+                pausedMissTimers[id] = timer.fireDate.timeIntervalSinceNow
+            }
+            timer.invalidate()
+        }
+        missTimers.removeAll()
+
+        uiUpdateTimer?.invalidate()
+
+        if let timer = doublePointTimer, timer.isValid {
+            pausedDoublePointTime = timer.fireDate.timeIntervalSinceNow
+            timer.invalidate()
+            doublePointTimer = nil
+        }
+
+        if let timer = slowMotionTimer, timer.isValid {
+            pausedSlowMotionTime = timer.fireDate.timeIntervalSinceNow
+            timer.invalidate()
+            slowMotionTimer = nil
+        }
     }
 
     func resumeGame() {
         gameState.playState = .playing
 
+        if let remainingTime = pausedDoublePointTime {
+            doublePointTimer = Timer.scheduledTimer(
+                withTimeInterval: remainingTime,
+                repeats: false
+            ) { [weak self] _ in
+                self?.doublePointTimer = nil
+            }
+            pausedDoublePointTime = nil
+        }
+
+        if let remainingTime = pausedSlowMotionTime {
+            slowMotionTimer = Timer.scheduledTimer(
+                withTimeInterval: remainingTime,
+                repeats: false
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.gameState.gameSpeed = self.originalGameSpeed
+                self.adjustFallingObjectSpeeds(multiplier: 1.0)
+                self.slowMotionTimer = nil
+            }
+            pausedSlowMotionTime = nil
+        }
+
+        for (id, remainingTime) in pausedMissTimers {
+            let timer = Timer.scheduledTimer(
+                withTimeInterval: remainingTime,
+                repeats: false
+            ) { [weak self] _ in
+                self?.handleObjectMissed(id)
+            }
+            missTimers[id] = timer
+        }
+        pausedMissTimers.removeAll()
+
+        startUIUpdater()
+
+        catcher.node.isPaused = false
         fallingObjectNodes.values.forEach { $0.node.isPaused = false }
-        startGameplay()
+        startGameplay(isResuming: true)
     }
 
     func resetGame() {
         gameState = GameState()
+
+        stopAllTimers()
+        doublePointTimeRemaining = 0.0
+        slowMotionTimeRemaining = 0.0
+
+        startUIUpdater()
         fallingObjects.removeAll()
 
         cleanupAllObjects()
@@ -703,6 +801,10 @@ class GameViewModel: ObservableObject {
 
     func resetToMenu() {
         stopAllTimers()
+        doublePointTimeRemaining = 0.0
+        slowMotionTimeRemaining = 0.0
+
+        startUIUpdater()
         cleanupAllObjects()
         resetCatcherPosition()
 
@@ -780,9 +882,20 @@ class GameViewModel: ObservableObject {
     }
 
     private func stopAllTimers() {
+        uiUpdateTimer?.invalidate()
+        uiUpdateTimer = nil
+
         stopSpawnTimer()
         objectTimers.values.forEach { $0.invalidate() }
         objectTimers.removeAll()
+
+        missTimers.values.forEach { $0.invalidate() }
+        missTimers.removeAll()
+
+        doublePointTimer?.invalidate()
+        doublePointTimer = nil
+        slowMotionTimer?.invalidate()
+        slowMotionTimer = nil
     }
 
     private func stopSpawnTimer() {
@@ -817,11 +930,54 @@ class GameViewModel: ObservableObject {
         )
     }
 
+    func getMissedPosition() -> CGPoint {
+        let safeAreaTop = safeAreaInsets.top + GameConfiguration.uiPadding
+        return CGPoint(
+            x: GameConfiguration.uiPadding,
+            y: screenSize.height - safeAreaTop - GameConfiguration.labelSpacing
+        )
+    }
+
+    private func startUIUpdater() {
+        uiUpdateTimer?.invalidate()
+        uiUpdateTimer = Timer.scheduledTimer(
+            withTimeInterval: 0.05,
+            repeats: true
+        ) { [weak self] _ in
+            self?.updatePowerUpTimers()
+        }
+    }
+
+    private func updatePowerUpTimers() {
+        // Double Point Timer
+        if let timer = doublePointTimer, timer.isValid {
+            let remaining = timer.fireDate.timeIntervalSinceNow
+            doublePointTimeRemaining = max(
+                0,
+                remaining / GameConfiguration.doublePointDuration
+            )
+        } else if doublePointTimeRemaining != 0 {
+            doublePointTimeRemaining = 0
+        }
+
+        // Slow Motion Timer
+        if let timer = slowMotionTimer, timer.isValid {
+            let remaining = timer.fireDate.timeIntervalSinceNow
+            slowMotionTimeRemaining = max(
+                0,
+                remaining / GameConfiguration.slowMotionDuration
+            )
+        } else if slowMotionTimeRemaining != 0 {
+            slowMotionTimeRemaining = 0
+        }
+    }
+
     //power up
     private func addHealth(_ amount: Int = 1) {
         let maxHealth = 5
         if gameState.health < maxHealth {
             gameState.health = min(gameState.health + amount, maxHealth)
+            extraLive += 1
         } else {
             print("Health max")
         }

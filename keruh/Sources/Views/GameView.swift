@@ -26,11 +26,28 @@ struct GameView: View {
                     viewModel: viewModel,
                     namespace: namespace,
                 )
-            case .playing, .paused:
+            case .playing:
                 GameOverlayView(
                     viewModel: viewModel,
                     tutorialManager: tutorialManager
                 )
+
+            case .paused:
+                ZStack {
+                    GameOverlayView(
+                        viewModel: viewModel,
+                        tutorialManager: tutorialManager
+                    )
+
+                    PauseView(
+                        onContinue: {
+                            viewModel.resumeGame()
+                        },
+                        onReplay: {
+                            viewModel.resetGame()
+                        }
+                    )
+                }
 
             case .gameOver:
                 ZStack {
@@ -245,6 +262,34 @@ private struct BackgroundSceneView: View {
     }
 }
 
+// MARK: - Power-Up Timer View
+private struct PowerUpTimerView: View {
+    let iconName: String
+    let progress: Double
+
+    var body: some View {
+        ZStack {
+            Image(iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 50, height: 50)
+                .shadow(color: .black.opacity(0.6), radius: 5, x: 8, y: 0)
+
+            Circle()
+                .trim(from: 0.0, to: CGFloat(progress))
+                .stroke(
+                    Color.white,
+                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .animation(.linear, value: progress)
+                .frame(width: 38, height: 38)
+
+        }
+        .frame(width: 50, height: 50)
+    }
+}
+
 // MARK: - Game Overlay View
 private struct GameOverlayView: View {
     @ObservedObject var viewModel: GameViewModel
@@ -252,24 +297,48 @@ private struct GameOverlayView: View {
 
     var body: some View {
         VStack {
-            HStack {
+            HStack(alignment: .top) {
                 GameStatsView(viewModel: viewModel)
                 Spacer()
 
-                // Tutorial button during gameplay
-                if viewModel.gameState.playState == .playing {
-                    Button("?") {
-                        tutorialManager.forceStartTutorial()
+                VStack(alignment: .trailing, spacing: 8) {
+                    Button(action: viewModel.pauseGame) {
+                        MenuButton(
+                            icon: "pause.fill",
+                            size: 50,
+                            padding: 12
+                        )
                     }
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(width: 30, height: 30)
-                    .background(Circle().fill(.black.opacity(0.3)))
-                    .padding(.trailing)
+
+                    if viewModel.doublePointTimeRemaining > 0 {
+                        PowerUpTimerView(
+                            iconName: "icon_active power up_double point",
+                            progress: viewModel.doublePointTimeRemaining
+                        )
+                        .transition(.scale.combined(with: .opacity))
+                    }
+
+                    if viewModel.slowMotionTimeRemaining > 0 {
+                        PowerUpTimerView(
+                            iconName: "icon_active power up_slow down",
+                            progress: viewModel.slowMotionTimeRemaining
+                        )
+                        .transition(.scale.combined(with: .opacity))
+                    }
                 }
             }
+            .padding(.horizontal)
+            .padding(.top, 20)
             Spacer()
         }
+        .animation(
+            .spring(response: 0.4, dampingFraction: 0.8),
+            value: viewModel.doublePointTimeRemaining > 0
+        )
+        .animation(
+            .spring(response: 0.4, dampingFraction: 0.8),
+            value: viewModel.slowMotionTimeRemaining > 0
+        )
     }
 }
 
@@ -338,17 +407,59 @@ private struct GameStatsView: View {
     @ObservedObject var viewModel: GameViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(viewModel.scoreText)
-                .foregroundColor(.white)
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 2) {
+            ZStack {
+                Image("icon_score view")
+                    .resizable()
+                    .scaledToFit()
 
-            Text(viewModel.healthText)
-                .foregroundColor(.white)
-                .font(.subheadline)
+                HStack {
+                    Text("Skor")
+                        .font(.custom("PaperInko", size: 18))
+                        .foregroundColor(Color(red: 199 / 255, green: 255 / 255, blue: 255 / 255))
+                        .shadow(
+                            color: .black.opacity(0.4),
+                            radius: 2,
+                            x: 1,
+                            y: 1
+                        )
+
+                    Text("\(viewModel.scoreText)")
+                        .font(.custom("PaperInko", size: 24))
+                        .foregroundColor(.white)
+                        .shadow(
+                            color: .black.opacity(0.4),
+                            radius: 2,
+                            x: 1,
+                            y: 1
+                        )
+                        .padding(.leading, 8)
+                    Spacer()
+                }
+                .padding(.top, 8)
+                .padding(.leading, 48)
+                .padding(.trailing, 18)
+            }.frame(maxWidth: 250)
+
+            HStack(spacing: 2) {
+                let red = viewModel.healthText - viewModel.extraLive
+                ForEach(0..<red, id: \.self) { _ in
+                    Image("icon_live")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 32, height: 32)
+                        .transition(.scale)
+                }
+                ForEach(0..<viewModel.extraLive, id: \.self) { _ in
+                    Image("power_extralive")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 32, height: 32)
+                        .transition(.scale)
+                }
+            }
         }
-        .padding(.horizontal)
-        .padding(.top, 20)
+        .animation(.spring(), value: viewModel.healthText)
     }
 }
 
@@ -497,6 +608,44 @@ private struct SettingsView: View {
                 .frame(height: 60)
             }
         )
+    }
+}
+
+// MARK: - Pause View
+private struct PauseView: View {
+    let onContinue: () -> Void
+    let onReplay: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+                .transition(.opacity)
+
+            VStack(spacing: 25) {
+                Text("Paused")
+                    .font(.custom("PaperInko", size: 48))
+                    .foregroundColor(.white)
+
+                HStack(spacing: 30) {
+                    Button(action: onReplay) {
+                        MenuButton(
+                            icon: "arrow.counterclockwise",
+                            size: 64,
+                            padding: 14
+                        )
+                    }
+
+                    Button(action: onContinue) {
+                        MenuButton(
+                            icon: "play.fill",
+                            size: 64,
+                            padding: 14
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
