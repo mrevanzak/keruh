@@ -381,101 +381,174 @@ private struct SettingsView: View {
     @ObservedObject var settings = SettingsManager.shared
 
     var body: some View {
-        ZStack {
+        GeometryReader { outerGeo in
+            let isLargeScreen = outerGeo.size.width > 800
+            let maxImageWidth =
+                isLargeScreen ? min(outerGeo.size.width * 0.5, 700) : 400
+            let scaleFactor = isLargeScreen ? 1.2 : 1.0
+
             Image("bg_game_over")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 480)
-
-            GeometryReader { geo in
-                let imageHeight = geo.size.height
-                let buttonTopPadding = imageHeight * 0.77
-                let buttonBottomPadding = imageHeight * 0.17
-
-                Grid(horizontalSpacing: 16, verticalSpacing: 16) {
-                    GridRow {
-                        Text("Musik")
-                            .gridColumnAlignment(.leading)
-                            .font(.custom("PaperInko", size: 28))
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Toggle("", isOn: $settings.bgmEnabled).labelsHidden()
-                    }
-                    GridRow {
-                        Text("SFX")
-                            .font(.custom("PaperInko", size: 28))
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Toggle("", isOn: $settings.soundEnabled).labelsHidden()
-                    }
-                    GridRow {
-                        Text("Getar")
-                            .font(.custom("PaperInko", size: 28))
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Toggle("", isOn: $settings.hapticsEnabled)
-                            .labelsHidden()
-                    }
-                }
-                .frame(width: geo.size.width / 2).labelsHidden()
-                .toggleStyle(WhiteBlueToggleStyle())
-                .frame(width: geo.size.width, height: geo.size.height * 1.1)
-
-                VStack {
-                    HStack(spacing: 0) {
-                        Spacer()
-                        Button(action: onHome) {
-                            MenuButton(
-                                icon: "xmark",
-                                size: 50,
-                                padding: 10
-                            )
-                        }
-                    }
-                }
-                .padding(.top, buttonBottomPadding)
-                .padding(.horizontal, 10)
-                .frame(width: geo.size.width)
-
-                if viewModel.gameState.playState == .playing {
+                .frame(maxWidth: maxImageWidth)
+                .overlay {
                     VStack {
-                        HStack(spacing: 8) {
-                            Button(action: onReplay) {
-                                MenuButton(
-                                    icon: "arrow.counterclockwise",
-                                    size: 70,
-                                    padding: 10
-                                )
+                        // Settings Content Area - positioned within the bag
+                        VStack(spacing: 20 * scaleFactor) {
+                            let fontSize = 20 * scaleFactor
+                            let gridSpacing = 12 * scaleFactor
+
+                            Grid(
+                                horizontalSpacing: gridSpacing,
+                                verticalSpacing: gridSpacing
+                            ) {
+                                GridRow {
+                                    Text("Musik")
+                                        .gridColumnAlignment(.leading)
+                                        .font(
+                                            .custom(
+                                                "PaperInko",
+                                                size: fontSize
+                                            )
+                                        )
+                                        .lineLimit(1)
+                                        .fixedSize(
+                                            horizontal: true,
+                                            vertical: false
+                                        )
+                                        .foregroundColor(.black)
+                                    Toggle(
+                                        "",
+                                        isOn: $settings.bgmEnabled
+                                    )
+                                    .labelsHidden()
+                                    .toggleStyle(
+                                        WhiteBlueToggleStyle(
+                                            scaleFactor: scaleFactor
+                                                * 0.7
+                                        )
+                                    )
+                                }
+                                GridRow {
+                                    Text("SFX")
+                                        .font(
+                                            .custom(
+                                                "PaperInko",
+                                                size: fontSize
+                                            )
+                                        )
+                                        .lineLimit(1)
+                                        .fixedSize(
+                                            horizontal: true,
+                                            vertical: false
+                                        )
+                                        .foregroundColor(.black)
+                                    Toggle(
+                                        "",
+                                        isOn: $settings.soundEnabled
+                                    )
+                                    .labelsHidden()
+                                    .toggleStyle(
+                                        WhiteBlueToggleStyle(
+                                            scaleFactor: scaleFactor
+                                                * 0.7
+                                        )
+                                    )
+                                }
+                                GridRow {
+                                    Text("Getar")
+                                        .font(
+                                            .custom(
+                                                "PaperInko",
+                                                size: fontSize
+                                            )
+                                        )
+                                        .lineLimit(1)
+                                        .fixedSize(
+                                            horizontal: true,
+                                            vertical: false
+                                        )
+                                        .foregroundColor(.black)
+                                    Toggle(
+                                        "",
+                                        isOn: $settings.hapticsEnabled
+                                    )
+                                    .labelsHidden()
+                                    .toggleStyle(
+                                        WhiteBlueToggleStyle(
+                                            scaleFactor: scaleFactor
+                                                * 0.7
+                                        )
+                                    )
+                                }
+                            }
+                            .padding(.horizontal, 30 * scaleFactor)
+                        }
+                        .frame(maxWidth: maxImageWidth * 0.7)
+                        .padding(.top, maxImageWidth * 0.25)
+
+                        Spacer()
+
+                        // Bottom buttons area
+                        VStack(spacing: 12 * scaleFactor) {
+                            // Close button (always visible)
+                            HStack {
+                                Spacer()
+                                Button(action: onHome) {
+                                    MenuButton(
+                                        icon: "xmark",
+                                        size: 35 * scaleFactor,
+                                        padding: 6 * scaleFactor
+                                    )
+                                }
+                                .padding(.trailing, 15 * scaleFactor)
                             }
 
-                            Button(action: onHome) {
-                                MenuButton(
-                                    icon: "house.fill",
-                                    size: 70,
-                                    padding: 10
-                                )
-                            }
+                            // Game action buttons (only when playing)
+                            if viewModel.gameState.playState == .playing {
+                                HStack(spacing: 8 * scaleFactor) {
+                                    Button(action: onReplay) {
+                                        MenuButton(
+                                            icon:
+                                                "arrow.counterclockwise",
+                                            size: 50 * scaleFactor,
+                                            padding: 6 * scaleFactor
+                                        )
+                                    }
 
-                            Button(action: onPlay) {
-                                MenuButton(
-                                    icon: "play.fill",
-                                    size: 70,
-                                    padding: 15
-                                )
+                                    Button(action: onHome) {
+                                        MenuButton(
+                                            icon: "house.fill",
+                                            size: 50 * scaleFactor,
+                                            padding: 6 * scaleFactor
+                                        )
+                                    }
+
+                                    Button(action: onPlay) {
+                                        MenuButton(
+                                            icon: "play.fill",
+                                            size: 50 * scaleFactor,
+                                            padding: 10 * scaleFactor
+                                        )
+                                    }
+                                }
                             }
                         }
+                        .padding(.bottom, maxImageWidth * 0.12)
                     }
-                    .padding(.top, buttonTopPadding)
-                    .frame(width: geo.size.width)
                 }
-            }
+                .ignoresSafeArea(.all)
         }
-        .padding(.horizontal, 16)
-        .ignoresSafeArea(.all)
     }
 }
 
 struct WhiteBlueToggleStyle: ToggleStyle {
+    let scaleFactor: CGFloat
+
+    init(scaleFactor: CGFloat = 1.0) {
+        self.scaleFactor = scaleFactor
+    }
+
     func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
@@ -484,20 +557,23 @@ struct WhiteBlueToggleStyle: ToggleStyle {
 
             ZStack {
                 // Background track
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 16 * scaleFactor)
                     .fill(
                         configuration.isOn
                             ? Color.white : Color.white.opacity(0.3)
                     )
-                    .frame(width: 50, height: 30)
+                    .frame(width: 50 * scaleFactor, height: 30 * scaleFactor)
 
                 // Circle knob
                 Circle()
                     .fill(
                         configuration.isOn ? Color.toggleBlue : Color.gray
                     )
-                    .frame(width: 24, height: 24)
-                    .offset(x: configuration.isOn ? 10 : -10)
+                    .frame(width: 24 * scaleFactor, height: 24 * scaleFactor)
+                    .offset(
+                        x: configuration.isOn
+                            ? 10 * scaleFactor : -10 * scaleFactor
+                    )
                     .animation(
                         .easeInOut(duration: 0.2),
                         value: configuration.isOn
