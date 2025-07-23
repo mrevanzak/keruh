@@ -47,7 +47,7 @@ struct FallingObjectType {
         size: CGSize(width: 96, height: 72),
         points: 10,
         fallSpeed: 100,
-        rarity: 0.1,
+        rarity: 0.15,
         isSpecial: false,
         isCollectible: true
     )
@@ -57,7 +57,7 @@ struct FallingObjectType {
         size: CGSize(width: 52, height: 52),
         points: 15,
         fallSpeed: 120,
-        rarity: 0.1,
+        rarity: 0.15,
         isSpecial: false,
         isCollectible: true
     )
@@ -66,7 +66,7 @@ struct FallingObjectType {
         assetName: "collect_ciki",
         points: 20,
         fallSpeed: 80,
-        rarity: 0.1,
+        rarity: 0.15,
         isSpecial: false,
         isCollectible: true
     )
@@ -75,7 +75,7 @@ struct FallingObjectType {
         assetName: "collect_kaleng",
         points: 50,
         fallSpeed: 60,
-        rarity: 0.1,
+        rarity: 0.12,
         isSpecial: false,
         isCollectible: true
     )
@@ -85,7 +85,7 @@ struct FallingObjectType {
         size: CGSize(width: 96, height: 96),
         points: 50,
         fallSpeed: 60,
-        rarity: 0.1,
+        rarity: 0.12,
         isSpecial: false,
         isCollectible: true
     )
@@ -94,7 +94,7 @@ struct FallingObjectType {
         assetName: "collect_sandal",
         points: 50,
         fallSpeed: 60,
-        rarity: 0.1,
+        rarity: 0.12,
         isSpecial: false,
         isCollectible: true
     )
@@ -103,7 +103,7 @@ struct FallingObjectType {
         assetName: "collect_popmie",
         points: 50,
         fallSpeed: 60,
-        rarity: 0.1,
+        rarity: 0.12,
         isSpecial: false,
         isCollectible: true
     )
@@ -114,7 +114,7 @@ struct FallingObjectType {
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
-        rarity: 0.05,
+        rarity: 0.02,
         isSpecial: true,
         isCollectible: true
     )
@@ -124,7 +124,7 @@ struct FallingObjectType {
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
-        rarity: 0.05,
+        rarity: 0.03,
         isSpecial: true,
         isCollectible: true
     )
@@ -134,27 +134,30 @@ struct FallingObjectType {
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
-        rarity: 0.05,
+        rarity: 0.02,
         isSpecial: true,
         isCollectible: true
     )
 
     static let allTypes = [
-        tire, ciki, bottle, can, plasticBag, heart, coin, clock,
+        tire, ciki, bottle, can, plasticBag, sandal, diaper, heart, coin, clock,
     ]
 
     static func random() -> FallingObjectType {
-        let randomValue = Float.random(in: 0...1)
-        var cumulativeWeight: Float = 0
+        // Calculate total weight
+        let totalWeight = allTypes.reduce(0) { $0 + $1.rarity }
+        let randomValue = Float.random(in: 0..<totalWeight)
 
+        var cumulativeWeight: Float = 0
         for type in allTypes {
             cumulativeWeight += type.rarity
-            if randomValue <= cumulativeWeight {
+            if randomValue < cumulativeWeight {
                 return type
             }
         }
 
-        return bottle
+        // Fallback (should never reach here with proper weights)
+        return ciki
     }
 }
 
