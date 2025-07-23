@@ -24,10 +24,9 @@ struct GameView: View {
             case .menu:
                 MenuContentView(
                     tutorialManager: tutorialManager,
+                    viewModel: viewModel,
                     namespace: namespace,
-                ).onTapGesture {
-                    viewModel.startGameplay()
-                }
+                )
             case .playing, .paused:
                 GameOverlayView(
                     viewModel: viewModel,
@@ -53,9 +52,35 @@ struct GameView: View {
                 }.onAppear {
                     AudioManager.shared.playGameOverSFX()
                 }
+            case .settings:
+                ZStack {
+                    Color.black.opacity(0.6)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+
+                    SettingsView(
+                        onReplay: {
+                            viewModel.resetGame()
+                        },
+                        onHome: {
+                            viewModel.resetToMenu()
+                            currentScreen = .menu
+                        },
+                        onPlay: {
+                            viewModel.resumeGame()
+                        },
+                        viewModel: viewModel
+                    )
+                    .transition(.scale.combined(with: .opacity))
+                }
             }
 
             TutorialOverlayView(tutorialManager: tutorialManager)
+        }
+        .onTapGesture {
+            if viewModel.gameState.playState == .menu {
+                viewModel.startGameplay()
+            }
         }
         .onAppear {
             // Set up tutorial trigger when catcher spawns
@@ -82,32 +107,52 @@ struct GameView: View {
 private struct MenuContentView: View {
     @State private var showPlayText = false
     @ObservedObject var tutorialManager: TutorialManager
+    @ObservedObject var viewModel: GameViewModel
 
     let namespace: Namespace.ID
 
     var body: some View {
-        VStack {
-            Spacer()
+        ZStack {
+            VStack {
+                Spacer()
 
-            // Title
-            GameTitleView(namespace: namespace)
+                // Title
+                GameTitleView(namespace: namespace)
 
-            // Animated Play Text
-            AnimatedPlayText(isVisible: showPlayText)
-
-            // Tutorial button
-            if showPlayText {
-                Button("Show Tutorial") {
-                    tutorialManager.forceStartTutorial()
-                }
-                .padding(.top, 20)
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.8))
+                // Animated Play Text
+                AnimatedPlayText(isVisible: showPlayText)
+            }
+            .padding(.vertical, 72)
+            .onAppear {
+                setupPlayTextAnimation()
             }
         }
-        .padding(.vertical, 72)
-        .onAppear {
-            setupPlayTextAnimation()
+        VStack {
+            HStack {
+                Spacer()
+                VStack {
+                    MenuButton(icon: "medal.fill", size: 50, padding: 10)
+                    Button {
+                        viewModel.gameState.playState = .settings
+                    } label: {
+                        MenuButton(
+                            icon: "gearshape.fill",
+                            size: 50,
+                            padding: 10
+                        )
+                    }
+                    Button {
+                        tutorialManager.startTutorial()
+                    } label: {
+                        MenuButton(
+                            icon: "questionmark.circle.fill",
+                            size: 50,
+                            padding: 10
+                        )
+                    }
+                }
+            }.padding(.trailing, 20)
+            Spacer()
         }
     }
 
@@ -355,6 +400,171 @@ private struct GameStatsView: View {
                 .font(.subheadline)
         }
     }
+}
+
+private struct MenuButton: View {
+    let icon: String
+    let size: CGFloat
+    let padding: CGFloat
+
+    var body: some View {
+        ZStack {
+            Image("icon_kotak")
+                .resizable()
+                .scaledToFill()
+            Image(systemName: icon)
+                .resizable()
+                .scaledToFit()
+                .padding(padding)
+                .foregroundStyle(Color.white)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+// MARK: - Settings View
+private struct SettingsView: View {
+    let onReplay: () -> Void
+    let onHome: () -> Void
+    let onPlay: () -> Void
+    @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var settings = SettingsManager.shared
+
+    var body: some View {
+        ZStack {
+            Image("bg_game_over")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 480)
+
+            GeometryReader { geo in
+                let imageHeight = geo.size.height
+                let buttonTopPadding = imageHeight * 0.77
+                let buttonBottomPadding = imageHeight * 0.17
+
+                Grid(horizontalSpacing: 16, verticalSpacing: 16) {
+                    GridRow {
+                        Text("Musik")
+                            .gridColumnAlignment(.leading)
+                            .font(.custom("PaperInko", size: 28))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                        Toggle("", isOn: $settings.bgmEnabled).labelsHidden()
+                    }
+                    GridRow {
+                        Text("SFX")
+                            .font(.custom("PaperInko", size: 28))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                        Toggle("", isOn: $settings.soundEnabled).labelsHidden()
+                    }
+                    GridRow {
+                        Text("Getar")
+                            .font(.custom("PaperInko", size: 28))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                        Toggle("", isOn: $settings.hapticsEnabled).labelsHidden()
+                    }
+                }
+                .frame(width: geo.size.width / 2)                .labelsHidden()
+                .toggleStyle(WhiteBlueToggleStyle())
+                .frame(width: geo.size.width, height: geo.size.height * 1.1)
+
+                VStack {
+                    HStack(spacing: 0) {
+                        Spacer()
+                        Button(action: onHome) {
+                            MenuButton(
+                                icon: "xmark",
+                                size: 50,
+                                padding: 10
+                            )
+                        }
+                    }
+                }
+                .padding(.top, buttonBottomPadding)
+                .padding(.horizontal, 10)
+                .frame(width: geo.size.width)
+
+                if viewModel.gameState.playState == .playing {
+                    VStack {
+                        HStack(spacing: 8) {
+                            Button(action: onReplay) {
+                                MenuButton(
+                                    icon: "arrow.counterclockwise",
+                                    size: 70,
+                                    padding: 10
+                                )
+                            }
+
+                            Button(action: onHome) {
+                                MenuButton(
+                                    icon: "house.fill",
+                                    size: 70,
+                                    padding: 10
+                                )
+                            }
+
+                            Button(action: onPlay) {
+                                MenuButton(
+                                    icon: "play.fill",
+                                    size: 70,
+                                    padding: 15
+                                )
+                            }
+                        }
+                    }
+                    .padding(.top, buttonTopPadding)
+                    .frame(width: geo.size.width)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .ignoresSafeArea(.all)
+    }
+}
+
+struct WhiteBlueToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack {
+            configuration.label
+
+            Spacer()
+
+            ZStack {
+                // Background track
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        configuration.isOn
+                            ? Color.white : Color.white.opacity(0.3)
+                    )
+                    .frame(width: 50, height: 30)
+
+                // Circle knob
+                Circle()
+                    .fill(
+                        configuration.isOn ? Color.toggleBlue : Color.gray
+                    )
+                    .frame(width: 24, height: 24)
+                    .offset(x: configuration.isOn ? 10 : -10)
+                    .animation(
+                        .easeInOut(duration: 0.2),
+                        value: configuration.isOn
+                    )
+            }
+            .onTapGesture {
+                configuration.isOn.toggle()
+            }
+        }
+    }
+}
+
+extension Color {
+    static let toggleBlue = Color(
+        red: 0.21568627450980393,
+        green: 0.6941176470588235,
+        blue: 0.7803921568627451
+    )
 }
 
 // MARK: - Preview

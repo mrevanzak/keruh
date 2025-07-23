@@ -17,7 +17,7 @@ struct FallingObjectType {
     let isCollectible: Bool
 
     // Default size for falling objects
-    static let defaultSize = CGSize(width: 48, height: 48)
+    static let defaultSize = CGSize(width: 60, height: 60)
 
     init(
         assetName: String,
@@ -44,19 +44,20 @@ struct FallingObjectType {
 
     static let tire = FallingObjectType(
         assetName: "collect_ban",
-        size: CGSize(width: 90, height: 90),
+        size: CGSize(width: 96, height: 72),
         points: 10,
         fallSpeed: 100,
-        rarity: 0.1,
+        rarity: 0.15,
         isSpecial: false,
         isCollectible: true
     )
 
     static let bottle = FallingObjectType(
         assetName: "collect_botol",
+        size: CGSize(width: 52, height: 52),
         points: 15,
         fallSpeed: 120,
-        rarity: 0.1,
+        rarity: 0.15,
         isSpecial: false,
         isCollectible: true
     )
@@ -65,7 +66,7 @@ struct FallingObjectType {
         assetName: "collect_ciki",
         points: 20,
         fallSpeed: 80,
-        rarity: 0.1,
+        rarity: 0.15,
         isSpecial: false,
         isCollectible: true
     )
@@ -74,16 +75,17 @@ struct FallingObjectType {
         assetName: "collect_kaleng",
         points: 50,
         fallSpeed: 60,
-        rarity: 0.1,
+        rarity: 0.12,
         isSpecial: false,
         isCollectible: true
     )
 
     static let plasticBag = FallingObjectType(
         assetName: "collect_kresek",
+        size: CGSize(width: 96, height: 96),
         points: 50,
         fallSpeed: 60,
-        rarity: 0.1,
+        rarity: 0.12,
         isSpecial: false,
         isCollectible: true
     )
@@ -92,7 +94,7 @@ struct FallingObjectType {
         assetName: "collect_sandal",
         points: 50,
         fallSpeed: 60,
-        rarity: 0.1,
+        rarity: 0.12,
         isSpecial: false,
         isCollectible: true
     )
@@ -101,7 +103,7 @@ struct FallingObjectType {
         assetName: "collect_popmie",
         points: 50,
         fallSpeed: 60,
-        rarity: 0.1,
+        rarity: 0.12,
         isSpecial: false,
         isCollectible: true
     )
@@ -112,7 +114,7 @@ struct FallingObjectType {
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
-        rarity: 0.05,
+        rarity: 0.02,
         isSpecial: true,
         isCollectible: true
     )
@@ -122,7 +124,7 @@ struct FallingObjectType {
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
-        rarity: 0.05,
+        rarity: 0.03,
         isSpecial: true,
         isCollectible: true
     )
@@ -132,27 +134,30 @@ struct FallingObjectType {
         size: CGSize(width: 30, height: 30),
         points: 0,
         fallSpeed: 90,
-        rarity: 0.05,
+        rarity: 0.02,
         isSpecial: true,
         isCollectible: true
     )
 
     static let allTypes = [
-        tire, ciki, bottle, can, plasticBag, heart, coin, clock,
+        tire, ciki, bottle, can, plasticBag, sandal, diaper, heart, coin, clock,
     ]
 
     static func random() -> FallingObjectType {
-        let randomValue = Float.random(in: 0...1)
-        var cumulativeWeight: Float = 0
+        // Calculate total weight
+        let totalWeight = allTypes.reduce(0) { $0 + $1.rarity }
+        let randomValue = Float.random(in: 0..<totalWeight)
 
+        var cumulativeWeight: Float = 0
         for type in allTypes {
             cumulativeWeight += type.rarity
-            if randomValue <= cumulativeWeight {
+            if randomValue < cumulativeWeight {
                 return type
             }
         }
 
-        return bottle 
+        // Fallback (should never reach here with proper weights)
+        return ciki
     }
 }
 
@@ -173,7 +178,8 @@ class FallingObject: BaseGameObject {
         spriteNode.size = objectType.getSize()
 
         spriteNode.physicsBody = SKPhysicsBody(
-            rectangleOf: objectType.getSize()
+            texture: spriteNode.texture!,
+            size: objectType.getSize()
         )
         spriteNode.physicsBody?.isDynamic = true
         spriteNode.physicsBody?.categoryBitMask = PhysicsCategory.fallingObject
@@ -228,10 +234,10 @@ class FallingObject: BaseGameObject {
     ) {
         node.position = position
         node.setScale(initialScale)
-        
-//        // Calculate duration based on distance and fall speed
-//        let distance = abs(position.y - targetY)
-//        let duration = TimeInterval(distance / objectType.fallSpeed)
+
+        //        // Calculate duration based on distance and fall speed
+        //        let distance = abs(position.y - targetY)
+        //        let duration = TimeInterval(distance / objectType.fallSpeed)
 
         let fallAction = SKAction.moveTo(y: targetY, duration: duration)
         let scaleAction = SKAction.scale(to: finalScale, duration: duration)
