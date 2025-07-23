@@ -268,6 +268,7 @@ private struct GameOverView: View {
 
     var body: some View {
         GameOverlayContentView(
+            titleImage: "title_gameover",
             mainContent: {
                 VStack(spacing: 16) {
                     (Text("\(score) KG\n")
@@ -350,6 +351,7 @@ private struct SettingsView: View {
         GameOverlayContentView(
             showCloseButton: true,
             onClose: onHome,
+            titleImage: "title_settings",
             mainContent: {
                 GeometryReader { geo in
                     let isLargeScreen = geo.size.width > 800
@@ -441,6 +443,7 @@ private struct SettingsView: View {
                         }
                         .padding(.horizontal, 30 * scaleFactor)
                     }
+                    .frame(height: geo.size.height)
                 }
             },
             actionContent: {

@@ -7,20 +7,26 @@
 
 import SwiftUI
 
-struct GameOverlayContentView<MainContent: View, ActionContent: View>: View {
+struct GameOverlayContentView<
+    MainContent: View,
+    ActionContent: View
+>: View {
     let mainContent: MainContent
     let actionContent: ActionContent
     let onClose: (() -> Void)?
     let showCloseButton: Bool
+    let titleImage: String
 
     init(
         showCloseButton: Bool = false,
         onClose: (() -> Void)? = nil,
+        titleImage: String,
         @ViewBuilder mainContent: () -> MainContent,
         @ViewBuilder actionContent: () -> ActionContent
     ) {
         self.showCloseButton = showCloseButton
         self.onClose = onClose
+        self.titleImage = titleImage
         self.mainContent = mainContent()
         self.actionContent = actionContent()
     }
@@ -30,7 +36,7 @@ struct GameOverlayContentView<MainContent: View, ActionContent: View>: View {
             GeometryReader { outerGeo in
                 let isLargeScreen = outerGeo.size.width > 800
                 let maxImageWidth =
-                    isLargeScreen ? min(outerGeo.size.width * 0.5, 700) : 300
+                    isLargeScreen ? min(outerGeo.size.width * 0.5, 700) : 350
                 let scaleFactor = isLargeScreen ? 1.2 : 1.0
 
                 Image("bg_game_over")
@@ -41,6 +47,13 @@ struct GameOverlayContentView<MainContent: View, ActionContent: View>: View {
                         width: outerGeo.size.width,
                         height: outerGeo.size.height
                     )
+                    .overlay {
+                        Image(titleImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: outerGeo.size.width / 1.7)
+                            .padding(.bottom, outerGeo.size.height * 0.24)
+                    }
                     .overlay {
                         // Main Content Area
                         VStack {
