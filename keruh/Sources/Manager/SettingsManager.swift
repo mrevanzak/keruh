@@ -9,7 +9,7 @@ import Foundation
 
 final class SettingsManager: ObservableObject {
     static let shared = SettingsManager()
-    
+
     private let defaults = UserDefaults.standard
 
     private enum Keys {
@@ -17,15 +17,21 @@ final class SettingsManager: ObservableObject {
         static let sound = "soundEnabled"
         static let haptics = "hapticsEnabled"
     }
-    
+
     @Published var bgmEnabled: Bool {
-        didSet { defaults.set(bgmEnabled, forKey: Keys.bgm) }
+        didSet {
+            defaults.set(bgmEnabled, forKey: Keys.bgm)
+            AudioManager.shared.updateVolumeBGM()
+        }
     }
 
     @Published var soundEnabled: Bool {
-        didSet { defaults.set(soundEnabled, forKey: Keys.sound) }
+        didSet {
+            defaults.set(soundEnabled, forKey: Keys.sound)
+            AudioManager.shared.updateVolumeSFX()
+        }
     }
-    
+
     @Published var hapticsEnabled: Bool {
         didSet { defaults.set(hapticsEnabled, forKey: Keys.haptics) }
     }

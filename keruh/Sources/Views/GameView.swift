@@ -409,10 +409,11 @@ private struct SettingsView: View {
                             .font(.custom("PaperInko", size: 28))
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
-                        Toggle("", isOn: $settings.hapticsEnabled).labelsHidden()
+                        Toggle("", isOn: $settings.hapticsEnabled)
+                            .labelsHidden()
                     }
                 }
-                .frame(width: geo.size.width / 2)                .labelsHidden()
+                .frame(width: geo.size.width / 2).labelsHidden()
                 .toggleStyle(WhiteBlueToggleStyle())
                 .frame(width: geo.size.width, height: geo.size.height * 1.1)
 

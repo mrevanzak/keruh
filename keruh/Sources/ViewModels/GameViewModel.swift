@@ -507,18 +507,20 @@ class GameViewModel: ObservableObject {
     }
 
     private func updateScoreAndHealth(for object: FallingObjectData) {
-        if object.type.isCollectible {
-            let playSound = SKAction.playSoundFileNamed(
-                "correct.mp3",
-                waitForCompletion: false
-            )
-            catcher.node.run(playSound)
-        } else {
-            let playSound = SKAction.playSoundFileNamed(
-                "incorrect.mp3",
-                waitForCompletion: false
-            )
-            catcher.node.run(playSound)
+        if SettingsManager.shared.soundEnabled {
+            if object.type.isCollectible {
+                let playSound = SKAction.playSoundFileNamed(
+                    "correct.mp3",
+                    waitForCompletion: false
+                )
+                catcher.node.run(playSound)
+            } else {
+                let playSound = SKAction.playSoundFileNamed(
+                    "incorrect.mp3",
+                    waitForCompletion: false
+                )
+                catcher.node.run(playSound)
+            }
         }
 
         switch object.type.assetName {
@@ -546,11 +548,14 @@ class GameViewModel: ObservableObject {
             if fallingObject.type.isCollectible == true
                 || fallingObject.type.isSpecial
             {
-                let playSound = SKAction.playSoundFileNamed(
-                    "incorrect.mp3",
-                    waitForCompletion: false
-                )
-                catcher.node.run(playSound)
+                if SettingsManager.shared.soundEnabled {
+                    let playSound = SKAction.playSoundFileNamed(
+                        "incorrect.mp3",
+                        waitForCompletion: false
+                    )
+                    catcher.node.run(playSound)
+                }
+
                 decreaseHealth()
             }
         }
@@ -567,9 +572,11 @@ class GameViewModel: ObservableObject {
 
     private func provideCatcherFeedback() {
         #if os(iOS)
-            hapticQueue.async {
-                DispatchQueue.main.async {
-                    self.impactFeedback?.impactOccurred()
+            if SettingsManager.shared.hapticsEnabled {
+                hapticQueue.async {
+                    DispatchQueue.main.async {
+                        self.impactFeedback?.impactOccurred()
+                    }
                 }
             }
         #endif
