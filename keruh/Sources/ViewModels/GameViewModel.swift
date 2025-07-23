@@ -67,6 +67,8 @@ class GameViewModel: ObservableObject {
         "Score: \(GameConfiguration.initialScore)"
     @Published var healthText: String =
         "Health: \(GameConfiguration.initialHealth)"
+    @Published var doublePointTimeRemaining: Double = 0.0
+    @Published var slowMotionTimeRemaining: Double = 0.0
 
     private(set) var catcher: Catcher
     private var fallingObjectNodes: [UUID: FallingObject] = [:]
@@ -82,6 +84,7 @@ class GameViewModel: ObservableObject {
     private var slowMotionTimer: Timer?
     private var originalGameSpeed: TimeInterval = GameConfiguration
         .defaultSpawnInterval
+    private var uiUpdateTimer: Timer?
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
@@ -108,6 +111,7 @@ class GameViewModel: ObservableObject {
         self.catcher = Catcher()
         setupBindings()
         setupCatcher()
+        startUIUpdater()
     }
 
     deinit {
@@ -498,7 +502,13 @@ class GameViewModel: ObservableObject {
     }
 
     private func updateScoreAndHealth(for object: FallingObjectData) {
-        if object.type.isCollectible {
+        if object.type.isSpecial {
+            let playSound = SKAction.playSoundFileNamed(
+                "power_up.mp3",
+                waitForCompletion: false
+            )
+            catcher.node.run(playSound)
+        } else if object.type.isCollectible {
             let playSound = SKAction.playSoundFileNamed(
                 "correct.mp3",
                 waitForCompletion: false
@@ -513,11 +523,11 @@ class GameViewModel: ObservableObject {
         }
 
         switch object.type.assetName {
-        case "heart":
+        case "power_extralive":
             addHealth()
-        case "coin":
+        case "power_doublepoint":
             activateDoublePoint()
-        case "clock":
+        case "power_slowdown":
             activateSlowMotion()
         default:
             if object.type.isCollectible {
@@ -535,7 +545,7 @@ class GameViewModel: ObservableObject {
             fallingObjects.remove(at: index)
 
             if fallingObject.type.isCollectible == true
-                || fallingObject.type.isSpecial
+                && fallingObject.type.isSpecial == false
             {
                 let playSound = SKAction.playSoundFileNamed(
                     "incorrect.mp3",
@@ -634,6 +644,12 @@ class GameViewModel: ObservableObject {
 
     func resetGame() {
         gameState = GameState()
+
+        stopAllTimers()
+        doublePointTimeRemaining = 0.0
+        slowMotionTimeRemaining = 0.0
+
+        startUIUpdater()
         fallingObjects.removeAll()
 
         cleanupAllObjects()
@@ -643,6 +659,10 @@ class GameViewModel: ObservableObject {
 
     func resetToMenu() {
         stopAllTimers()
+        doublePointTimeRemaining = 0.0
+        slowMotionTimeRemaining = 0.0
+
+        startUIUpdater()
         cleanupAllObjects()
         resetCatcherPosition()
 
@@ -720,9 +740,17 @@ class GameViewModel: ObservableObject {
     }
 
     private func stopAllTimers() {
+        uiUpdateTimer?.invalidate()
+        uiUpdateTimer = nil
+
         stopSpawnTimer()
         objectTimers.values.forEach { $0.invalidate() }
         objectTimers.removeAll()
+
+        doublePointTimer?.invalidate()
+        doublePointTimer = nil
+        slowMotionTimer?.invalidate()
+        slowMotionTimer = nil
     }
 
     private func stopSpawnTimer() {
@@ -763,6 +791,40 @@ class GameViewModel: ObservableObject {
             x: GameConfiguration.uiPadding,
             y: screenSize.height - safeAreaTop - GameConfiguration.labelSpacing
         )
+    }
+
+    private func startUIUpdater() {
+        uiUpdateTimer?.invalidate()
+        uiUpdateTimer = Timer.scheduledTimer(
+            withTimeInterval: 0.05,
+            repeats: true
+        ) { [weak self] _ in
+            self?.updatePowerUpTimers()
+        }
+    }
+
+    private func updatePowerUpTimers() {
+        // Double Point Timer
+        if let timer = doublePointTimer, timer.isValid {
+            let remaining = timer.fireDate.timeIntervalSinceNow
+            doublePointTimeRemaining = max(
+                0,
+                remaining / GameConfiguration.doublePointDuration
+            )
+        } else if doublePointTimeRemaining != 0 {
+            doublePointTimeRemaining = 0
+        }
+
+        // Slow Motion Timer
+        if let timer = slowMotionTimer, timer.isValid {
+            let remaining = timer.fireDate.timeIntervalSinceNow
+            slowMotionTimeRemaining = max(
+                0,
+                remaining / GameConfiguration.slowMotionDuration
+            )
+        } else if slowMotionTimeRemaining != 0 {
+            slowMotionTimeRemaining = 0
+        }
     }
 
     //power up

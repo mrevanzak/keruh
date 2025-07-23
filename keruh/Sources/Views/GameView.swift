@@ -187,6 +187,34 @@ private struct BackgroundSceneView: View {
     }
 }
 
+// MARK: - Power-Up Timer View
+private struct PowerUpTimerView: View {
+    let iconName: String
+    let progress: Double
+
+    var body: some View {
+        ZStack {
+            Image(iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 68, height: 68)
+                .shadow(color: .black.opacity(0.6), radius: 5, x: 8, y: 0)
+
+            Circle()
+                .trim(from: 0.0, to: CGFloat(progress))
+                .stroke(
+                    Color.white,
+                    style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .animation(.linear, value: progress)
+                .frame(width: 54, height: 54)
+
+        }
+        .frame(width: 68, height: 68)
+    }
+}
+
 // MARK: - Game Overlay View
 private struct GameOverlayView: View {
     @ObservedObject var viewModel: GameViewModel
@@ -194,24 +222,52 @@ private struct GameOverlayView: View {
 
     var body: some View {
         VStack {
-            HStack {
+            HStack(alignment: .top) {
                 GameStatsView(viewModel: viewModel)
                 Spacer()
 
-                // Tutorial button during gameplay
-                if viewModel.gameState.playState == .playing {
-                    Button("?") {
-                        tutorialManager.forceStartTutorial()
+                VStack(alignment: .trailing, spacing: 8) {
+                    // Tutorial button during gameplay
+                    if viewModel.gameState.playState == .playing {
+                        Button("?") {
+                            tutorialManager.forceStartTutorial()
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 30, height: 30)
+                        .background(Circle().fill(.black.opacity(0.3)))
+                        .padding(.trailing)
                     }
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(width: 30, height: 30)
-                    .background(Circle().fill(.black.opacity(0.3)))
-                    .padding(.trailing)
+
+                    if viewModel.doublePointTimeRemaining > 0 {
+                        PowerUpTimerView(
+                            iconName: "icon_active power up_double point",
+                            progress: viewModel.doublePointTimeRemaining
+                        )
+                        .transition(.scale.combined(with: .opacity))
+                    }
+
+                    if viewModel.slowMotionTimeRemaining > 0 {
+                        PowerUpTimerView(
+                            iconName: "icon_active power up_slow down",
+                            progress: viewModel.slowMotionTimeRemaining
+                        )
+                        .transition(.scale.combined(with: .opacity))
+                    }
                 }
             }
+            .padding(.horizontal)
+            .padding(.top, 20)
             Spacer()
         }
+        .animation(
+            .spring(response: 0.4, dampingFraction: 0.8),
+            value: viewModel.doublePointTimeRemaining > 0
+        )
+        .animation(
+            .spring(response: 0.4, dampingFraction: 0.8),
+            value: viewModel.slowMotionTimeRemaining > 0
+        )
     }
 }
 
@@ -298,8 +354,6 @@ private struct GameStatsView: View {
                 .foregroundColor(.white)
                 .font(.subheadline)
         }
-        .padding(.horizontal)
-        .padding(.top, 20)
     }
 }
 
