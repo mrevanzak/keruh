@@ -6,61 +6,65 @@ struct TutorialItemView: View {
     @State private var animationOffset: CGFloat = 0
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Item image
-            AsyncImage(url: nil) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } placeholder: {
-                Image(itemType.assetName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            }
-            .frame(width: 40, height: 40)
-            .offset(y: isAnimated ? animationOffset : 0)
-            .onAppear {
-                if isAnimated {
-                    startAnimation()
+        if #available(iOS 17.0, *) {
+            HStack(spacing: 12) {
+                // Item image
+                AsyncImage(url: nil) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    Image(itemType.assetName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
                 }
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(itemType.displayName)
-                    .font(.figtree(size: 16))
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-
-                if !itemType.isCollectible && !itemType.isSpecial {
-                    Text("Mengurangi nyawa")
-                        .font(.figtree(size: 12))
-                        .fontWeight(.medium)
-                        .foregroundColor(.red)
-                } else if itemType.points > 0 {
-                    Text("+\(itemType.points) gram")
-                        .font(.figtree(size: 12))
-                        .fontWeight(.medium)
-                        .foregroundColor(.green)
-                } else {
-                    Text(itemType.tutorialDescription)
-                        .font(.figtree(size: 12))
-                        .fontWeight(.medium)
-                        .foregroundColor(.blue)
+                .frame(width: 40, height: 40)
+                .offset(y: isAnimated ? animationOffset : 0)
+                .onAppear {
+                    if isAnimated {
+                        startAnimation()
+                    }
                 }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(itemType.displayName)
+                        .font(.figtree(size: 16))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    if !itemType.isCollectible && !itemType.isSpecial {
+                        Text("Mengurangi nyawa")
+                            .font(.figtree(size: 12))
+                            .fontWeight(.medium)
+                            .foregroundColor(.red)
+                    } else if itemType.points > 0 {
+                        Text("+\(itemType.points) gram")
+                            .font(.figtree(size: 12))
+                            .fontWeight(.medium)
+                            .foregroundColor(.green)
+                    } else {
+                        Text(itemType.tutorialDescription)
+                            .font(.figtree(size: 12))
+                            .fontWeight(.medium)
+                            .foregroundColor(.blue)
+                    }
+                }
+                
+                Spacer()
             }
-
-            Spacer()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(itemType.tutorialBackgroundColor.opacity(0.1))
+                    .stroke(
+                        itemType.tutorialBackgroundColor.opacity(0.6),
+                        lineWidth: 2
+                    )
+            )
+        } else {
+            // Fallback on earlier versions
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(itemType.tutorialBackgroundColor.opacity(0.1))
-                .stroke(
-                    itemType.tutorialBackgroundColor.opacity(0.6),
-                    lineWidth: 2
-                )
-        )
     }
 
     private func startAnimation() {
