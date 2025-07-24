@@ -225,14 +225,14 @@ private struct GameTitleView: View {
 // MARK: - Animated Play Text
 private struct AnimatedPlayText: View {
     let isVisible: Bool
-    private let animatedText = Array("Tap to Play")
+    private let animatedText = Array("Ketuk untuk bermain")
 
     var body: some View {
         HStack(spacing: 0) {
             ForEach(0..<animatedText.count, id: \.self) { index in
                 Text(String(animatedText[index]))
-                    .font(.paperInko(size: 24))
-                    .fontWeight(.bold)
+                    .font(.figtree(size: 24))
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .offset(y: isVisible ? 0 : 20)
                     .animation(
