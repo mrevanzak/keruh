@@ -372,11 +372,15 @@ class GameViewModel: ObservableObject {
     }
 
     private func startInitialObjectsFalling() {
-        let initialFallSpeed: CGFloat = 60.0
+        let initialFallSpeed: CGFloat = 50.0
 
         for objectData in fallingObjects {
             guard let fallingObjectNode = fallingObjectNodes[objectData.id]
             else { continue }
+
+            fallingObjectNode.node.removeAllActions()
+            fallingObjectNode.node.position = objectData.position
+            fallingObjectNode.node.alpha = 1.0
 
             let screenCenter = screenSize.width / 2
             let finalX: CGFloat
@@ -397,7 +401,7 @@ class GameViewModel: ObservableObject {
             )
             let actualDuration = TimeInterval(fallDistance / initialFallSpeed)
 
-            let earlyMissTime = max(actualDuration - 1, 0.05)
+            let earlyMissTime = max(actualDuration - 1.2, 0.05)
             let missTimer = Timer.scheduledTimer(
                 withTimeInterval: earlyMissTime,
                 repeats: false
