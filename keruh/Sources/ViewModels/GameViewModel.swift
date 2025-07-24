@@ -86,7 +86,7 @@ class GameViewModel: ObservableObject {
     private var slowMotionTimer: Timer?
     private var originalGameSpeed: TimeInterval = GameConfiguration
         .defaultSpawnInterval
-    
+
     private var uiUpdateTimer: Timer?
     private var pausedMissTimers: [UUID: TimeInterval] = [:]
     private var pausedDoublePointTime: TimeInterval?
@@ -95,6 +95,9 @@ class GameViewModel: ObservableObject {
     // Store clamped island positions for spawn calculations
     private var riverLeftBound: CGFloat = 0
     private var riverRightBound: CGFloat = 0
+
+    private var spawnLanes: [CGFloat] = []
+    private var lastLaneIndex: Int?
 
     // Callback for tutorial trigger
     var onCatcherSpawned: (() -> Void)?
@@ -197,6 +200,14 @@ class GameViewModel: ObservableObject {
         // Store river bounds for spawn calculations
         riverLeftBound = clampedLeftFinalX
         riverRightBound = clampedRightFinalX
+
+        let spawnWidth = riverRightBound - riverLeftBound
+        let numberOfLanes = 5
+        let laneWidth = spawnWidth / CGFloat(numberOfLanes)
+        self.spawnLanes = (0..<numberOfLanes).map { i in
+            let laneCenter = riverLeftBound + (laneWidth * (CGFloat(i) + 0.5))
+            return laneCenter
+        }
 
         // Clouds
         sceneNodes.clouds.anchorPoint = CGPoint(x: 0.5, y: 0)
@@ -366,75 +377,24 @@ class GameViewModel: ObservableObject {
     }
 
     private func calculateSpawnX(for objectSize: CGSize) -> CGFloat {
-        let halfWidth = objectSize.width / 2
-
-        // Use the actual aligned river bounds
-        let preferredLeftBound = riverLeftBound + halfWidth
-        let preferredRightBound = riverRightBound - halfWidth
-
-        // Ensure we always have a valid range within river bounds
-        let actualLeftBound = max(preferredLeftBound, halfWidth)
-        let actualRightBound = min(
-            preferredRightBound,
-            screenSize.width - halfWidth
-        )
-
-        // If the bounds are invalid (object too wide), use river center
-        if actualLeftBound >= actualRightBound {
+        guard !spawnLanes.isEmpty else {
             let riverCenter = (riverLeftBound + riverRightBound) / 2
-            latestXDrop = riverCenter
             return riverCenter
         }
 
-        // Define minimum distance between spawns (adjust this value as needed)
-        let minDistance: CGFloat = max(
-            objectSize.width * 1.5,
-            screenSize.width * 0.08
-        )
+        var newLaneIndex: Int
 
-        var attempts = 0
-        let maxAttempts = 20
-
-        while attempts < maxAttempts {
-            let randomX = CGFloat.random(in: actualLeftBound...actualRightBound)
-
-            // Check if this position is far enough from the last drop
-            if latestXDrop == nil || abs(randomX - latestXDrop!) >= minDistance
-            {
-                latestXDrop = randomX
-                return randomX
-            }
-
-            attempts += 1
+        if let lastIndex = lastLaneIndex, spawnLanes.count > 1 {
+            repeat {
+                newLaneIndex = Int.random(in: 0..<spawnLanes.count)
+            } while newLaneIndex == lastIndex
+        } else {
+            newLaneIndex = Int.random(in: 0..<spawnLanes.count)
         }
 
-        if let lastDrop = latestXDrop {
-            // Choose the position that's farthest from the last drop
-            let leftOption = actualLeftBound
-            let rightOption = actualRightBound
-            let centerOption = (actualLeftBound + actualRightBound) / 2
+        lastLaneIndex = newLaneIndex
 
-            let leftDistance = abs(leftOption - lastDrop)
-            let rightDistance = abs(rightOption - lastDrop)
-            let centerDistance = abs(centerOption - lastDrop)
-
-            let bestX: CGFloat
-            if leftDistance >= rightDistance && leftDistance >= centerDistance {
-                bestX = leftOption
-            } else if rightDistance >= centerDistance {
-                bestX = rightOption
-            } else {
-                bestX = centerOption
-            }
-
-            latestXDrop = bestX
-            return bestX
-        }
-
-        // Fallback: random position
-        let fallbackX = CGFloat.random(in: actualLeftBound...actualRightBound)
-        latestXDrop = fallbackX
-        return fallbackX
+        return spawnLanes[newLaneIndex]
     }
 
     private func spawnFallingObject() {
@@ -608,7 +568,7 @@ class GameViewModel: ObservableObject {
                     )
                     catcher.node.run(playSound)
                 }
-                
+
                 provideInvalidFeedback()
                 decreaseHealth()
             }
@@ -638,7 +598,7 @@ class GameViewModel: ObservableObject {
             }
         #endif
     }
-    
+
     private func provideInvalidFeedback() {
         #if os(iOS)
             if SettingsManager.shared.hapticsEnabled {
