@@ -249,7 +249,7 @@ class GameViewModel: ObservableObject {
 
         let cloud = SKAction.sequence([
             .wait(forDuration: 1.5),
-            .fadeIn(withDuration: 0.2),
+            .fadeAlpha(to: 0.3, duration: 1.0),
             .moveBy(x: 0, y: 30, duration: 0.6),
         ])
         sceneNodes.clouds.run(cloud)
@@ -362,6 +362,8 @@ class GameViewModel: ObservableObject {
             spawnCatcher()
         }
 
+        sceneNodes.clouds.run(SKAction.fadeAlpha(to: 1.0, duration: 0.5))
+
         startSpawningObjects()
     }
 
@@ -410,16 +412,19 @@ class GameViewModel: ObservableObject {
         )
 
         let baseFallSpeed = objectType.fallSpeed
-        let speedFactor = GameConfiguration.defaultSpawnInterval / gameState.gameSpeed
+        let speedFactor =
+            GameConfiguration.defaultSpawnInterval / gameState.gameSpeed
 
         let adjustedFallSpeed: CGFloat = {
             var speed = baseFallSpeed * CGFloat(speedFactor)
             if slowMotionTimer != nil {
-                speed *= CGFloat(GameConfiguration.slowMotionFallSpeedMultiplier)
+                speed *= CGFloat(
+                    GameConfiguration.slowMotionFallSpeedMultiplier
+                )
             }
             return speed
         }()
-        
+
         print(adjustedFallSpeed, gameState.gameSpeed)
 
         let fallDuration = TimeInterval(
@@ -774,6 +779,8 @@ class GameViewModel: ObservableObject {
         startUIUpdater()
         cleanupAllObjects()
         resetCatcherPosition()
+
+        sceneNodes.clouds.run(SKAction.fadeAlpha(to: 0.3, duration: 0.5))
 
         catcher.node.alpha = 0
         gameState = GameState()
