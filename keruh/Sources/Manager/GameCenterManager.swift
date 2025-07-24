@@ -35,7 +35,7 @@ class GameCenterManager {
         GKLocalPlayer.local.gamePlayerID
     }
 
-    func submitScore(_ score: Int, leaderboardID: String) {
+    func submitScore(_ score: Int, leaderboardID: String = "com.keruh.leaderboard") {
         GKLeaderboard.submitScore(score, context: 0, player: GKLocalPlayer.local, leaderboardIDs: [leaderboardID]) { error in
             if let error = error {
                 print("Failed to submit score: \(error.localizedDescription)")

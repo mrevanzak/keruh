@@ -75,6 +75,7 @@ struct GameView: View {
                 }
                 .onAppear {
                     AudioManager.shared.playGameOverSFX()
+                    GameCenterManager.shared.submitScore(viewModel.gameState.score)
                 }
             case .settings:
                 ZStack {
