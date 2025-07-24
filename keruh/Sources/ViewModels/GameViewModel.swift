@@ -249,7 +249,7 @@ class GameViewModel: ObservableObject {
 
         let cloud = SKAction.sequence([
             .wait(forDuration: 1.5),
-            .fadeIn(withDuration: 0.2),
+            .fadeAlpha(to: 0.3, duration: 1.0),
             .moveBy(x: 0, y: 30, duration: 0.6),
         ])
         sceneNodes.clouds.run(cloud)
@@ -279,6 +279,8 @@ class GameViewModel: ObservableObject {
         ])
         islandRight.timingMode = .easeOut
         sceneNodes.rightIsland.run(islandRight)
+
+        preSpawnInitialObjects()
     }
 
     private func setupCatcher() {
@@ -296,6 +298,7 @@ class GameViewModel: ObservableObject {
     }
 
     private func spawnCatcher() {
+        catcher.node.alpha = 1
         // Position the catcher
         let catcherPosition = CGPoint(
             x: screenSize.width / 2,
@@ -359,10 +362,65 @@ class GameViewModel: ObservableObject {
         gameState.playState = .playing
 
         if !isResuming {
+            startInitialObjectsFalling()
             spawnCatcher()
         }
 
+        sceneNodes.clouds.run(SKAction.fadeAlpha(to: 1.0, duration: 0.5))
+
         startSpawningObjects()
+    }
+
+    private func startInitialObjectsFalling() {
+        let initialFallSpeed: CGFloat = 50.0
+
+        for objectData in fallingObjects {
+            guard let fallingObjectNode = fallingObjectNodes[objectData.id]
+            else { continue }
+
+            fallingObjectNode.node.removeAllActions()
+            fallingObjectNode.node.position = objectData.position
+            fallingObjectNode.node.alpha = 1.0
+
+            let screenCenter = screenSize.width / 2
+            let finalX: CGFloat
+            if objectData.position.x < screenCenter {
+                finalX =
+                    objectData.position.x
+                    - (screenCenter - objectData.position.x)
+            } else {
+                finalX =
+                    objectData.position.x
+                    + (objectData.position.x - screenCenter)
+            }
+
+            let finalPosition = CGPoint(x: finalX, y: objectData.targetY)
+
+            let fallDistance = abs(
+                fallingObjectNode.node.position.y - objectData.targetY
+            )
+            let actualDuration = TimeInterval(fallDistance / initialFallSpeed)
+
+            let earlyMissTime = max(actualDuration - 1.2, 0.05)
+            let missTimer = Timer.scheduledTimer(
+                withTimeInterval: earlyMissTime,
+                repeats: false
+            ) { [weak self] _ in
+                self?.handleObjectMissed(objectData.id)
+            }
+            missTimers[objectData.id] = missTimer
+
+            fallingObjectNode.startFallingWithPerspective(
+                from: fallingObjectNode.node.position,
+                to: finalPosition,
+                initialScale: fallingObjectNode.node.xScale,
+                finalScale: 1.0,
+                duration: actualDuration,
+                completion: {}
+            )
+
+            scheduleObjectCleanup(for: objectData)
+        }
     }
 
     private func startSpawningObjects() {
@@ -397,6 +455,98 @@ class GameViewModel: ObservableObject {
         return spawnLanes[newLaneIndex]
     }
 
+    private func preSpawnInitialObjects() {
+        guard fallingObjectNodes.isEmpty else { return }
+
+        let visualLayoutOrder: [FallingObjectType] = [
+            .can,
+            .diaper,
+            .bottle,
+            .tire,
+            .sandal,
+        ]
+
+        let animationSequenceOrder: [FallingObjectType] = [
+            .sandal,
+            .tire,
+            .bottle,
+            .diaper,
+            .can,
+        ]
+
+        let laneAssignments: [String: Int] = [
+            "collect_sandal": 0,
+            "collect_kaleng": 1,
+            "collect_botol": 2,
+            "collect_popmie": 3,
+            "collect_ban": 4,
+        ]
+
+        guard spawnLanes.count >= visualLayoutOrder.count else { return }
+
+        let screenCenterY = (screenSize.height / 2) - 50.0
+        let verticalSpread: CGFloat = 90.0
+        let topYBound = screenCenterY + verticalSpread
+        let bottomYBound = screenCenterY - verticalSpread
+        let spacing =
+            (topYBound - bottomYBound) / CGFloat(visualLayoutOrder.count - 1)
+
+        for (visualIndex, objectType) in visualLayoutOrder.enumerated() {
+            let objectSize = objectType.getSize()
+            guard let laneIndex = laneAssignments[objectType.assetName] else {
+                continue
+            }
+            let xPosition = spawnLanes[laneIndex]
+            let yPosition = topYBound - (CGFloat(visualIndex) * spacing)
+            let finalPosition = CGPoint(x: xPosition, y: yPosition)
+
+            let fallingObjectData = FallingObjectData(
+                type: objectType,
+                position: finalPosition,
+                targetY: -objectSize.height,
+                fallDuration: 50.0
+            )
+
+            let fallingObjectNode = FallingObject(type: objectType)
+            fallingObjectNode.setup()
+
+            fallingObjectNode.node.position = finalPosition
+            fallingObjectNode.node.setScale(0)
+            fallingObjectNode.node.alpha = 0
+
+            if let animationIndex = animationSequenceOrder.firstIndex(
+                of: objectType
+            ) {
+                let popInDuration: TimeInterval = 0.3
+                let initialWait: TimeInterval = 0.8
+                let waitDuration =
+                    initialWait + (Double(animationIndex) * popInDuration)
+
+                let waitAction = SKAction.wait(forDuration: waitDuration)
+
+                let fadeInAction = SKAction.fadeIn(withDuration: 0.4)
+                let scaleUpAction = SKAction.scale(
+                    to: 0.4,
+                    duration: popInDuration
+                )
+                scaleUpAction.timingMode = .easeOut
+
+                let animationGroup = SKAction.group([
+                    fadeInAction, scaleUpAction,
+                ])
+                let sequenceAction = SKAction.sequence([
+                    waitAction, animationGroup,
+                ])
+
+                fallingObjectNode.node.run(sequenceAction)
+            }
+
+            fallingObjectNodes[fallingObjectData.id] = fallingObjectNode
+            newFallingObjectNodes.append(fallingObjectNode)
+            fallingObjects.append(fallingObjectData)
+        }
+    }
+
     private func spawnFallingObject() {
         guard gameState.playState == .playing else { return }
 
@@ -410,16 +560,19 @@ class GameViewModel: ObservableObject {
         )
 
         let baseFallSpeed = objectType.fallSpeed
-        let speedFactor = GameConfiguration.defaultSpawnInterval / gameState.gameSpeed
+        let speedFactor =
+            GameConfiguration.defaultSpawnInterval / gameState.gameSpeed
 
         let adjustedFallSpeed: CGFloat = {
             var speed = baseFallSpeed * CGFloat(speedFactor)
             if slowMotionTimer != nil {
-                speed *= CGFloat(GameConfiguration.slowMotionFallSpeedMultiplier)
+                speed *= CGFloat(
+                    GameConfiguration.slowMotionFallSpeedMultiplier
+                )
             }
             return speed
         }()
-        
+
         print(adjustedFallSpeed, gameState.gameSpeed)
 
         let fallDuration = TimeInterval(
@@ -488,7 +641,7 @@ class GameViewModel: ObservableObject {
         fallingObjectNode.startFallingWithPerspective(
             from: object.position,
             to: finalPosition,
-            initialScale: 0.3,
+            initialScale: 0.4,
             finalScale: 1.0,
             duration: actualDuration,
             completion: {}
@@ -774,6 +927,10 @@ class GameViewModel: ObservableObject {
         startUIUpdater()
         cleanupAllObjects()
         resetCatcherPosition()
+
+        sceneNodes.clouds.run(SKAction.fadeAlpha(to: 0.4, duration: 0.5))
+
+        preSpawnInitialObjects()
 
         catcher.node.alpha = 0
         gameState = GameState()

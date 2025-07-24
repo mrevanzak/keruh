@@ -7,7 +7,7 @@
 
 import SpriteKit
 
-struct FallingObjectType {
+struct FallingObjectType: Equatable {
     let assetName: String
     private let size: CGSize?
     let points: Int
