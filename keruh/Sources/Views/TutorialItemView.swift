@@ -86,6 +86,11 @@ extension FallingObjectType {
         case "power_extralive": return "Health"
         case "power_doublepoint": return "Double Points"
         case "power_slowdown": return "Slow Motion"
+        case "noncollect_gabus": return "Gabus"
+        case "noncollect_ganggang": return "Ganggang"
+        case "noncollect_lele": return "Lele"
+        case "noncollect_nila": return "Nila"
+        case "noncollect_teratai": return "Teratai"
         default: return "Unknown Item"
         }
     }
