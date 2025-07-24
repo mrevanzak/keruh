@@ -46,7 +46,7 @@ struct FallingObjectType {
         assetName: "collect_ban",
         size: CGSize(width: 96, height: 72),
         points: 10,
-        fallSpeed: 100,
+        fallSpeed: 60,
         rarity: 0.15,
         isSpecial: false,
         isCollectible: true
@@ -56,7 +56,7 @@ struct FallingObjectType {
         assetName: "collect_botol",
         size: CGSize(width: 52, height: 52),
         points: 15,
-        fallSpeed: 120,
+        fallSpeed: 60,
         rarity: 0.15,
         isSpecial: false,
         isCollectible: true
@@ -65,7 +65,7 @@ struct FallingObjectType {
     static let ciki = FallingObjectType(
         assetName: "collect_ciki",
         points: 20,
-        fallSpeed: 80,
+        fallSpeed: 60,
         rarity: 0.15,
         isSpecial: false,
         isCollectible: true
@@ -159,7 +159,7 @@ struct FallingObjectType {
         assetName: "power_extralive",
         size: CGSize(width: 30, height: 30),
         points: 0,
-        fallSpeed: 90,
+        fallSpeed: 60,
         rarity: 0.03,
         isSpecial: true,
         isCollectible: true
@@ -169,7 +169,7 @@ struct FallingObjectType {
         assetName: "power_doublepoint",
         size: CGSize(width: 30, height: 30),
         points: 0,
-        fallSpeed: 90,
+        fallSpeed: 60,
         rarity: 0.03,
         isSpecial: true,
         isCollectible: true
@@ -179,7 +179,7 @@ struct FallingObjectType {
         assetName: "power_slowdown",
         size: CGSize(width: 30, height: 30),
         points: 0,
-        fallSpeed: 90,
+        fallSpeed: 60,
         rarity: 0.02,
         isSpecial: true,
         isCollectible: true
