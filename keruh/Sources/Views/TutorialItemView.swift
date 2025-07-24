@@ -32,12 +32,12 @@ struct TutorialItemView: View {
                     .foregroundColor(.primary)
 
                 if !itemType.isCollectible && !itemType.isSpecial {
-                    Text("Damages health!")
+                    Text("Mengurangi nyawa")
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.red)
                 } else if itemType.points > 0 {
-                    Text("+\(itemType.points) points")
+                    Text("+\(itemType.points) gram")
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.green)
@@ -76,16 +76,16 @@ struct TutorialItemView: View {
 extension FallingObjectType {
     var displayName: String {
         switch assetName {
-        case "collect_botol": return "Bottles"
-        case "collect_kaleng": return "Cans"
-        case "collect_kresek": return "Plastic Bags"
-        case "collect_ban": return "Tires"
-        case "collect_ciki": return "Snack Wrappers"
-        case "collect_sandal": return "Sandals"
-        case "collect_popmie": return "Popmie"
-        case "power_extralive": return "Health"
-        case "power_doublepoint": return "Double Points"
-        case "power_slowdown": return "Slow Motion"
+        case "collect_botol": return "Botol Plastik"
+        case "collect_kaleng": return "Kaleng"
+        case "collect_kresek": return "Kresek"
+        case "collect_ban": return "Ban"
+        case "collect_ciki": return "Ciki"
+        case "collect_sandal": return "Sandal"
+        case "collect_popmie": return "Mie Instan"
+        case "power_extralive": return "Nyawa Tambahan"
+        case "power_doublepoint": return "Dua kali poin"
+        case "power_slowdown": return "Mengurangi kecepatan"
         case "noncollect_gabus": return "Gabus"
         case "noncollect_ganggang": return "Ganggang"
         case "noncollect_lele": return "Lele"
@@ -97,9 +97,9 @@ extension FallingObjectType {
 
     var tutorialDescription: String {
         switch assetName {
-        case "power_extralive": return "Restores health"
-        case "power_doublepoint": return "2x points for 10s"
-        case "power_slowdown": return "Slows falling items"
+        case "power_extralive": return "Tambahkan nyawa"
+        case "power_doublepoint": return "Dua kali poin untuk 10 detik"
+        case "power_slowdown": return "Mengurangi kecepatan jatuhnya barang"
         default: return ""
         }
     }
@@ -131,25 +131,16 @@ extension FallingObjectType {
 }
 
 struct TutorialItemsSection: View {
-    let title: String
     let items: [FallingObjectType]
     let animateItems: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-                .padding(.horizontal, 16)
-
-            VStack(spacing: 8) {
-                ForEach(items.indices, id: \.self) { index in
-                    TutorialItemView(
-                        itemType: items[index],
-                        isAnimated: animateItems
-                    )
-                }
+        VStack(spacing: 8) {
+            ForEach(items.indices, id: \.self) { index in
+                TutorialItemView(
+                    itemType: items[index],
+                    isAnimated: animateItems
+                )
             }
         }
     }
@@ -164,7 +155,6 @@ struct TutorialItemsSection: View {
                 TutorialItemView(itemType: .heart, isAnimated: true)
 
                 TutorialItemsSection(
-                    title: "Clean Items to Catch:",
                     items: FallingObjectType.collectibles,
                     animateItems: true
                 )
