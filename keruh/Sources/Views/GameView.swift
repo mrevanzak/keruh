@@ -210,7 +210,8 @@ private struct GameTitleView: View {
 
     var body: some View {
         Text("KERUH")
-            .font(.system(size: 80, weight: .bold))
+            .font(.custom("PaperInko", size: 80))
+            .fontWeight(.bold)
             .padding(.vertical, 24)
             .foregroundColor(.white)
             .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
@@ -228,7 +229,7 @@ private struct AnimatedPlayText: View {
         HStack(spacing: 0) {
             ForEach(0..<animatedText.count, id: \.self) { index in
                 Text(String(animatedText[index]))
-                    .font(.title2)
+                    .font(.custom("PaperInko", size: 24))
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .offset(y: isVisible ? 0 : 20)
@@ -362,15 +363,11 @@ private struct GameOverView: View {
             titleImage: "title_gameover",
             mainContent: {
                 VStack(spacing: 16) {
-                    (Text("\(score) KG\n")
+                    (Text("\(score) G\n")
                         .font(.custom("PaperInko", size: 36))
                         .fontWeight(.bold)
                         .foregroundColor(
-                            Color(
-                                red: 251 / 255,
-                                green: 175 / 255,
-                                blue: 23 / 255
-                            )
+                            Color(red: 51 / 255, green: 178 / 255, blue: 199 / 255)
                         )
                         + Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
                         .font(.custom("PaperInko", size: 28))
@@ -423,7 +420,7 @@ private struct GameStatsView: View {
                     .scaledToFit()
 
                 HStack {
-                    Text("Skor")
+                    Text("Berat")
                         .font(.custom("PaperInko", size: 18))
                         .foregroundColor(
                             Color(
@@ -439,7 +436,7 @@ private struct GameStatsView: View {
                             y: 1
                         )
 
-                    Text("\(viewModel.scoreText)")
+                    Text("\(viewModel.scoreText) g")
                         .font(.custom("PaperInko", size: 24))
                         .foregroundColor(.white)
                         .shadow(

@@ -13,7 +13,8 @@ struct SplashScreenView: View {
     var body: some View {
         ZStack {
             Text("KERUH")
-                .font(.system(size: 80, weight: .bold))
+                .font(.custom("PaperInko", size: 80))
+                .fontWeight(.bold)
                 .foregroundColor(.white)
                 .fixedSize()
                 .matchedGeometryEffect(id: "title", in: namespace)
