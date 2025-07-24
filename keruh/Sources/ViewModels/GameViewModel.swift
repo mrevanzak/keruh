@@ -372,7 +372,7 @@ class GameViewModel: ObservableObject {
     }
 
     private func startInitialObjectsFalling() {
-        let initialFallSpeed: CGFloat = 50.0
+        let initialFallSpeed: CGFloat = 60.0
 
         for objectData in fallingObjects {
             guard let fallingObjectNode = fallingObjectNodes[objectData.id]
@@ -381,6 +381,8 @@ class GameViewModel: ObservableObject {
             fallingObjectNode.node.removeAllActions()
             fallingObjectNode.node.position = objectData.position
             fallingObjectNode.node.alpha = 1.0
+            fallingObjectNode.node.setScale(0.4)
+            fallingObjectNode.node.zRotation = 0
 
             let screenCenter = screenSize.width / 2
             let finalX: CGFloat
@@ -459,27 +461,14 @@ class GameViewModel: ObservableObject {
         guard fallingObjectNodes.isEmpty else { return }
 
         let visualLayoutOrder: [FallingObjectType] = [
-            .can,
-            .diaper,
-            .bottle,
-            .tire,
-            .sandal,
+            .can, .diaper, .bottle, .tire, .sandal,
         ]
-
         let animationSequenceOrder: [FallingObjectType] = [
-            .sandal,
-            .tire,
-            .bottle,
-            .diaper,
-            .can,
+            .sandal, .tire, .bottle, .diaper, .can,
         ]
-
         let laneAssignments: [String: Int] = [
-            "collect_sandal": 0,
-            "collect_kaleng": 1,
-            "collect_botol": 2,
-            "collect_popmie": 3,
-            "collect_ban": 4,
+            "collect_sandal": 0, "collect_kaleng": 1, "collect_botol": 2,
+            "collect_popmie": 3, "collect_ban": 4,
         ]
 
         guard spawnLanes.count >= visualLayoutOrder.count else { return }
@@ -496,6 +485,7 @@ class GameViewModel: ObservableObject {
             guard let laneIndex = laneAssignments[objectType.assetName] else {
                 continue
             }
+
             let xPosition = spawnLanes[laneIndex]
             let yPosition = topYBound - (CGFloat(visualIndex) * spacing)
             let finalPosition = CGPoint(x: xPosition, y: yPosition)
@@ -517,10 +507,9 @@ class GameViewModel: ObservableObject {
             if let animationIndex = animationSequenceOrder.firstIndex(
                 of: objectType
             ) {
-                let popInDuration: TimeInterval = 0.3
+                let popInDuration: TimeInterval = 0.5
                 let initialWait: TimeInterval = 0.8
-                let waitDuration =
-                    initialWait + (Double(animationIndex) * popInDuration)
+                let waitDuration = initialWait + (Double(animationIndex) * 0.2)
 
                 let waitAction = SKAction.wait(forDuration: waitDuration)
 
