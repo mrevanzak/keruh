@@ -510,30 +510,30 @@ class GameViewModel: ObservableObject {
             let fallingObjectNode = FallingObject(type: objectType)
             fallingObjectNode.setup()
 
-            let initialY = screenSize.height * 0.65
-            fallingObjectNode.node.position = CGPoint(x: xPosition, y: initialY)
-            fallingObjectNode.node.setScale(0.4)
+            fallingObjectNode.node.position = finalPosition
+            fallingObjectNode.node.setScale(0)
             fallingObjectNode.node.alpha = 0
 
             if let animationIndex = animationSequenceOrder.firstIndex(
                 of: objectType
             ) {
-                let dropDuration: TimeInterval = 0.8
-                let initialWait: TimeInterval = 0.6
+                let popInDuration: TimeInterval = 0.3
+                let initialWait: TimeInterval = 0.8
                 let waitDuration =
-                    initialWait + (Double(animationIndex) * dropDuration)
+                    initialWait + (Double(animationIndex) * popInDuration)
 
                 let waitAction = SKAction.wait(forDuration: waitDuration)
 
-                let dropAction = SKAction.move(
-                    to: finalPosition,
-                    duration: dropDuration
-                )
-                dropAction.timingMode = .easeInEaseOut
-
                 let fadeInAction = SKAction.fadeIn(withDuration: 0.4)
+                let scaleUpAction = SKAction.scale(
+                    to: 0.4,
+                    duration: popInDuration
+                )
+                scaleUpAction.timingMode = .easeOut
 
-                let animationGroup = SKAction.group([dropAction, fadeInAction])
+                let animationGroup = SKAction.group([
+                    fadeInAction, scaleUpAction,
+                ])
                 let sequenceAction = SKAction.sequence([
                     waitAction, animationGroup,
                 ])
