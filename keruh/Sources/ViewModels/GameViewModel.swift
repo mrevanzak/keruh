@@ -296,6 +296,7 @@ class GameViewModel: ObservableObject {
     }
 
     private func spawnCatcher() {
+        catcher.node.alpha = 1
         // Position the catcher
         let catcherPosition = CGPoint(
             x: screenSize.width / 2,
