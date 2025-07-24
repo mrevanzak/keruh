@@ -45,7 +45,8 @@ struct LeaderboardTopThreeView: View {
                     .resizable()
                     .frame(width: 60, height: 60)
                 Text("\(rank)")
-                    .font(.system(size: 20, weight: .heavy))
+                    .font(.figtree(size: 20))
+                    .fontWeight(.heavy)
                     .foregroundColor(.white)
                     .offset(x:-4)
                     .offset(y:-2)
@@ -58,14 +59,16 @@ struct LeaderboardTopThreeView: View {
                     .cornerRadius(10)
                 HStack(spacing: 8) {
                     Text("\(score) kg")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.figtree(size: 12))
+                        .fontWeight(.bold)
                         .foregroundColor(.black)
                         .offset(x: 7)
                 }
             }
             .offset(y: 55)
             Text(name)
-                .font(.system(size: 16, weight: .bold))
+                .font(.figtree(size: 16))
+                .fontWeight(.bold)
                 .foregroundColor(.teal)
                 .offset(y: 85)
         }

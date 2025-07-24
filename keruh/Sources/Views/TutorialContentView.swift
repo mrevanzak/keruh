@@ -49,9 +49,9 @@ struct TutorialProgressView: View {
 
             HStack {
                 Text(
-                    "Step \(tutorialManager.currentStep.rawValue + 1) of \(TutorialStep.allCases.count)"
+                    "Langkah \(tutorialManager.currentStep.rawValue + 1) dari \(TutorialStep.allCases.count)"
                 )
-                .font(.caption)
+                .font(.figtree(size: 12))
                 .foregroundColor(.secondary)
                 Spacer()
             }
@@ -64,7 +64,7 @@ struct TutorialNavigationButtons: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Button("Skip") {
+            Button("Lewati") {
                 tutorialManager.skipTutorial()
             }
             .foregroundColor(.gray)
@@ -86,40 +86,39 @@ struct TutorialStepContent: View {
         VStack(spacing: 16) {
             // Icon
             TutorialStepIcon(step: step)
-
-            // Title
-            Text(step.title)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-                .multilineTextAlignment(.center)
-
-            // Description
-            Text(step.description)
-                .font(.body)
-                .fontWeight(.medium)
-                .multilineTextAlignment(.center)
-                .foregroundColor(.primary)
-                .lineLimit(nil)
+            
+            VStack(spacing: 8){
+                // Title
+                Text(step.title)
+                    .font(.paperInko(size: 24))
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                
+                // Description
+                Text(step.description)
+                    .font(.figtree(size: 16))
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.primary)
+                    .lineLimit(nil)
+            }
 
             // Step-specific content
             Group {
                 switch step {
                 case .catching:
                     TutorialItemsSection(
-                        title: "Clean Items to Catch:",
                         items: FallingObjectType.collectibles,
                         animateItems: true
                     )
                 case .avoidHarmful:
                     TutorialItemsSection(
-                        title: "Harmful Items to Avoid:",
                         items: FallingObjectType.harmful,
                         animateItems: true
                     )
                 case .powerUps:
                     TutorialItemsSection(
-                        title: "Special Power-Ups:",
                         items: FallingObjectType.powerUps,
                         animateItems: true
                     )
@@ -139,10 +138,6 @@ struct MovementDemoView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Text("Try moving:")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
             // Demo area
             HStack {
                 Spacer()
@@ -168,7 +163,7 @@ struct MovementDemoView: View {
                     )
             )
 
-            Text("Drag left and right to move")
+            Text("Seret ke kiri dan kanan untuk bergerak")
                 .font(.caption2)
                 .foregroundColor(.blue)
         }

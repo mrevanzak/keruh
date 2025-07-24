@@ -30,12 +30,14 @@ struct LeaderboardRowView: View {
                         .frame(width: 45, height: 45)
                     
                     Text("\(rank)")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.figtree(size: 24))
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
                 }
                 
                 Text(name)
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.figtree(size: 28))
+                    .fontWeight(.bold)
                     .foregroundColor(.white)
                     .padding(.leading, 10)
                 
@@ -50,7 +52,8 @@ struct LeaderboardRowView: View {
                     
                     HStack(spacing: 8) {
                         Text("\(score) kg")
-                            .font(.system(size: 22, weight: .bold))
+                            .font(.figtree(size: 22))
+                            .fontWeight(.bold)
                             .foregroundColor(.black)
                             .offset(x:12)
                     }
