@@ -372,7 +372,7 @@ class GameViewModel: ObservableObject {
     }
 
     private func startInitialObjectsFalling() {
-        let initialFallSpeed: CGFloat = 45.0
+        let initialFallSpeed: CGFloat = 60.0
 
         for objectData in fallingObjects {
             guard let fallingObjectNode = fallingObjectNodes[objectData.id]
@@ -454,12 +454,20 @@ class GameViewModel: ObservableObject {
     private func preSpawnInitialObjects() {
         guard fallingObjectNodes.isEmpty else { return }
 
-        let verticalOrder: [FallingObjectType] = [
+        let visualLayoutOrder: [FallingObjectType] = [
             .can,
             .diaper,
             .bottle,
             .tire,
             .sandal,
+        ]
+
+        let animationSequenceOrder: [FallingObjectType] = [
+            .sandal,
+            .tire,
+            .bottle,
+            .diaper,
+            .can,
         ]
 
         let laneAssignments: [String: Int] = [
@@ -470,39 +478,64 @@ class GameViewModel: ObservableObject {
             "collect_ban": 4,
         ]
 
-        guard spawnLanes.count >= verticalOrder.count else { return }
+        guard spawnLanes.count >= visualLayoutOrder.count else { return }
 
         let screenCenterY = (screenSize.height / 2) - 50.0
-
         let verticalSpread: CGFloat = 90.0
         let topYBound = screenCenterY + verticalSpread
         let bottomYBound = screenCenterY - verticalSpread
-
         let spacing =
-            (topYBound - bottomYBound) / CGFloat(verticalOrder.count - 1)
+            (topYBound - bottomYBound) / CGFloat(visualLayoutOrder.count - 1)
 
-        for (index, objectType) in verticalOrder.enumerated() {
+        for (visualIndex, objectType) in visualLayoutOrder.enumerated() {
             let objectSize = objectType.getSize()
-
             guard let laneIndex = laneAssignments[objectType.assetName] else {
                 continue
             }
-            let xPosition = spawnLanes[laneIndex] 
-
-            let yPosition = topYBound - (CGFloat(index) * spacing)
-            let startPosition = CGPoint(x: xPosition, y: yPosition)
+            let xPosition = spawnLanes[laneIndex]
+            let yPosition = topYBound - (CGFloat(visualIndex) * spacing)
+            let finalPosition = CGPoint(x: xPosition, y: yPosition)
 
             let fallingObjectData = FallingObjectData(
                 type: objectType,
-                position: startPosition,
+                position: finalPosition,
                 targetY: -objectSize.height,
                 fallDuration: 50.0
             )
 
             let fallingObjectNode = FallingObject(type: objectType)
             fallingObjectNode.setup()
-            fallingObjectNode.node.position = startPosition
+
+            let initialY = screenSize.height * 0.65
+            fallingObjectNode.node.position = CGPoint(x: xPosition, y: initialY)
             fallingObjectNode.node.setScale(0.4)
+            fallingObjectNode.node.alpha = 0
+
+            if let animationIndex = animationSequenceOrder.firstIndex(
+                of: objectType
+            ) {
+                let dropDuration: TimeInterval = 0.8
+                let initialWait: TimeInterval = 0.6
+                let waitDuration =
+                    initialWait + (Double(animationIndex) * dropDuration)
+
+                let waitAction = SKAction.wait(forDuration: waitDuration)
+
+                let dropAction = SKAction.move(
+                    to: finalPosition,
+                    duration: dropDuration
+                )
+                dropAction.timingMode = .easeInEaseOut
+
+                let fadeInAction = SKAction.fadeIn(withDuration: 0.4)
+
+                let animationGroup = SKAction.group([dropAction, fadeInAction])
+                let sequenceAction = SKAction.sequence([
+                    waitAction, animationGroup,
+                ])
+
+                fallingObjectNode.node.run(sequenceAction)
+            }
 
             fallingObjectNodes[fallingObjectData.id] = fallingObjectNode
             newFallingObjectNodes.append(fallingObjectNode)
