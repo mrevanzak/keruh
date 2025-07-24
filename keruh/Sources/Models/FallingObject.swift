@@ -147,6 +147,7 @@ struct FallingObjectType {
 
     static let teratai = FallingObjectType(
         assetName: "noncollect_teratai",
+        size: CGSize(width: 70, height: 60),
         points: 0,
         fallSpeed: 60,
         rarity: 0.12,
@@ -157,7 +158,7 @@ struct FallingObjectType {
     //power up
     static let heart = FallingObjectType(
         assetName: "power_extralive",
-        size: CGSize(width: 30, height: 30),
+        size: CGSize(width: 50, height: 50),
         points: 0,
         fallSpeed: 60,
         rarity: 0.03,
@@ -167,7 +168,7 @@ struct FallingObjectType {
 
     static let coin = FallingObjectType(
         assetName: "power_doublepoint",
-        size: CGSize(width: 30, height: 30),
+        size: CGSize(width: 50, height: 50),
         points: 0,
         fallSpeed: 60,
         rarity: 0.03,
@@ -177,7 +178,7 @@ struct FallingObjectType {
 
     static let clock = FallingObjectType(
         assetName: "power_slowdown",
-        size: CGSize(width: 30, height: 30),
+        size: CGSize(width: 50, height: 50),
         points: 0,
         fallSpeed: 60,
         rarity: 0.02,
@@ -186,7 +187,7 @@ struct FallingObjectType {
     )
 
     static let allTypes = [
-        tire, ciki, bottle, can, plasticBag, sandal, diaper, heart, coin, clock,
+        tire, ciki, bottle, can, plasticBag, sandal, diaper, heart, coin,
         gabus, ganggang, nila, lele, teratai,
     ]
 
