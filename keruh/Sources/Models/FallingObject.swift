@@ -191,13 +191,24 @@ struct FallingObjectType: Equatable {
         gabus, ganggang, nila, lele, teratai,
     ]
 
-    static func random() -> FallingObjectType {
-        // Calculate total weight
-        let totalWeight = allTypes.reduce(0) { $0 + $1.rarity }
+    static func random(currentHealth: Int) -> FallingObjectType {
+        let maxHealth = 5
+        var availableTypes = allTypes
+
+        if currentHealth >= maxHealth {
+            availableTypes.removeAll { $0.assetName == "power_extralive" }
+        }
+
+        let totalWeight = availableTypes.reduce(0) { $0 + $1.rarity }
+
+        guard totalWeight > 0 else {
+            return ciki
+        }
+        
         let randomValue = Float.random(in: 0..<totalWeight)
 
         var cumulativeWeight: Float = 0
-        for type in allTypes {
+        for type in availableTypes {
             cumulativeWeight += type.rarity
             if randomValue < cumulativeWeight {
                 return type

@@ -550,7 +550,9 @@ class GameViewModel: ObservableObject {
     private func spawnFallingObject() {
         guard gameState.playState == .playing else { return }
 
-        let objectType = FallingObjectType.random()
+        let objectType = FallingObjectType.random(
+            currentHealth: gameState.health
+        )
         let objectSize = objectType.getSize()
         let randomX = calculateSpawnX(for: objectSize)
 
@@ -680,7 +682,13 @@ class GameViewModel: ObservableObject {
 
     private func updateScoreAndHealth(for object: FallingObjectData) {
         if SettingsManager.shared.soundEnabled {
-            if object.type.isCollectible {
+            if object.type.isSpecial {
+                let playSound = SKAction.playSoundFileNamed(
+                    "power_up.mp3",
+                    waitForCompletion: false
+                )
+                catcher.node.run(playSound)
+            } else if object.type.isCollectible {
                 let playSound = SKAction.playSoundFileNamed(
                     "correct.mp3",
                     waitForCompletion: false
