@@ -5,6 +5,7 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>PaperInko.otf</string>
+		<string>Figtree.ttf</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>

@@ -40,7 +40,7 @@ struct LeaderboardPopUpView: View {
                                 if viewModel.topPlayers.isEmpty {
                                     Text("Loading...")
                                         .foregroundColor(.gray)
-                                        .font(.system(size: 16 * scale))
+                                        .font(.figtree(size: 16 * scale))
                                         .offset(x: 20 * scale)
                                 } else {
                                     HStack(

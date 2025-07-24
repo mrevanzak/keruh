@@ -27,23 +27,23 @@ struct TutorialItemView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(itemType.displayName)
-                    .font(.headline)
+                    .font(.figtree(size: 16))
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
 
                 if !itemType.isCollectible && !itemType.isSpecial {
                     Text("Mengurangi nyawa")
-                        .font(.caption)
+                        .font(.figtree(size: 12))
                         .fontWeight(.medium)
                         .foregroundColor(.red)
                 } else if itemType.points > 0 {
                     Text("+\(itemType.points) gram")
-                        .font(.caption)
+                        .font(.figtree(size: 12))
                         .fontWeight(.medium)
                         .foregroundColor(.green)
                 } else {
                     Text(itemType.tutorialDescription)
-                        .font(.caption)
+                        .font(.figtree(size: 12))
                         .fontWeight(.medium)
                         .foregroundColor(.blue)
                 }

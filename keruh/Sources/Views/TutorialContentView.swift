@@ -51,7 +51,7 @@ struct TutorialProgressView: View {
                 Text(
                     "Langkah \(tutorialManager.currentStep.rawValue + 1) dari \(TutorialStep.allCases.count)"
                 )
-                .font(.caption)
+                .font(.figtree(size: 12))
                 .foregroundColor(.secondary)
                 Spacer()
             }
@@ -90,14 +90,14 @@ struct TutorialStepContent: View {
             VStack(spacing: 8){
                 // Title
                 Text(step.title)
-                    .font(.title2)
+                    .font(.paperInko(size: 24))
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                 
                 // Description
                 Text(step.description)
-                    .font(.body)
+                    .font(.figtree(size: 16))
                     .fontWeight(.medium)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.primary)

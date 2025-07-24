@@ -75,7 +75,9 @@ struct GameView: View {
                 }
                 .onAppear {
                     AudioManager.shared.playGameOverSFX()
-                    GameCenterManager.shared.submitScore(viewModel.gameState.score)
+                    GameCenterManager.shared.submitScore(
+                        viewModel.gameState.score
+                    )
                 }
             case .settings:
                 ZStack {
@@ -210,7 +212,7 @@ private struct GameTitleView: View {
 
     var body: some View {
         Text("KERUH")
-            .font(.custom("PaperInko", size: 80))
+            .font(.paperInko(size: 80))
             .fontWeight(.bold)
             .padding(.vertical, 24)
             .foregroundColor(.white)
@@ -229,7 +231,7 @@ private struct AnimatedPlayText: View {
         HStack(spacing: 0) {
             ForEach(0..<animatedText.count, id: \.self) { index in
                 Text(String(animatedText[index]))
-                    .font(.custom("PaperInko", size: 24))
+                    .font(.paperInko(size: 24))
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .offset(y: isVisible ? 0 : 20)
@@ -364,13 +366,17 @@ private struct GameOverView: View {
             mainContent: {
                 VStack(spacing: 16) {
                     (Text("\(score) G\n")
-                        .font(.custom("PaperInko", size: 36))
+                        .font(.paperInko(size: 36))
                         .fontWeight(.bold)
                         .foregroundColor(
-                            Color(red: 51 / 255, green: 178 / 255, blue: 199 / 255)
+                            Color(
+                                red: 51 / 255,
+                                green: 178 / 255,
+                                blue: 199 / 255
+                            )
                         )
                         + Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
-                        .font(.custom("PaperInko", size: 28))
+                        .font(.paperInko(size: 28))
                         .fontWeight(.black)
                         .foregroundColor(.black))
                         .multilineTextAlignment(.center)
@@ -378,7 +384,7 @@ private struct GameOverView: View {
                     Text(
                         "KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!"
                     )
-                    .font(.custom("PaperInko", size: 14))
+                    .font(.paperInko(size: 14))
                     .multilineTextAlignment(.center)
                     .foregroundColor(
                         Color(red: 51 / 255, green: 178 / 255, blue: 199 / 255)
@@ -421,7 +427,7 @@ private struct GameStatsView: View {
 
                 HStack {
                     Text("Berat")
-                        .font(.custom("PaperInko", size: 18))
+                        .font(.paperInko(size: 18))
                         .foregroundColor(
                             Color(
                                 red: 199 / 255,
@@ -437,7 +443,7 @@ private struct GameStatsView: View {
                         )
 
                     Text("\(viewModel.scoreText) g")
-                        .font(.custom("PaperInko", size: 24))
+                        .font(.paperInko(size: 24))
                         .foregroundColor(.white)
                         .shadow(
                             color: .black.opacity(0.4),
@@ -501,7 +507,7 @@ private struct SettingsView: View {
 
                     VStack(spacing: 20 * scaleFactor) {
                         Text(title)
-                            .font(.custom("PaperInko", size: 48))
+                            .font(.paperInko(size: 48))
                             .fontWeight(.bold)
                             .foregroundColor(.black)
                             .padding(.bottom)
@@ -514,10 +520,7 @@ private struct SettingsView: View {
                                 Text("Musik")
                                     .gridColumnAlignment(.leading)
                                     .font(
-                                        .custom(
-                                            "PaperInko",
-                                            size: fontSize
-                                        )
+                                        .paperInko(size: fontSize)
                                     )
                                     .lineLimit(1)
                                     .fixedSize(
@@ -539,10 +542,7 @@ private struct SettingsView: View {
                             GridRow {
                                 Text("SFX")
                                     .font(
-                                        .custom(
-                                            "PaperInko",
-                                            size: fontSize
-                                        )
+                                        .paperInko(size: fontSize)
                                     )
                                     .lineLimit(1)
                                     .fixedSize(
@@ -564,10 +564,7 @@ private struct SettingsView: View {
                             GridRow {
                                 Text("Getar")
                                     .font(
-                                        .custom(
-                                            "PaperInko",
-                                            size: fontSize
-                                        )
+                                        .paperInko(size: fontSize)
                                     )
                                     .lineLimit(1)
                                     .fixedSize(

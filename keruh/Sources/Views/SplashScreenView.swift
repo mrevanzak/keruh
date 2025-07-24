@@ -13,7 +13,7 @@ struct SplashScreenView: View {
     var body: some View {
         ZStack {
             Text("KERUH")
-                .font(.custom("PaperInko", size: 80))
+                .font(.paperInko(size: 80))
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .fixedSize()
