@@ -13,7 +13,7 @@ import SwiftUI
 private enum GameConfiguration {
     static let catcherBottomOffset: CGFloat = 100
     static let speedIncreaseInterval = 5
-    static let speedMultiplier: TimeInterval = 0.9
+    static let speedMultiplier: TimeInterval = 0.96
     static let minimumSpawnInterval: TimeInterval = 0.5
     static let defaultSpawnInterval: TimeInterval = 2.0
     static let initialHealth = 3
@@ -409,11 +409,18 @@ class GameViewModel: ObservableObject {
             y: screenSize.height * 0.65
         )
 
-        let adjustedFallSpeed =
-            (slowMotionTimer != nil)
-            ? objectType.fallSpeed
-                * GameConfiguration.slowMotionFallSpeedMultiplier
-            : objectType.fallSpeed
+        let baseFallSpeed = objectType.fallSpeed
+        let speedFactor = GameConfiguration.defaultSpawnInterval / gameState.gameSpeed
+
+        let adjustedFallSpeed: CGFloat = {
+            var speed = baseFallSpeed * CGFloat(speedFactor)
+            if slowMotionTimer != nil {
+                speed *= CGFloat(GameConfiguration.slowMotionFallSpeedMultiplier)
+            }
+            return speed
+        }()
+        
+        print(adjustedFallSpeed, gameState.gameSpeed)
 
         let fallDuration = TimeInterval(
             abs(startPosition.y + objectSize.height) / adjustedFallSpeed
