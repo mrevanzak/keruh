@@ -45,7 +45,7 @@ struct FallingObjectType: Equatable {
     static let tire = FallingObjectType(
         assetName: "collect_ban",
         size: CGSize(width: 96, height: 72),
-        points: 10,
+        points: 100,
         fallSpeed: 60,
         rarity: 0.15,
         isSpecial: false,
@@ -55,7 +55,7 @@ struct FallingObjectType: Equatable {
     static let bottle = FallingObjectType(
         assetName: "collect_botol",
         size: CGSize(width: 52, height: 52),
-        points: 15,
+        points: 20,
         fallSpeed: 60,
         rarity: 0.15,
         isSpecial: false,
@@ -64,7 +64,7 @@ struct FallingObjectType: Equatable {
 
     static let ciki = FallingObjectType(
         assetName: "collect_ciki",
-        points: 20,
+        points: 10,
         fallSpeed: 60,
         rarity: 0.15,
         isSpecial: false,
@@ -73,7 +73,7 @@ struct FallingObjectType: Equatable {
 
     static let can = FallingObjectType(
         assetName: "collect_kaleng",
-        points: 50,
+        points: 25,
         fallSpeed: 60,
         rarity: 0.12,
         isSpecial: false,
@@ -83,8 +83,8 @@ struct FallingObjectType: Equatable {
     static let plasticBag = FallingObjectType(
         assetName: "collect_kresek",
         size: CGSize(width: 96, height: 96),
-        points: 50,
-        fallSpeed: 60,
+        points: 60,
+        fallSpeed: 80,
         rarity: 0.12,
         isSpecial: false,
         isCollectible: true
@@ -92,7 +92,7 @@ struct FallingObjectType: Equatable {
 
     static let sandal = FallingObjectType(
         assetName: "collect_sandal",
-        points: 50,
+        points: 75,
         fallSpeed: 60,
         rarity: 0.12,
         isSpecial: false,
@@ -101,7 +101,7 @@ struct FallingObjectType: Equatable {
 
     static let diaper = FallingObjectType(
         assetName: "collect_popmie",
-        points: 50,
+        points: 15,
         fallSpeed: 60,
         rarity: 0.12,
         isSpecial: false,
@@ -161,7 +161,7 @@ struct FallingObjectType: Equatable {
         size: CGSize(width: 50, height: 50),
         points: 0,
         fallSpeed: 60,
-        rarity: 0.03,
+        rarity: 0.02,
         isSpecial: true,
         isCollectible: true
     )
