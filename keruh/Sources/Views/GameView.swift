@@ -330,10 +330,10 @@ private struct GameOverlayView: View {
                         .transition(.scale.combined(with: .opacity))
                     }
 
-                    if viewModel.slowMotionTimeRemaining > 0 {
+                    if viewModel.shieldTimeRemaining > 0 {
                         PowerUpTimerView(
                             iconName: "icon_active power up_slow down",
-                            progress: viewModel.slowMotionTimeRemaining
+                            progress: viewModel.shieldTimeRemaining
                         )
                         .transition(.scale.combined(with: .opacity))
                     }

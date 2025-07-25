@@ -22,6 +22,7 @@ private enum GameConfiguration {
     static let labelSpacing: CGFloat = 35
     static let offScreenBuffer: CGFloat = -100.0
     static let doublePointDuration: TimeInterval = 10.0
+    static let shieldDuration: TimeInterval = 10.0
     static let slowMotionFallSpeedMultiplier: Double = 0.5
     static let slowMotionSpawnMultiplier: Double = 3
     static let slowMotionDuration: TimeInterval = 10.0
@@ -68,6 +69,7 @@ class GameViewModel: ObservableObject {
     @Published var scoreText: Int = GameConfiguration.initialScore
     @Published var healthText: Int = GameConfiguration.initialHealth
     @Published var doublePointTimeRemaining: Double = 0.0
+    @Published var shieldTimeRemaining: Double = 0.0
     @Published var slowMotionTimeRemaining: Double = 0.0
     @Published var extraLive: Int = 0
 
@@ -83,6 +85,7 @@ class GameViewModel: ObservableObject {
     private var touchState: TouchState = .idle
     private var touchStartData: TouchStartData?
     private var doublePointTimer: Timer?
+    private var shieldTimer: Timer?
     private var slowMotionTimer: Timer?
     private var originalGameSpeed: TimeInterval = GameConfiguration
         .defaultSpawnInterval
@@ -91,6 +94,7 @@ class GameViewModel: ObservableObject {
     private var pausedMissTimers: [UUID: TimeInterval] = [:]
     private var pausedDoublePointTime: TimeInterval?
     private var pausedSlowMotionTime: TimeInterval?
+    private var pausedShieldTime: TimeInterval?
 
     // Store clamped island positions for spawn calculations
     private var riverLeftBound: CGFloat = 0
@@ -697,8 +701,10 @@ class GameViewModel: ObservableObject {
             addHealth()
         case "power_doublepoint":
             activateDoublePoint()
+        case "power_shield":
+            activateShield()
         case "power_slowdown":
-            activateSlowMotion()
+            activateShield()
         default:
             if object.type.isCollectible {
                 let multiplier = (doublePointTimer != nil) ? 2 : 1
@@ -769,13 +775,15 @@ class GameViewModel: ObservableObject {
     }
 
     private func decreaseHealth() {
-        gameState.health -= 1
-        if extraLive > 0 {
-            extraLive -= 1
-        }
-        if gameState.health == 0 {
-            touchesEnded()
-            gameOver()
+        if shieldTimer == nil {
+            gameState.health -= 1
+            if extraLive > 0 {
+                extraLive -= 1
+            }
+            if gameState.health == 0 {
+                touchesEnded()
+                gameOver()
+            }
         }
     }
 
@@ -849,6 +857,12 @@ class GameViewModel: ObservableObject {
             doublePointTimer = nil
         }
 
+        if let timer = shieldTimer, timer.isValid {
+            pausedShieldTime = timer.fireDate.timeIntervalSinceNow
+            timer.invalidate()
+            shieldTimer = nil
+        }
+
         if let timer = slowMotionTimer, timer.isValid {
             pausedSlowMotionTime = timer.fireDate.timeIntervalSinceNow
             timer.invalidate()
@@ -867,6 +881,16 @@ class GameViewModel: ObservableObject {
                 self?.doublePointTimer = nil
             }
             pausedDoublePointTime = nil
+        }
+
+        if let remainingTime = pausedShieldTime {
+            shieldTimer = Timer.scheduledTimer(
+                withTimeInterval: remainingTime,
+                repeats: false
+            ) { [weak self] _ in
+                self?.shieldTimer = nil
+            }
+            pausedShieldTime = nil
         }
 
         if let remainingTime = pausedSlowMotionTime {
@@ -905,6 +929,7 @@ class GameViewModel: ObservableObject {
 
         stopAllTimers()
         doublePointTimeRemaining = 0.0
+        shieldTimeRemaining = 0.0
         slowMotionTimeRemaining = 0.0
 
         startUIUpdater()
@@ -918,6 +943,7 @@ class GameViewModel: ObservableObject {
     func resetToMenu() {
         stopAllTimers()
         doublePointTimeRemaining = 0.0
+        shieldTimeRemaining = 0.0
         slowMotionTimeRemaining = 0.0
 
         startUIUpdater()
@@ -1069,6 +1095,8 @@ class GameViewModel: ObservableObject {
 
         doublePointTimer?.invalidate()
         doublePointTimer = nil
+        shieldTimer?.invalidate()
+        shieldTimer = nil
         slowMotionTimer?.invalidate()
         slowMotionTimer = nil
     }
@@ -1139,6 +1167,17 @@ class GameViewModel: ObservableObject {
             doublePointTimeRemaining = 0
         }
 
+        // Shield Timer
+        if let timer = shieldTimer, timer.isValid {
+            let remaining = timer.fireDate.timeIntervalSinceNow
+            shieldTimeRemaining = max(
+                0,
+                remaining / GameConfiguration.shieldDuration
+            )
+        } else if shieldTimeRemaining != 0 {
+            shieldTimeRemaining = 0
+        }
+
         // Slow Motion Timer
         if let timer = slowMotionTimer, timer.isValid {
             let remaining = timer.fireDate.timeIntervalSinceNow
@@ -1173,6 +1212,19 @@ class GameViewModel: ObservableObject {
             print("[\(self?.currentTimestamp() ?? "")] Double Point expired")
         }
         print("[\(currentTimestamp())] Double Point activated")
+    }
+
+    private func activateShield() {
+        shieldTimer?.invalidate()
+
+        shieldTimer = Timer.scheduledTimer(
+            withTimeInterval: GameConfiguration.shieldDuration,
+            repeats: false
+        ) { [weak self] _ in
+            self?.shieldTimer = nil
+            print("[\(self?.currentTimestamp() ?? "")] Shield expired")
+        }
+        print("[\(currentTimestamp())] Shield activated")
     }
 
     private func activateSlowMotion() {

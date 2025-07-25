@@ -188,7 +188,7 @@ struct FallingObjectType: Equatable {
 
     static let allTypes = [
         tire, ciki, bottle, can, plasticBag, sandal, diaper, heart, coin,
-        gabus, ganggang, nila, lele, teratai,
+        gabus, ganggang, nila, lele, teratai, clock
     ]
 
     static func random(currentHealth: Int) -> FallingObjectType {
