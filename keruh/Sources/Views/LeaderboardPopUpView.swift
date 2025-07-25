@@ -22,7 +22,7 @@ struct LeaderboardPopUpView: View {
             let baseHeight: CGFloat = 896
             let widthScale = screenWidth / baseWidth
             let heightScale = screenHeight / baseHeight
-            let scale = min(widthScale, heightScale)
+            let scale = min(max(min(widthScale, heightScale), 0.8), 1.0)
 
             ZStack {
                 Color.black.opacity(0.6)
@@ -45,7 +45,7 @@ struct LeaderboardPopUpView: View {
                                 } else {
                                     HStack(
                                         alignment: .bottom,
-                                        spacing: -85 * scale
+                                        spacing: max(-85 * scale, -75)
                                     ) {
                                         // Rank 2
                                         Group {

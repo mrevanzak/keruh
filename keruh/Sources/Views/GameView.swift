@@ -193,6 +193,7 @@ private struct MenuContentView: View {
                 }
             }
             .padding(.trailing, 20)
+            .padding(.top, 20)
             Spacer()
         }
     }
