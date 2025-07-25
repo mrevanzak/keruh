@@ -8,8 +8,12 @@
 import SpriteKit
 import SwiftUI
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     var viewModel: GameViewModel?
+
+    // Debug visualization
+    var debugShapes: [SKShapeNode] = []
+    var showDebugPhysics = false  // Toggle this for debugging
 
     override func didMove(to view: SKView) {
         guard let viewModel = viewModel else { return }
@@ -25,6 +29,10 @@ class GameScene: SKScene {
             alpha: 1.0
         )
 
+        // Set up physics world and contact delegate
+        physicsWorld.contactDelegate = self
+        physicsWorld.gravity = CGVector(dx: 0, dy: 0)  // No gravity since we control movement
+
         // Add scene nodes to the scene
         addChild(viewModel.sceneNodes.sky)
         addChild(viewModel.sceneNodes.river)
@@ -38,6 +46,111 @@ class GameScene: SKScene {
 
         // Add any initial falling objects
         addNewFallingObjects()
+
+        // Enable physics debug view (remove in production)
+        if showDebugPhysics {
+            view.showsPhysics = true
+            view.showsFPS = true
+            view.showsNodeCount = true
+        }
+    }
+
+    // MARK: - Physics Contact Delegate
+    func didBegin(_ contact: SKPhysicsContact) {
+        let firstBody = contact.bodyA
+        let secondBody = contact.bodyB
+
+        var catcherBody: SKPhysicsBody?
+        var objectBody: SKPhysicsBody?
+
+        if firstBody.categoryBitMask == PhysicsCategory.catcher {
+            catcherBody = firstBody
+            objectBody = secondBody
+        } else if secondBody.categoryBitMask == PhysicsCategory.catcher {
+            catcherBody = secondBody
+            objectBody = firstBody
+        }
+
+        guard catcherBody != nil, let objectNode = objectBody?.node else {
+            return
+        }
+
+        // Find the falling object ID and handle the catch
+        if let objectId = viewModel?.getObjectId(for: objectNode) {
+            viewModel?.handleObjectCaught(objectId)
+        }
+    }
+
+    // MARK: - Debug Visualization
+    func drawDebugCollisionZones() {
+        // Clear previous debug shapes
+        debugShapes.forEach { $0.removeFromParent() }
+        debugShapes.removeAll()
+
+        guard let viewModel = viewModel, showDebugPhysics else { return }
+
+        // Draw catcher collision zone
+        let catcherFrame = createDebugCatcherFrame()
+        let catcherDebugShape = SKShapeNode(rect: catcherFrame)
+        catcherDebugShape.strokeColor = .green
+        catcherDebugShape.fillColor = .green.withAlphaComponent(0.3)
+        catcherDebugShape.lineWidth = 2
+        catcherDebugShape.zPosition = 1000
+        addChild(catcherDebugShape)
+        debugShapes.append(catcherDebugShape)
+
+        // Draw the actual collision zone used in manual detection
+        let manualCatchZone = createManualCatchZone()
+        let manualZoneShape = SKShapeNode(rect: manualCatchZone)
+        manualZoneShape.strokeColor = .red
+        manualZoneShape.fillColor = .red.withAlphaComponent(0.3)
+        manualZoneShape.lineWidth = 2
+        manualZoneShape.zPosition = 1001
+        addChild(manualZoneShape)
+        debugShapes.append(manualZoneShape)
+
+        // Draw falling object frames
+        for fallingObject in viewModel.getFallingObjectNodes() {
+            let objectFrame = CGRect(
+                x: fallingObject.node.position.x - fallingObject.size.width / 2,
+                y: fallingObject.node.position.y - fallingObject.size.height
+                    / 2,
+                width: fallingObject.size.width,
+                height: fallingObject.size.height
+            )
+            let objectShape = SKShapeNode(rect: objectFrame)
+            objectShape.strokeColor = .blue
+            objectShape.fillColor = .blue.withAlphaComponent(0.2)
+            objectShape.lineWidth = 1
+            objectShape.zPosition = 999
+            addChild(objectShape)
+            debugShapes.append(objectShape)
+        }
+    }
+
+    private func createDebugCatcherFrame() -> CGRect {
+        guard let viewModel = viewModel else { return .zero }
+        let catcherNode = viewModel.getCatcherNode()
+
+        return CGRect(
+            origin: CGPoint(
+                x: catcherNode.position.x - Catcher.size.width / 2,
+                y: catcherNode.position.y - Catcher.size.height / 2
+            ),
+            size: Catcher.size
+        )
+    }
+
+    private func createManualCatchZone() -> CGRect {
+        guard let viewModel = viewModel else { return .zero }
+        let catcherFrame = createDebugCatcherFrame()
+
+        return CGRect(
+            x: catcherFrame.minX,
+            y: catcherFrame.maxY - 80,
+            width: catcherFrame.width - 50,  // This is the problematic calculation
+            height: 10
+        )
     }
 
     override func update(_ currentTime: TimeInterval) {
@@ -45,6 +158,11 @@ class GameScene: SKScene {
 
         // Add new falling objects that were spawned since last update
         addNewFallingObjects()
+
+        // Update debug visualization
+        if showDebugPhysics {
+            drawDebugCollisionZones()
+        }
     }
 
     private func addNewFallingObjects() {

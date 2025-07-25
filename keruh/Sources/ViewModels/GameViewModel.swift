@@ -958,12 +958,32 @@ class GameViewModel: ObservableObject {
         for (objectId, fallingObject) in fallingObjectNodes {
             let objectFrame = createObjectFrame(for: fallingObject)
 
+            // Create a symmetric catch zone at the top of the catcher
+            let catchZoneWidth = Catcher.size.width * 0.8  // 80% of catcher width
+            let catchZoneHeight: CGFloat = 20
+            let catchZoneX = catcherFrame.midX - (catchZoneWidth / 2)  // Center it
+            let catchZoneY = catcherFrame.maxY - 30  // 30 pixels from top
+
             let topCatchZone = CGRect(
-                x: catcherFrame.minX,
-                y: catcherFrame.maxY - 80,
-                width: catcherFrame.width - 50,
-                height: 10
+                x: catchZoneX,
+                y: catchZoneY,
+                width: catchZoneWidth,
+                height: catchZoneHeight
             )
+
+            #if DEBUG
+                // Debug print for troubleshooting
+                if objectFrame.intersects(catcherFrame) {
+                    print(
+                        "Object at: \(objectFrame), Catcher at: \(catcherFrame)"
+                    )
+                    print("Catch zone: \(topCatchZone)")
+                    print(
+                        "Intersection: \(topCatchZone.intersects(objectFrame))"
+                    )
+                }
+            #endif
+
             if topCatchZone.intersects(objectFrame) {
                 handleObjectCaught(objectId)
             }
@@ -973,14 +993,49 @@ class GameViewModel: ObservableObject {
     }
 
     private func createCatcherFrame() -> CGRect {
-        CGRect(
+        // Use the actual node position and ensure consistent anchor point calculation
+        let position = catcher.node.position
+
+        return CGRect(
             origin: CGPoint(
-                x: catcher.node.position.x - Catcher.size.width / 2,
-                y: catcher.node.position.y - Catcher.size.height / 2
+                x: position.x - Catcher.size.width / 2,
+                y: position.y - Catcher.size.height / 2
             ),
             size: Catcher.size
         )
     }
+
+    // Alternative: Use physics-based collision detection (recommended)
+    func enablePhysicsCollisionDetection() {
+        // This method shows how to switch to physics-based detection
+        // You can call this instead of manual collision detection
+
+        // The physics contact delegate in GameScene will handle collisions
+        // This is more accurate and handles edge cases better
+    }
+
+    // Debug methods
+    #if DEBUG
+        func togglePhysicsDebug() {
+            // This will be called from the game scene to toggle debug visualization
+            print("Physics debug toggled")
+        }
+
+        func printCollisionDebugInfo() {
+            print("=== COLLISION DEBUG INFO ===")
+            print("Catcher position: \(catcher.node.position)")
+            print("Catcher size: \(Catcher.size)")
+            print("Screen size: \(screenSize)")
+            print("Active falling objects: \(fallingObjectNodes.count)")
+
+            for (id, object) in fallingObjectNodes {
+                print(
+                    "Object \(id): position \(object.node.position), size \(object.size)"
+                )
+            }
+            print("============================")
+        }
+    #endif
 
     private func createObjectFrame(for fallingObject: FallingObject) -> CGRect {
         CGRect(
@@ -1036,6 +1091,10 @@ class GameViewModel: ObservableObject {
 
     func getObjectPosition(for objectId: UUID) -> CGPoint? {
         fallingObjectNodes[objectId]?.node.position
+    }
+
+    func getObjectId(for node: SKNode) -> UUID? {
+        return fallingObjectNodes.first { $0.value.node == node }?.key
     }
 
     func updateObjectPosition(for objectId: UUID, to position: CGPoint) {

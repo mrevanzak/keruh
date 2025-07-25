@@ -204,7 +204,7 @@ struct FallingObjectType: Equatable {
         guard totalWeight > 0 else {
             return ciki
         }
-        
+
         let randomValue = Float.random(in: 0..<totalWeight)
 
         var cumulativeWeight: Float = 0
@@ -236,15 +236,31 @@ class FallingObject: BaseGameObject {
         spriteNode.texture = loadTexture(named: objectType.assetName)
         spriteNode.size = objectType.getSize()
 
-        spriteNode.physicsBody = SKPhysicsBody(
-            texture: spriteNode.texture!,
-            size: objectType.getSize()
+        // Ensure consistent anchor points
+        spriteNode.anchorPoint = CGPoint(x: 0.5, y: 0.5)  // Center anchor
+
+        // Use rectangle physics body for more predictable collision detection
+        // Texture-based physics can be inconsistent with complex shapes
+        let physicsSize = CGSize(
+            width: objectType.getSize().width * 0.8,  // Slightly smaller for better gameplay
+            height: objectType.getSize().height * 0.8
         )
+
+        spriteNode.physicsBody = SKPhysicsBody(rectangleOf: physicsSize)
         spriteNode.physicsBody?.isDynamic = true
         spriteNode.physicsBody?.categoryBitMask = PhysicsCategory.fallingObject
         spriteNode.physicsBody?.contactTestBitMask = PhysicsCategory.catcher
         spriteNode.physicsBody?.collisionBitMask = 0
         spriteNode.physicsBody?.affectedByGravity = false
+
+        // Prevent rotation for consistent collision detection
+        spriteNode.physicsBody?.allowsRotation = false
+
+        #if DEBUG
+            print(
+                "FallingObject (\(objectType.assetName)) physics body size: \(physicsSize)"
+            )
+        #endif
     }
 
     private func loadTexture(named name: String) -> SKTexture? {

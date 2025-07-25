@@ -29,13 +29,30 @@ class Catcher: BaseGameObject {
         spriteNode.size = Catcher.size
         spriteNode.zPosition = 1
 
-        // Setup physics
-        spriteNode.physicsBody = SKPhysicsBody(rectangleOf: Catcher.size)
+        // Ensure consistent anchor points
+        spriteNode.anchorPoint = CGPoint(x: 0.5, y: 0.5)  // Center anchor
+
+        // Setup physics - create a smaller catch zone at the top
+        let catchZoneSize = CGSize(width: Catcher.size.width * 0.8, height: 20)
+        let catchZoneOffset = CGPoint(x: 0, y: Catcher.size.height * 0.3)
+
+        spriteNode.physicsBody = SKPhysicsBody(
+            rectangleOf: catchZoneSize,
+            center: catchZoneOffset
+        )
         spriteNode.physicsBody?.isDynamic = false
         spriteNode.physicsBody?.categoryBitMask = PhysicsCategory.catcher
         spriteNode.physicsBody?.contactTestBitMask =
             PhysicsCategory.fallingObject
         spriteNode.physicsBody?.collisionBitMask = 0
+
+        // Debug: Print physics body info
+        #if DEBUG
+            print(
+                "Catcher physics body center: \(spriteNode.physicsBody?.node?.position ?? CGPoint.zero)"
+            )
+            print("Catcher physics body size: \(catchZoneSize)")
+        #endif
     }
 
     func moveTo(x: CGFloat, constrainedTo bounds: CGSize) {
