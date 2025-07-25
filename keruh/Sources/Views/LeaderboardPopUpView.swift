@@ -37,7 +37,18 @@ struct LeaderboardPopUpView: View {
                         .cornerRadius(20 * scale)
                         .overlay(
                             VStack(spacing: 8 * scale) {
-                                if viewModel.topPlayers.isEmpty {
+                                if viewModel.isLoading {
+                                    Text("Loading...")
+                                        .foregroundColor(
+                                            Color(
+                                                red: 26 / 255,
+                                                green: 134 / 255,
+                                                blue: 153 / 255
+                                            )
+                                        )
+                                        .font(.figtree(size: 17 * scale))
+                                        .offset(x: 20 * scale)
+                                } else if viewModel.topPlayers.isEmpty {
                                     Text("Jadilah yang pertama bermain!")
                                         .foregroundColor(
                                             Color(
@@ -46,7 +57,7 @@ struct LeaderboardPopUpView: View {
                                                 blue: 153 / 255
                                             )
                                         )
-                                        .font(.figtree(size: 16 * scale))
+                                        .font(.figtree(size: 17 * scale))
                                         .offset(x: 20 * scale)
                                 } else {
                                     HStack(
