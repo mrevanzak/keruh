@@ -232,8 +232,7 @@ private struct AnimatedPlayText: View {
         HStack(spacing: 0) {
             ForEach(0..<animatedText.count, id: \.self) { index in
                 Text(String(animatedText[index]))
-                    .font(.figtree(size: 24))
-                    .fontWeight(.semibold)
+                    .font(.figtree(size: 16))
                     .foregroundColor(.white)
                     .offset(y: isVisible ? 0 : 20)
                     .animation(
