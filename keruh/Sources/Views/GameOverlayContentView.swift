@@ -37,6 +37,14 @@ struct GameOverlayContentView<
                     isLargeScreen ? min(outerGeo.size.width * 0.5, 700) : 350
                 let scaleFactor = isLargeScreen ? 1.2 : 1.0
 
+                let screenWidth = outerGeo.size.width
+                let screenHeight = outerGeo.size.height
+                let baseWidth: CGFloat = 414
+                let baseHeight: CGFloat = 896
+                let widthScale = screenWidth / baseWidth
+                let heightScale = screenHeight / baseHeight
+                let scale = min(max(min(widthScale, heightScale), 0.8), 1.0)
+
                 Image("bg_game_over")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -61,19 +69,19 @@ struct GameOverlayContentView<
                                         MenuButton(
                                             icon: "xmark",
                                             size: 35 * scaleFactor,
-                                            padding: 6 * scaleFactor
+                                            padding: 9 * scaleFactor
                                         )
                                     }
                                 }
-                                .padding(.bottom, outerGeo.size.height * 0.5)
-                                .padding(.leading, outerGeo.size.width * 0.8)
+                                .offset(x: 170 * scale)
+                                .offset(y: -270 * scale)
                             }
 
                             // Action Content
                             VStack {
                                 actionContent
                             }
-                            .padding(.top, outerGeo.size.height * 0.6)
+                            .offset(y: 300 * scale)
                         }
                     }
             }
@@ -98,6 +106,7 @@ struct MenuButton: View {
                 .scaledToFit()
                 .padding(padding)
                 .foregroundStyle(Color.white)
+                .font(.title.bold())
         }
         .frame(width: size, height: size)
     }

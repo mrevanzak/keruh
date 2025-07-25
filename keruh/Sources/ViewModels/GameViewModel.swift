@@ -780,8 +780,7 @@ class GameViewModel: ObservableObject {
     }
 
     private func checkForSpeedIncrease() {
-        guard gameState.score % GameConfiguration.speedIncreaseInterval == 0,
-            gameState.gameSpeed > GameConfiguration.minimumSpawnInterval
+        guard gameState.score % GameConfiguration.speedIncreaseInterval == 0
         else { return }
 
         gameState.gameSpeed *= GameConfiguration.speedMultiplier

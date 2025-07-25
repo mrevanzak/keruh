@@ -22,7 +22,7 @@ struct LeaderboardPopUpView: View {
             let baseHeight: CGFloat = 896
             let widthScale = screenWidth / baseWidth
             let heightScale = screenHeight / baseHeight
-            let scale = min(widthScale, heightScale)
+            let scale = min(max(min(widthScale, heightScale), 0.8), 1.0)
 
             ZStack {
                 Color.black.opacity(0.6)
@@ -37,147 +37,95 @@ struct LeaderboardPopUpView: View {
                         .cornerRadius(20 * scale)
                         .overlay(
                             VStack(spacing: 8 * scale) {
-                                if viewModel.topPlayers.isEmpty {
+                                if viewModel.isLoading {
                                     Text("Loading...")
-                                        .foregroundColor(.gray)
-                                        .font(.figtree(size: 16 * scale))
+                                        .foregroundColor(
+                                            Color(
+                                                red: 26 / 255,
+                                                green: 134 / 255,
+                                                blue: 153 / 255
+                                            )
+                                        )
+                                        .font(.figtree(size: 17 * scale))
+                                        .offset(x: 20 * scale)
+                                } else if viewModel.topPlayers.isEmpty {
+                                    Text("Jadilah yang pertama bermain!")
+                                        .foregroundColor(
+                                            Color(
+                                                red: 26 / 255,
+                                                green: 134 / 255,
+                                                blue: 153 / 255
+                                            )
+                                        )
+                                        .font(.figtree(size: 17 * scale))
                                         .offset(x: 20 * scale)
                                 } else {
                                     HStack(
                                         alignment: .bottom,
-                                        spacing: -85 * scale
+                                        spacing: max(-85 * scale, -75)
                                     ) {
-                                        // Rank 2
-                                        Group {
-                                            if viewModel.topPlayers.count >= 2 {
-                                                LeaderboardTopThreeView(
-                                                    rank: viewModel.topPlayers[
-                                                        1
-                                                    ].rank,
-                                                    name: displayName(
-                                                        for:
-                                                            viewModel.topPlayers[
-                                                                1
-                                                            ]
-                                                    ),
-                                                    score: viewModel.topPlayers[
-                                                        1
-                                                    ].score,
-                                                    image: viewModel.topPlayers[
-                                                        1
-                                                    ].playerImage
-                                                )
-                                            } else {
-                                                LeaderboardTopThreeView(
-                                                    rank: 2,
-                                                    name: "-",
-                                                    score: 0
-                                                )
-                                            }
+                                        if viewModel.topPlayers.count >= 2 {
+                                            LeaderboardTopThreeView(
+                                                rank: viewModel.topPlayers[1]
+                                                    .rank,
+                                                name: displayName(
+                                                    for: viewModel.topPlayers[1]
+                                                ),
+                                                score: viewModel.topPlayers[1]
+                                                    .score,
+                                                image: viewModel.topPlayers[1]
+                                                    .playerImage
+                                            )
+                                            .scaleEffect(0.65 * scale)
+                                            .offset(y: 10 * scale)
                                         }
-                                        .scaleEffect(0.65 * scale)
-                                        .offset(y: 10 * scale)
 
-                                        // Rank 1
-                                        Group {
-                                            if viewModel.topPlayers.count >= 1 {
-                                                LeaderboardTopThreeView(
-                                                    rank: viewModel.topPlayers[
-                                                        0
-                                                    ].rank,
-                                                    name: displayName(
-                                                        for:
-                                                            viewModel.topPlayers[
-                                                                0
-                                                            ]
-                                                    ),
-                                                    score: viewModel.topPlayers[
-                                                        0
-                                                    ].score,
-                                                    image: viewModel.topPlayers[
-                                                        0
-                                                    ].playerImage
-                                                )
-                                            } else {
-                                                LeaderboardTopThreeView(
-                                                    rank: 1,
-                                                    name: "-",
-                                                    score: 0,
-                                                    rankFrameImage: Image(
-                                                        "rankframe_rank1"
-                                                    ),
-                                                    borderRankImage: Image(
-                                                        "border_rank1"
-                                                    ),
-                                                    scoreViewImage: Image(
-                                                        "score_view"
-                                                    )
-                                                )
-                                            }
+                                        if viewModel.topPlayers.count >= 1 {
+                                            LeaderboardTopThreeView(
+                                                rank: viewModel.topPlayers[0]
+                                                    .rank,
+                                                name: displayName(
+                                                    for: viewModel.topPlayers[0]
+                                                ),
+                                                score: viewModel.topPlayers[0]
+                                                    .score,
+                                                image: viewModel.topPlayers[0]
+                                                    .playerImage
+                                            )
+                                            .scaleEffect(0.75 * scale)
+                                            .offset(y: 0)
                                         }
-                                        .scaleEffect(0.75 * scale)
-                                        .offset(y: 0)
 
-                                        // Rank 3
-                                        Group {
-                                            if viewModel.topPlayers.count >= 3 {
-                                                LeaderboardTopThreeView(
-                                                    rank: viewModel.topPlayers[
-                                                        2
-                                                    ].rank,
-                                                    name: displayName(
-                                                        for:
-                                                            viewModel.topPlayers[
-                                                                2
-                                                            ]
-                                                    ),
-                                                    score: viewModel.topPlayers[
-                                                        2
-                                                    ].score,
-                                                    image: viewModel.topPlayers[
-                                                        2
-                                                    ].playerImage
-                                                )
-                                            } else {
-                                                LeaderboardTopThreeView(
-                                                    rank: 3,
-                                                    name: "-",
-                                                    score: 0
-                                                )
-                                            }
+                                        if viewModel.topPlayers.count >= 3 {
+                                            LeaderboardTopThreeView(
+                                                rank: viewModel.topPlayers[2]
+                                                    .rank,
+                                                name: displayName(
+                                                    for: viewModel.topPlayers[2]
+                                                ),
+                                                score: viewModel.topPlayers[2]
+                                                    .score,
+                                                image: viewModel.topPlayers[2]
+                                                    .playerImage
+                                            )
+                                            .scaleEffect(0.65 * scale)
+                                            .offset(y: 10 * scale)
                                         }
-                                        .scaleEffect(0.65 * scale)
-                                        .offset(y: 10 * scale)
                                     }
                                     .offset(y: -10 * scale)
                                     .offset(x: 18 * scale)
 
+                                    let otherPlayers = viewModel.topPlayers
+                                        .prefix(8).dropFirst(3)
+
                                     VStack(spacing: 0.3 * scale) {
-                                        ForEach(3..<8) { i in
-                                            if i < viewModel.topPlayers.count {
-                                                LeaderboardRowView(
-                                                    rank: viewModel.topPlayers[
-                                                        i
-                                                    ].rank,
-                                                    name: displayName(
-                                                        for:
-                                                            viewModel.topPlayers[
-                                                                i
-                                                            ]
-                                                    ),
-                                                    score: viewModel.topPlayers[
-                                                        i
-                                                    ].score
-                                                )
-                                                .scaleEffect(0.5 * scale)
-                                            } else {
-                                                LeaderboardRowView(
-                                                    rank: i + 1,
-                                                    name: "-",
-                                                    score: 0
-                                                )
-                                                .scaleEffect(0.5 * scale)
-                                            }
+                                        ForEach(otherPlayers) { player in
+                                            LeaderboardRowView(
+                                                rank: player.rank,
+                                                name: displayName(for: player),
+                                                score: player.score
+                                            )
+                                            .scaleEffect(0.5 * scale)
                                         }
                                     }
                                     .offset(x: 18 * scale, y: -10 * scale)
@@ -208,10 +156,11 @@ struct LeaderboardPopUpView: View {
                     Button(action: {
                         closeLeaderboard()
                     }) {
-                        Image("button_close")
-                            .resizable()
-                            .frame(width: 50 * scale, height: 50 * scale)
-                            .padding(20 * scale)
+                        MenuButton(
+                            icon: "xmark",
+                            size: 35 * scale,
+                            padding: 9 * scale
+                        )
                     }
                     .offset(x: 170 * scale)
                     .offset(y: -270 * scale)
