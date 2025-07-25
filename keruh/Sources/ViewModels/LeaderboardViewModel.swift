@@ -10,6 +10,7 @@ import Foundation
 class LeaderboardViewModel: ObservableObject {
     @Published var isAuthenticated = false
     @Published var topPlayers: [Leaderboard] = []
+    @Published var isLoading = true
 
     let leaderboardID = "com.keruh.leaderboard"
 
@@ -31,10 +32,12 @@ class LeaderboardViewModel: ObservableObject {
     }
 
     func loadTopPlayers() {
+        isLoading = true
         GameCenterManager.shared.loadTopScores(leaderboardID: leaderboardID, count: 10) { players in
             DispatchQueue.main.async {
                 self.topPlayers = players
                 self.loadProfileImages()
+                self.isLoading = false
             }
         }
     }
