@@ -208,10 +208,11 @@ struct LeaderboardPopUpView: View {
                     Button(action: {
                         closeLeaderboard()
                     }) {
-                        Image("button_close")
-                            .resizable()
-                            .frame(width: 50 * scale, height: 50 * scale)
-                            .padding(20 * scale)
+                        MenuButton(
+                            icon: "xmark",
+                            size: 35 * scale,
+                            padding: 9 * scale
+                        )
                     }
                     .offset(x: 170 * scale)
                     .offset(y: -270 * scale)

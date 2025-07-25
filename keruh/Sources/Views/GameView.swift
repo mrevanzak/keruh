@@ -602,21 +602,21 @@ private struct SettingsView: View {
                                 MenuButton(
                                     icon: "arrow.counterclockwise",
                                     size: 50 * scaleFactor,
-                                    padding: 6 * scaleFactor
+                                    padding: 10 * scaleFactor
                                 )
                             }
                             Button(action: onContinue) {
                                 MenuButton(
                                     icon: "play.fill",
                                     size: 50 * scaleFactor,
-                                    padding: 10 * scaleFactor
+                                    padding: 13 * scaleFactor
                                 )
                             }
                             Button(action: onHome) {
                                 MenuButton(
                                     icon: "house.fill",
                                     size: 50 * scaleFactor,
-                                    padding: 6 * scaleFactor
+                                    padding: 10 * scaleFactor
                                 )
                             }
                             Spacer()
