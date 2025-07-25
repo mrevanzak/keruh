@@ -51,7 +51,7 @@ struct LeaderboardRowView: View {
                         .cornerRadius(10)
                     
                     HStack(spacing: 8) {
-                        Text("\(score) kg")
+                        Text("\(score) g")
                             .font(.figtree(size: 22))
                             .fontWeight(.bold)
                             .foregroundColor(.black)
@@ -63,6 +63,7 @@ struct LeaderboardRowView: View {
             }
             .offset(y: -4)
             .padding(.horizontal, 30)
+            .padding(.vertical, 16)
         }
         .frame(height: 40)
     }
@@ -71,7 +72,7 @@ struct LeaderboardRowView: View {
 
 #Preview {
     VStack(spacing: 1){
-        LeaderboardRowView(rank: 1, name: "Elizabeth", score: 122467)
+        LeaderboardRowView(rank: 1, name: "Elizabeth sdjfisdfi", score: 122467)
             .scaleEffect(0.8)
     }
     

@@ -38,7 +38,7 @@ struct LeaderboardPopUpView: View {
                         .overlay(
                             VStack(spacing: 8 * scale) {
                                 if viewModel.topPlayers.isEmpty {
-                                    Text("Loading...")
+                                    Text("There are no players yet. Be the first to play!")
                                         .foregroundColor(.gray)
                                         .font(.figtree(size: 16 * scale))
                                         .offset(x: 20 * scale)
