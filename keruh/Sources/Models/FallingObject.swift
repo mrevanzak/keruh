@@ -186,10 +186,20 @@ struct FallingObjectType: Equatable {
         isSpecial: true,
         isCollectible: true
     )
+    
+    static let shield = FallingObjectType(
+        assetName: "power_shield",
+        size: CGSize(width: 50, height: 50),
+        points: 0,
+        fallSpeed: 60,
+        rarity: 0.02,
+        isSpecial: true,
+        isCollectible: true
+    )
 
     static let allTypes = [
         tire, ciki, bottle, can, plasticBag, sandal, diaper, heart, coin,
-        gabus, ganggang, nila, lele, teratai, clock
+        gabus, ganggang, nila, lele, teratai, shield
     ]
 
     static func random(currentHealth: Int) -> FallingObjectType {
