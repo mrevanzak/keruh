@@ -84,25 +84,19 @@ struct TutorialStepContent: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Icon
-            TutorialStepIcon(step: step)
-            
-            VStack(spacing: 8){
-                // Title
-                Text(step.title)
-                    .font(.paperInko(size: 24))
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                    .multilineTextAlignment(.center)
-                
-                // Description
-                Text(step.description)
-                    .font(.figtree(size: 16))
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.primary)
-                    .lineLimit(nil)
-            }
+                if step != .movement {
+                    Text(step.title)
+                        .font(.figtree(size: 24))
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.center)
+                } else {
+                    Image("icon_arrow")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 150)
+                        .padding(.vertical, 12)
+                }
 
             // Step-specific content
             Group {
@@ -128,6 +122,24 @@ struct TutorialStepContent: View {
                     EmptyView()
                 }
             }
+            
+            VStack(spacing: 8) {
+                // title for movement
+                if step == .movement {
+                    Text(step.title)
+                        .font(.figtree(size: 24))
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.center)
+                }
+                
+                // Description
+                Text(step.description)
+                    .font(.figtree(size: 16))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.primary)
+                    .lineLimit(nil)
+            } .padding(.vertical, 8)
         }
     }
 }
@@ -145,7 +157,7 @@ struct MovementDemoView: View {
                 Image("lutfi")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 60, height: 80)
+                    .frame(width: 100)
                     .offset(x: characterPosition)
                     .onAppear {
                         startMovementDemo()
@@ -153,19 +165,7 @@ struct MovementDemoView: View {
 
                 Spacer()
             }
-            .frame(height: 100)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.blue.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                    )
-            )
-
-            Text("Seret ke kiri dan kanan untuk bergerak")
-                .font(.caption2)
-                .foregroundColor(.blue)
+            .frame(height: 150)
         }
     }
 

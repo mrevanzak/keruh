@@ -6,52 +6,47 @@ enum TutorialStep: Int, CaseIterable {
     case catching = 1
     case avoidHarmful = 2
     case powerUps = 3
-    case scoring = 4
-    case completed = 5
+    case completed = 4
 
     var title: String {
         switch self {
         case .movement:
-            return "Gerakkan Karakter"
+            return "Gerakkan Karakter!"
         case .catching:
-            return "Ambil sampah"
+            return "Pungut sampah-sampahnya!"
         case .avoidHarmful:
-            return "Hindari makhluk hidup"
+            return "Hindari makhluk hidup yang tinggal di sungai!"
         case .powerUps:
-            return "Ambil power-up"
-        case .scoring:
-            return "Dapatkan poin"
+            return "Ambil power up untuk jadi tak terkalahkan!"
         case .completed:
-            return "Selamat! Kamu siap bermain!"
+            return "Kumpulkan sampah sebanyak-banyaknya!"
         }
     }
 
     var description: String {
         switch self {
         case .movement:
-            return "Sentuh dan seret untuk bergerak ke kiri dan kanan"
+            return
+                "Tekan dan geser Lutfi ke kanan atau kiri untuk menangkap sampah!"
         case .catching:
             return
-                "Tangkap sampah yang jatuh untuk membersihkan sungai"
+                "Tiap jenis sampah punya poinnya sendiri-sendiri. Kumpulkan sebanyak mungkin dan raih skor tertinggi sekarang!"
         case .avoidHarmful:
-            return "Mereka tidak merusak sungai"
+            return "Hati-hati jika tertangkap maka nyawamu akan dikurangi!"
         case .powerUps:
             return
-                "Ambil jantung untuk menambah nyawa, koin untuk poin ganda, dan jam untuk mengurangi kecepatan"
-        case .scoring:
-            return
-                "Berbagai barang memberikan poin yang berbeda. Coba dapatkan skor tinggi!"
+                "Langsung aktif saat kamu ambil!"
         case .completed:
-            return "Kamu siap menyelamatkan sungai! Semoga beruntung!"
+            return ""
         }
     }
 
     var buttonText: String {
         switch self {
         case .completed:
-            return "Main"
+            return "Main sekarang!"
         default:
-            return "Selanjutnya"
+            return "Lanjut"
         }
     }
 }

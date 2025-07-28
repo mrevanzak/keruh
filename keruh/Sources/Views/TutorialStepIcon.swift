@@ -18,9 +18,6 @@ struct TutorialStepIcon: View {
             case .powerUps:
                 Image(systemName: "star.fill")
                     .foregroundColor(.yellow)
-            case .scoring:
-                Image(systemName: "trophy.fill")
-                    .foregroundColor(.purple)
             case .completed:
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
