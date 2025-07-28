@@ -18,7 +18,7 @@ struct TutorialItemView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                 }
-                .frame(width: 40, height: 40)
+                .frame(width: 60, height: 60)
                 .offset(y: isAnimated ? animationOffset : 0)
                 .onAppear {
                     if isAnimated {
@@ -33,18 +33,25 @@ struct TutorialItemView: View {
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.center)
 
-                   if itemType.points > 0 {
-                        Text("+\(itemType.points) gram")
-                            .font(.figtree(size: 12))
-                            .fontWeight(.medium)
-                            .foregroundColor(.green)
-                            .multilineTextAlignment(.center)
+                    if itemType.points > 0 {
+                        HStack {
+                            Image("collect_kresek")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 16, height: 16)
+                            
+                            Text("+\(itemType.points)g")
+                                .font(.figtree(size: 12))
+                                .fontWeight(.medium)
+                                .foregroundColor(.green)
+                                .multilineTextAlignment(.center)
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity)
             }
             .frame(maxWidth: .infinity)
-            .padding()
+            .padding(14)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(itemType.tutorialBackgroundColor.opacity(0.1))
@@ -71,11 +78,11 @@ struct TutorialItemView: View {
 extension FallingObjectType {
     var displayName: String {
         switch assetName {
-        case "collect_botol": return "Botol"
+        case "collect_botol": return "Botol Plastik"
         case "collect_kaleng": return "Kaleng Soda"
         case "collect_kresek": return "Kantong Sampah"
-        case "collect_ban": return "Ban"
-        case "collect_ciki": return "Ciki"
+        case "collect_ban": return "Ban Sepeda"
+        case "collect_ciki": return "Bungkus Ciki"
         case "collect_sandal": return "Sandal Bekas"
         case "collect_popmie": return "Cup Mie Instan"
         case "power_extralive": return "Nyawa Ekstra"
@@ -101,7 +108,7 @@ extension FallingObjectType {
 
     var tutorialBackgroundColor: Color {
         if isSpecial {
-            return .blue
+            return .yellow
         } else if isCollectible {
             return .green
         } else {
@@ -129,37 +136,67 @@ struct TutorialItemsSection: View {
     let items: [FallingObjectType]
     let animateItems: Bool
 
-    var body: some View {
-        VStack(spacing: 8) {
-            row(for: Array(items.prefix(3)), columns: 3)
+    @State private var currentPage: Int = 0
 
-            if items.count > 3 {
-                row(for: Array(items[3..<min(items.count, 5)]), columns: 2)
-            }
+    private let cardsPerPage = 3
+    private let spacing: CGFloat = 8
+    private let horizontalPadding: CGFloat = 4
 
-            if items.count > 5 {
-                row(for: Array(items[5..<min(items.count, 7)]), columns: 2)
-            }
-        }
+    var totalPages: Int {
+        max(1, Int(ceil(Double(items.count) / Double(cardsPerPage))))
     }
 
-    @ViewBuilder
-    private func row(for rowItems: [FallingObjectType], columns: Int)
-        -> some View
-    {
-        HStack(spacing: 8) {
-            ForEach(rowItems.indices, id: \.self) { index in
-                TutorialItemView(
-                    itemType: rowItems[index],
-                    isAnimated: animateItems
-                )
-                .frame(maxWidth: .infinity)
-            }
+    var body: some View {
+        VStack {
+            GeometryReader { geo in
+                let cardWidth =
+                    (geo.size.width - (spacing * CGFloat(cardsPerPage - 1)) - 2
+                        * horizontalPadding) / CGFloat(cardsPerPage)
 
-            if rowItems.count < columns {
-                ForEach(0..<(columns - rowItems.count), id: \.self) { _ in
-                    Color.clear.frame(maxWidth: .infinity)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    ScrollViewReader { proxy in
+                        HStack(spacing: spacing) {
+                            ForEach(items.indices, id: \.self) { index in
+                                TutorialItemView(
+                                    itemType: items[index],
+                                    isAnimated: animateItems
+                                )
+                                .frame(width: cardWidth)
+                                .id(index)
+                            }
+                        }
+                        .padding(.horizontal, horizontalPadding)
+                        .offsetChanged { offset in
+                            let totalCardWidth = cardWidth + spacing
+                            let rawPage =
+                                (offset + horizontalPadding)
+                                / (totalCardWidth * CGFloat(cardsPerPage))
+                            let newPage = Int(round(rawPage))
+                            if newPage != currentPage {
+                                currentPage = min(
+                                    max(newPage, 0),
+                                    totalPages - 1
+                                )
+                            }
+                        }
+                    }
                 }
+            }
+            .frame(height: 180)
+
+//             Dots Indicator
+            if totalPages > 1 {
+                HStack(spacing: 8) {
+                    ForEach(0..<totalPages, id: \.self) { index in
+                        Circle()
+                            .fill(
+                                index == currentPage
+                                    ? Color.primary : Color.secondary.opacity(0.3)
+                            )
+                            .frame(width: 8, height: 8)
+                    }
+                }
+                .padding(.top, 8)
             }
         }
     }
@@ -183,4 +220,26 @@ struct TutorialItemsSection: View {
     }
 
     return TutorialItemPreview()
+}
+
+extension View {
+    func offsetChanged(_ action: @escaping (CGFloat) -> Void) -> some View {
+        self.background(
+            GeometryReader { geo in
+                Color.clear
+                    .preference(
+                        key: ScrollOffsetPreferenceKey.self,
+                        value: geo.frame(in: .named("scroll")).minX
+                    )
+            }
+        )
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self, perform: action)
+    }
+}
+
+private struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
 }

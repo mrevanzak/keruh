@@ -11,13 +11,18 @@ struct TutorialContentView: View {
             VStack(spacing: 20) {
                 // Progress bar
                 TutorialProgressView(tutorialManager: tutorialManager)
+                
+                Spacer()
 
                 // Content based on step
                 TutorialStepContent(step: tutorialManager.currentStep)
-
+                
+                Spacer()
+                
                 // Navigation buttons
                 TutorialNavigationButtons(tutorialManager: tutorialManager, step: tutorialManager.currentStep)
             }
+            .frame(height: 480)
             .padding(24)
             .background(
                 Color(.systemBackground)
@@ -177,7 +182,6 @@ struct MovementDemoView: View {
 
                 Spacer()
             }
-            .frame(height: 150)
         }
     }
 
