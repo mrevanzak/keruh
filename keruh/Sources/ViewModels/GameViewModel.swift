@@ -549,10 +549,7 @@ class GameViewModel: ObservableObject {
         let objectSize = objectType.getSize()
         let randomX = calculateSpawnX(for: objectSize)
 
-        let startPosition = CGPoint(
-            x: randomX,
-            y: screenSize.height * 0.65
-        )
+        let startPosition = CGPoint(x: randomX, y: screenSize.height * 0.65)
 
         let baseFallSpeed = objectType.fallSpeed
         let speedFactor =
@@ -568,11 +565,8 @@ class GameViewModel: ObservableObject {
             return speed
         }()
 
-        print(adjustedFallSpeed, gameState.gameSpeed)
-
-        let fallDuration = TimeInterval(
-            abs(startPosition.y + objectSize.height) / adjustedFallSpeed
-        )
+        let fallDistance = abs(startPosition.y + objectSize.height)
+        let fallDuration = TimeInterval(fallDistance / adjustedFallSpeed)
 
         let fallingObjectData = FallingObjectData(
             type: objectType,
@@ -603,7 +597,6 @@ class GameViewModel: ObservableObject {
         }
 
         let screenCenter = screenSize.width / 2
-
         let finalX: CGFloat
         if object.position.x < screenCenter {
             finalX = object.position.x - (screenCenter - object.position.x)
@@ -612,27 +605,29 @@ class GameViewModel: ObservableObject {
         }
 
         let finalPosition = CGPoint(x: finalX, y: object.targetY)
-
         let fallDistance = abs(object.position.y - object.targetY)
         let actualDuration = TimeInterval(fallDistance / adjustedFallSpeed)
 
-        // Trigger miss early (e.g. 100 points above targetY or 0.2 seconds before actual hit)
-        let earlyMissTime = max(actualDuration - 1, 0.05)
+        // Calculate miss timing more precisely
+        // Miss should trigger when object reaches catch zone level, not before
+        let catchZoneY =
+            GameConfiguration.catcherBottomOffset + (Catcher.size.height / 2)
+            - 20
+        let distanceToMiss = abs(object.position.y - catchZoneY)
+        let timeToMiss = TimeInterval(distanceToMiss / adjustedFallSpeed)
 
-        //        DispatchQueue.main.asyncAfter(deadline: .now() + earlyMissTime) {
-        //            [weak self] in
-        //            self?.handleObjectMissed(object.id)
-        //        }
-
+        // Set miss timer with proper timing
         let missTimer = Timer.scheduledTimer(
-            withTimeInterval: earlyMissTime,
+            withTimeInterval: timeToMiss,
             repeats: false
-        ) { [weak self] _ in
+        ) { [weak self] timer in
+            // Double-check timer is still valid before processing miss
+            guard timer.isValid else { return }
             self?.handleObjectMissed(object.id)
         }
         missTimers[object.id] = missTimer
 
-        // Start the visual fall animation
+        // Start visual animation
         fallingObjectNode.startFallingWithPerspective(
             from: object.position,
             to: finalPosition,
@@ -657,17 +652,30 @@ class GameViewModel: ObservableObject {
     }
 
     func handleObjectCaught(_ objectId: UUID) {
-        missTimers[objectId]?.invalidate()
-        missTimers.removeValue(forKey: objectId)
+        // CRITICAL: Stop the miss timer immediately to prevent race conditions
+        if let missTimer = missTimers[objectId] {
+            missTimer.invalidate()
+            missTimers.removeValue(forKey: objectId)
+        }
+
+        // Stop cleanup timer to prevent premature removal
+        if let cleanupTimer = objectTimers[objectId] {
+            cleanupTimer.invalidate()
+            objectTimers.removeValue(forKey: objectId)
+        }
 
         guard
             let index = fallingObjects.firstIndex(where: { $0.id == objectId })
-        else { return }
+        else {
+            return
+        }
 
         let object = fallingObjects[index]
         fallingObjects.remove(at: index)
 
         updateScoreAndHealth(for: object)
+
+        // Clean up immediately after catch
         cleanupFallingObject(objectId)
         provideCatcherFeedback()
         checkForSpeedIncrease()
@@ -717,12 +725,18 @@ class GameViewModel: ObservableObject {
     }
 
     private func handleObjectMissed(_ objectId: UUID) {
+        // Check if object still exists (might have been caught already)
+        guard fallingObjectNodes[objectId] != nil else { return }
+
+        // Remove miss timer since we're processing the miss
+        missTimers.removeValue(forKey: objectId)
+
         if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
             let fallingObject = fallingObjects[index]
             fallingObjects.remove(at: index)
 
-            if fallingObject.type.isCollectible == true
-                && fallingObject.type.isSpecial == false
+            // Only penalize for missing collectible objects (not power-ups)
+            if fallingObject.type.isCollectible && !fallingObject.type.isSpecial
             {
                 if SettingsManager.shared.soundEnabled {
                     let playSound = SKAction.playSoundFileNamed(
@@ -736,18 +750,26 @@ class GameViewModel: ObservableObject {
                 decreaseHealth()
             }
         }
+
         cleanupFallingObject(objectId)
     }
 
     private func cleanupFallingObject(_ objectId: UUID) {
+        // Remove from visual scene
         fallingObjectNodes[objectId]?.node.removeFromParent()
         fallingObjectNodes.removeValue(forKey: objectId)
 
+        // Clean up all associated timers
         objectTimers[objectId]?.invalidate()
         objectTimers.removeValue(forKey: objectId)
 
         missTimers[objectId]?.invalidate()
         missTimers.removeValue(forKey: objectId)
+
+        // Remove from data array if still present
+        if let index = fallingObjects.firstIndex(where: { $0.id == objectId }) {
+            fallingObjects.remove(at: index)
+        }
     }
 
     private func provideCatcherFeedback() {
@@ -979,16 +1001,19 @@ class GameViewModel: ObservableObject {
     }
 
     func checkCollisions() {
+        guard gameState.playState == .playing else { return }
+
         let catcherFrame = createCatcherFrame()
+        let objectsToRemove: [UUID] = []
 
         for (objectId, fallingObject) in fallingObjectNodes {
             let objectFrame = createObjectFrame(for: fallingObject)
 
-            // Create a symmetric catch zone at the top of the catcher
-            let catchZoneWidth = Catcher.size.width * 0.8  // 80% of catcher width
-            let catchZoneHeight: CGFloat = 20
-            let catchZoneX = catcherFrame.midX - (catchZoneWidth / 2)  // Center it
-            let catchZoneY = catcherFrame.maxY - 30  // 30 pixels from top
+            // Create a more generous and symmetric catch zone
+            let catchZoneWidth = Catcher.size.width * 0.9  // 90% of catcher width for better feel
+            let catchZoneHeight: CGFloat = 25  // Slightly taller catch zone
+            let catchZoneX = catcherFrame.midX - (catchZoneWidth / 2)  // Perfect centering
+            let catchZoneY = catcherFrame.maxY - 40  // Adjusted for better visual alignment
 
             let topCatchZone = CGRect(
                 x: catchZoneX,
@@ -997,21 +1022,11 @@ class GameViewModel: ObservableObject {
                 height: catchZoneHeight
             )
 
-            #if DEBUG
-                // Debug print for troubleshooting
-                if objectFrame.intersects(catcherFrame) {
-                    print(
-                        "Object at: \(objectFrame), Catcher at: \(catcherFrame)"
-                    )
-                    print("Catch zone: \(topCatchZone)")
-                    print(
-                        "Intersection: \(topCatchZone.intersects(objectFrame))"
-                    )
-                }
-            #endif
-
+            // Check collision
             if topCatchZone.intersects(objectFrame) {
+                // Immediately mark for catch to prevent double processing
                 handleObjectCaught(objectId)
+                break  // Process one catch per frame to avoid conflicts
             }
         }
 
