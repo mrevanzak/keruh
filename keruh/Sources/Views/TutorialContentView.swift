@@ -49,10 +49,9 @@ struct TutorialProgressView: View {
 
             HStack {
                 Text(
-                    "Langkah \(tutorialManager.currentStep.rawValue + 1) dari \(TutorialStep.allCases.count)"
+                    "\(tutorialManager.currentStep.rawValue + 1)/\(TutorialStep.allCases.count)"
                 )
-                .font(.figtree(size: 12))
-                .foregroundColor(.secondary)
+                .font(.figtree(size: 14))
                 Spacer()
             }
         }
@@ -84,19 +83,19 @@ struct TutorialStepContent: View {
 
     var body: some View {
         VStack(spacing: 16) {
-                if step != .movement {
-                    Text(step.title)
-                        .font(.figtree(size: 24))
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.center)
-                } else {
-                    Image("icon_arrow")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 150)
-                        .padding(.vertical, 12)
-                }
+            if step != .movement {
+                Text(step.title)
+                    .font(.figtree(size: 24))
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+            } else {
+                Image("icon_arrow")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 150)
+                    .padding(.vertical, 12)
+            }
 
             // Step-specific content
             Group {
@@ -122,24 +121,32 @@ struct TutorialStepContent: View {
                     EmptyView()
                 }
             }
-            
-            VStack(spacing: 8) {
-                // title for movement
-                if step == .movement {
-                    Text(step.title)
-                        .font(.figtree(size: 24))
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
+
+            if step != .completed {
+
+                VStack(spacing: 8) {
+                    // title for movement
+                    if step == .movement {
+                        Text(step.title)
+                            .font(.figtree(size: 24))
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    // Description
+                    Text(step.description)
+                        .font(.figtree(size: 16))
                         .multilineTextAlignment(.center)
-                }
-                
-                // Description
-                Text(step.description)
-                    .font(.figtree(size: 16))
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.primary)
-                    .lineLimit(nil)
-            } .padding(.vertical, 8)
+                        .foregroundColor(.primary)
+                        .lineLimit(nil)
+                }.padding(.vertical, 8)
+            } else {
+                Image("bg_game_over")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 200)
+            }
         }
     }
 }

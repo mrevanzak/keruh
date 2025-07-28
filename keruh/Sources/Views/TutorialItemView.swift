@@ -71,11 +71,11 @@ struct TutorialItemView: View {
 extension FallingObjectType {
     var displayName: String {
         switch assetName {
-        case "collect_botol": return "Botol Plastik"
+        case "collect_botol": return "Botol"
         case "collect_kaleng": return "Kaleng Soda"
         case "collect_kresek": return "Kantong Sampah"
         case "collect_ban": return "Ban"
-        case "collect_ciki": return "Bungkus Ciki"
+        case "collect_ciki": return "Ciki"
         case "collect_sandal": return "Sandal Bekas"
         case "collect_popmie": return "Cup Mie Instan"
         case "power_extralive": return "Nyawa Ekstra"
