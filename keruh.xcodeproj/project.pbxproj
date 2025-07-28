@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A52A859F2E37BD7D00619AB2 /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = A52A859E2E37BD7D00619AB2 /* ConfettiSwiftUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		C56B3CFA2E20AC260017AFBA /* keruh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = keruh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A52A859F2E37BD7D00619AB2 /* ConfettiSwiftUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = keruh;
 			packageProductDependencies = (
+				A52A859E2E37BD7D00619AB2 /* ConfettiSwiftUI */,
 			);
 			productName = keruh;
 			productReference = C56B3CFA2E20AC260017AFBA /* keruh.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = C56B3CF12E20AC260017AFBA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A52A859D2E37BD7D00619AB2 /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C56B3CFB2E20AC260017AFBA /* Products */;
 			projectDirPath = "";
@@ -348,6 +357,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A52A859D2E37BD7D00619AB2 /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/simibac/ConfettiSwiftUI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A52A859E2E37BD7D00619AB2 /* ConfettiSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A52A859D2E37BD7D00619AB2 /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
+			productName = ConfettiSwiftUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C56B3CF22E20AC260017AFBA /* Project object */;
 }

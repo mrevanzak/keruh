@@ -7,6 +7,7 @@
 
 import SpriteKit
 import SwiftUI
+import ConfettiSwiftUI
 
 struct GameView: View {
     @Binding var currentScreen: ScreenState
@@ -363,6 +364,7 @@ private struct GameOverView: View {
     let isNewHighScore: Bool
     let onReplay: () -> Void
     let onHome: () -> Void
+    @State private var confettiTrigger = 0
 
     var body: some View {
         GameOverlayContentView(
@@ -373,6 +375,7 @@ private struct GameOverView: View {
                         .font(.paperInko(size: 36))
                         .fontWeight(.bold)
                         .foregroundColor(Color(red: 51/255, green: 178/255, blue: 199/255))
+                        .modifier(Confetti(trigger: $confettiTrigger, shouldShow: isNewHighScore))
 
                     if isNewHighScore {
                         Text("Congratulations!\nNew Highscore!") //sementara
@@ -381,6 +384,9 @@ private struct GameOverView: View {
                             .foregroundColor(.yellow)
                             .multilineTextAlignment(.center)
                             .padding(.top, 8)
+                            .onAppear {
+                                confettiTrigger += 1
+                            }
                     }
 
                     Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
@@ -679,6 +685,21 @@ struct WhiteBlueToggleStyle: ToggleStyle {
     }
 }
 
+//congetii modifier
+struct Confetti: ViewModifier {
+    @Binding var trigger: Int
+    let shouldShow: Bool
+
+    func body(content: Content) -> some View {
+        if shouldShow {
+            content
+                .confettiCannon(trigger: $trigger, num: 3, repetitions: 50, repetitionInterval: 0.1)
+        } else {
+            content
+        }
+    }
+}
+
 extension Color {
     static let toggleBlue = Color(
         red: 0.21568627450980393,
@@ -687,18 +708,28 @@ extension Color {
     )
 }
 
-// MARK: - Preview
-#Preview {
-    struct MenuPreview: View {
-        @Namespace private var namespace
+//// MARK: - Preview
+//#Preview {
+//    struct MenuPreview: View {
+//        @Namespace private var namespace
+//
+//        var body: some View {
+//            GameView(
+//                currentScreen: .constant(.game),
+//                namespace: namespace
+//            )
+//        }
+//    }
+//
+//    return MenuPreview()
+//}
 
-        var body: some View {
-            GameView(
-                currentScreen: .constant(.game),
-                namespace: namespace
-            )
-        }
-    }
-
-    return MenuPreview()
+#Preview("GameOverView with Confetti") {
+    GameOverView(
+        score: 999,
+        isNewHighScore: true,
+        onReplay: {},
+        onHome: {}
+    )
+    .background(Color.black.opacity(0.6))
 }
