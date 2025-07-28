@@ -24,7 +24,7 @@ struct GameView: View {
                 MenuContentView(
                     tutorialManager: tutorialManager,
                     viewModel: viewModel,
-                    namespace: namespace,
+                    namespace: namespace
                 )
             case .playing:
                 GameOverlayView(
