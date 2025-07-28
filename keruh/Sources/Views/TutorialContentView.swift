@@ -39,7 +39,7 @@ struct TutorialProgressView: View {
     var body: some View {
         VStack(spacing: 8) {
             ProgressView(value: tutorialManager.progress)
-                .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                .progressViewStyle(LinearProgressViewStyle(tint: Color(red: 52/255, green: 168/255, blue: 197/255)))
                 .scaleEffect(y: 2.0)
                 .background(
                     RoundedRectangle(cornerRadius: 4)
