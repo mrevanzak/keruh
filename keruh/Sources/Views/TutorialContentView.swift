@@ -16,7 +16,7 @@ struct TutorialContentView: View {
                 TutorialStepContent(step: tutorialManager.currentStep)
 
                 // Navigation buttons
-                TutorialNavigationButtons(tutorialManager: tutorialManager)
+                TutorialNavigationButtons(tutorialManager: tutorialManager, step: tutorialManager.currentStep)
             }
             .padding(24)
             .background(
@@ -60,23 +60,28 @@ struct TutorialProgressView: View {
 
 struct TutorialNavigationButtons: View {
     @ObservedObject var tutorialManager: TutorialManager
+    let step: TutorialStep
 
     var body: some View {
         HStack(spacing: 12) {
-            Button("Lewati") {
-                tutorialManager.skipTutorial()
-            }
-            .foregroundColor(.gray)
+            if step != .completed {
+                Button("Lewati") {
+                    tutorialManager.skipTutorial()
+                }
+                .foregroundColor(.gray)
 
-            Spacer()
+                Spacer()
+            }
 
             Button(tutorialManager.currentStep.buttonText) {
                 tutorialManager.nextStep()
             }
             .buttonStyle(.borderedProminent)
+            .tint(Color(red: 52/255, green: 168/255, blue: 197/255))
         }
     }
 }
+
 
 struct TutorialStepContent: View {
     let step: TutorialStep
