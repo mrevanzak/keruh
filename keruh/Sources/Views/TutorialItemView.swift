@@ -39,7 +39,7 @@ struct TutorialItemView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 16, height: 16)
-                            
+
                             Text("+\(itemType.points)g")
                                 .font(.figtree(size: 12))
                                 .fontWeight(.medium)
@@ -136,54 +136,83 @@ struct TutorialItemsSection: View {
     let items: [FallingObjectType]
     let animateItems: Bool
 
-    @State private var currentPage: Int = 0
-
-    private let cardsPerPage = 3
-    private let spacing: CGFloat = 8
-    private let horizontalPadding: CGFloat = 4
-
-    var totalPages: Int {
-        max(1, Int(ceil(Double(items.count) / Double(cardsPerPage))))
-    }
+    @State private var scrollPosition: Int? = 0
 
     var body: some View {
-        VStack {
-            GeometryReader { geo in
-                let cardWidth =
-                    (geo.size.width - (spacing * CGFloat(cardsPerPage - 1)) - 2
-                        * horizontalPadding) / CGFloat(cardsPerPage)
-
+        VStack(spacing: 12) {
+            if #available(iOS 17.0, *) {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    ScrollViewReader { proxy in
-                        HStack(spacing: spacing) {
-                            ForEach(items.indices, id: \.self) { index in
-                                TutorialItemView(
-                                    itemType: items[index],
-                                    isAnimated: animateItems
-                                )
-                                .frame(width: cardWidth)
-                                .id(index)
-                            }
-                        }
-                        .padding(.horizontal, horizontalPadding)
-                        .offsetChanged { offset in
-                            let totalCardWidth = cardWidth + spacing
-                            let rawPage =
-                                (offset + horizontalPadding)
-                                / (totalCardWidth * CGFloat(cardsPerPage))
-                            let newPage = Int(round(rawPage))
-                            if newPage != currentPage {
-                                currentPage = min(
-                                    max(newPage, 0),
-                                    totalPages - 1
-                                )
-                            }
+                    HStack(spacing: 8) {
+                        ForEach(items.indices, id: \.self) { index in
+                            TutorialItemView(
+                                itemType: items[index],
+                                isAnimated: animateItems
+                            )
+                            .containerRelativeFrame(
+                                .horizontal,
+                                count: 3,
+                                spacing: 8
+                            )
                         }
                     }
+                    .scrollTargetLayout()
                 }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $scrollPosition)
+            } else {
+                // Fallback on earlier versions
             }
-            .frame(height: 160)
+
+            if items.count > 3 {
+                PageIndicatorView(
+                    itemCount: items.count,
+                    currentItem: scrollPosition ?? 0
+                )
+                .padding(.horizontal)
+            }
         }
+        .frame(height: 170)
+    }
+}
+
+struct PageIndicatorView: View {
+    let itemCount: Int
+    let currentItem: Int
+
+    private let cardsPerPage = 3
+
+    private let themeColor = Color(
+        red: 52 / 255,
+        green: 168 / 255,
+        blue: 197 / 255
+    )
+    private let trackColor = Color.secondary.opacity(0.3)
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(trackColor)
+
+                Capsule()
+                    .fill(themeColor)
+                    .frame(width: calculateProgressBarWidth(in: geometry.size))
+                    .animation(.spring(), value: currentItem)
+            }
+        }
+        .frame(height: 8)
+    }
+
+    private func calculateProgressBarWidth(in size: CGSize) -> CGFloat {
+        guard itemCount > 0 else { return 0 }
+
+        let lastVisibleItemIndex = currentItem + cardsPerPage - 1
+
+        let clampedIndex = min(lastVisibleItemIndex, itemCount - 1)
+
+        let progress = CGFloat(clampedIndex + 1) / CGFloat(itemCount)
+
+        return size.width * progress
     }
 }
 
