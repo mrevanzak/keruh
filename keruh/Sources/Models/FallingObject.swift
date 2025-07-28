@@ -84,7 +84,7 @@ struct FallingObjectType: Equatable {
         assetName: "collect_kresek",
         size: CGSize(width: 96, height: 96),
         points: 60,
-        fallSpeed: 80,
+        fallSpeed: 60,
         rarity: 0.12,
         isSpecial: false,
         isCollectible: true
@@ -92,6 +92,7 @@ struct FallingObjectType: Equatable {
 
     static let sandal = FallingObjectType(
         assetName: "collect_sandal",
+        size: CGSize(width: 50, height: 63),
         points: 75,
         fallSpeed: 60,
         rarity: 0.12,
@@ -147,7 +148,7 @@ struct FallingObjectType: Equatable {
 
     static let teratai = FallingObjectType(
         assetName: "noncollect_teratai",
-        size: CGSize(width: 70, height: 60),
+        size: CGSize(width: 60, height: 30),
         points: 0,
         fallSpeed: 60,
         rarity: 0.12,

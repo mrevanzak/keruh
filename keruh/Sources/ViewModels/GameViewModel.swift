@@ -1004,7 +1004,6 @@ class GameViewModel: ObservableObject {
         guard gameState.playState == .playing else { return }
 
         let catcherFrame = createCatcherFrame()
-        let objectsToRemove: [UUID] = []
 
         for (objectId, fallingObject) in fallingObjectNodes {
             let objectFrame = createObjectFrame(for: fallingObject)
