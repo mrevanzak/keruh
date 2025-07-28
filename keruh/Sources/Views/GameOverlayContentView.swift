@@ -15,6 +15,7 @@ struct GameOverlayContentView<
     let actionContent: ActionContent
     let onClose: (() -> Void)?
     let showCloseButton: Bool
+    let titleImage: String
 
     init(
         showCloseButton: Bool = false,
@@ -27,6 +28,7 @@ struct GameOverlayContentView<
         self.onClose = onClose
         self.mainContent = mainContent()
         self.actionContent = actionContent()
+        self.titleImage = titleImage
     }
 
     var body: some View {
@@ -54,34 +56,42 @@ struct GameOverlayContentView<
                         height: outerGeo.size.height
                     )
                     .overlay {
-                        // Main Content Area
-                        VStack {
-                            mainContent
-                        }
-                        .frame(maxWidth: maxImageWidth * 0.7)
-                        .padding(.top, maxImageWidth * 0.25)
-
                         ZStack {
-                            // Close button (when enabled)
-                            if showCloseButton, let onClose = onClose {
-                                HStack {
-                                    Button(action: onClose) {
-                                        MenuButton(
-                                            icon: "xmark",
-                                            size: 35 * scaleFactor,
-                                            padding: 9 * scaleFactor
-                                        )
-                                    }
-                                }
-                                .offset(x: 170 * scale)
-                                .offset(y: -270 * scale)
-                            }
+                            Image(titleImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: (outerGeo.size.width / 1.6))
+                                .offset(y: -120 * scale)
 
-                            // Action Content
+                            // Main Content Area
                             VStack {
-                                actionContent
+                                mainContent
                             }
-                            .offset(y: 300 * scale)
+                            .frame(maxWidth: maxImageWidth * 0.7)
+                            .padding(.top, maxImageWidth * 0.25)
+
+                            ZStack {
+                                // Close button (when enabled)
+                                if showCloseButton, let onClose = onClose {
+                                    HStack {
+                                        Button(action: onClose) {
+                                            MenuButton(
+                                                icon: "xmark",
+                                                size: 35 * scaleFactor,
+                                                padding: 9 * scaleFactor
+                                            )
+                                        }
+                                    }
+                                    .offset(x: 170 * scale)
+                                    .offset(y: -270 * scale)
+                                }
+
+                                // Action Content
+                                VStack {
+                                    actionContent
+                                }
+                                .offset(y: 300 * scale)
+                            }
                         }
                     }
             }
