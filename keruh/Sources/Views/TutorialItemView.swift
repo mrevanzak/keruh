@@ -182,22 +182,7 @@ struct TutorialItemsSection: View {
                     }
                 }
             }
-            .frame(height: 180)
-
-//             Dots Indicator
-            if totalPages > 1 {
-                HStack(spacing: 8) {
-                    ForEach(0..<totalPages, id: \.self) { index in
-                        Circle()
-                            .fill(
-                                index == currentPage
-                                    ? Color.primary : Color.secondary.opacity(0.3)
-                            )
-                            .frame(width: 8, height: 8)
-                    }
-                }
-                .padding(.top, 8)
-            }
+            .frame(height: 160)
         }
     }
 }
