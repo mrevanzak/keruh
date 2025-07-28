@@ -26,7 +26,6 @@ private enum GameConfiguration {
     static let slowMotionFallSpeedMultiplier: Double = 0.5
     static let slowMotionSpawnMultiplier: Double = 3
     static let slowMotionDuration: TimeInterval = 10.0
-    static let minimumGameSpeedThreshold: TimeInterval = 0.5
 }
 
 struct GameState {
@@ -73,6 +72,8 @@ class GameViewModel: ObservableObject {
     @Published var shieldTimeRemaining: Double = 0.0
     @Published var slowMotionTimeRemaining: Double = 0.0
     @Published var extraLive: Int = 0
+    @Published var userHighScore: Int = 0
+    @Published var isNewHighScore: Bool = false
 
     private(set) var catcher: Catcher
     private var fallingObjectNodes: [UUID: FallingObject] = [:]
@@ -814,8 +815,7 @@ class GameViewModel: ObservableObject {
         guard gameState.score % GameConfiguration.speedIncreaseInterval == 0
         else { return }
 
-        let newSpeed = gameState.gameSpeed * GameConfiguration.speedMultiplier
-        gameState.gameSpeed = max(newSpeed, GameConfiguration.minimumGameSpeedThreshold)
+        gameState.gameSpeed *= GameConfiguration.speedMultiplier
     }
 
     private func updateSpawning() {
@@ -1297,5 +1297,24 @@ class GameViewModel: ObservableObject {
         formatter.dateFormat = "HH:mm:ss.SSS"
         return formatter.string(from: Date())
     }
+
+    //highscore
+    func checkIfNewHighScore() {
+        if gameState.score > userHighScore {
+            isNewHighScore = true
+            userHighScore = gameState.score
+        } else {
+            isNewHighScore = false
+        }
+    }
+    
+    func fetchUserHighScore() {
+        GameCenterManager.shared.getCurrentUserHighScore { [weak self] score in
+            DispatchQueue.main.async {
+                self?.userHighScore = score ?? 0
+            }
+        }
+    }
+
 
 }

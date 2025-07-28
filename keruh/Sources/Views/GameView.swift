@@ -65,6 +65,7 @@ struct GameView: View {
 
                     GameOverView(
                         score: viewModel.gameState.score,
+                        isNewHighScore: viewModel.isNewHighScore, // <-- new param
                         onReplay: { viewModel.resetGame() },
                         onHome: {
                             viewModel.resetToMenu()
@@ -78,6 +79,7 @@ struct GameView: View {
                     GameCenterManager.shared.submitScore(
                         viewModel.gameState.score
                     )
+                    viewModel.checkIfNewHighScore()
                 }
             case .settings:
                 ZStack {
@@ -128,6 +130,7 @@ struct GameView: View {
                         }
                     )
                 }
+                viewModel.fetchUserHighScore()
             }
         }
         .animation(
@@ -357,6 +360,7 @@ private struct GameOverlayView: View {
 // MARK: - Game Over View
 private struct GameOverView: View {
     let score: Int
+    let isNewHighScore: Bool
     let onReplay: () -> Void
     let onHome: () -> Void
 
@@ -365,30 +369,30 @@ private struct GameOverView: View {
             titleImage: "title_gameover",
             mainContent: {
                 VStack(spacing: 16) {
-                    (Text("\(score) G\n")
+                    Text("\(score) G")
                         .font(.paperInko(size: 36))
                         .fontWeight(.bold)
-                        .foregroundColor(
-                            Color(
-                                red: 26 / 255,
-                                green: 135 / 255,
-                                blue: 153 / 255
-                            )
-                        )
-                        + Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
+                        .foregroundColor(Color(red: 51/255, green: 178/255, blue: 199/255))
+
+                    if isNewHighScore {
+                        Text("Congratulations!\nNew Highscore!") //sementara
+                            .font(.paperInko(size: 20))
+                            .fontWeight(.black)
+                            .foregroundColor(.yellow)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 8)
+                    }
+
+                    Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
                         .font(.paperInko(size: 28))
                         .fontWeight(.black)
-                        .foregroundColor(.black))
+                        .foregroundColor(.black)
                         .multilineTextAlignment(.center)
 
-                    Text(
-                        "KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!"
-                    )
-                    .font(.paperInko(size: 14))
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(
-                        Color(red: 26 / 255, green: 135 / 255, blue: 153 / 255)
-                    )
+                    Text("KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!")
+                        .font(.paperInko(size: 14))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(Color(red: 51/255, green: 178/255, blue: 199/255))
                 }
             },
             actionContent: {
