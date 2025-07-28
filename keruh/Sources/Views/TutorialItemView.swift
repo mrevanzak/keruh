@@ -7,7 +7,7 @@ struct TutorialItemView: View {
 
     var body: some View {
         if #available(iOS 17.0, *) {
-            HStack(spacing: 12) {
+            VStack(spacing: 8) {
                 // Item image
                 AsyncImage(url: nil) { image in
                     image
@@ -25,35 +25,26 @@ struct TutorialItemView: View {
                         startAnimation()
                     }
                 }
-                
-                VStack(alignment: .leading, spacing: 4) {
+
+                VStack(spacing: 4) {
                     Text(itemType.displayName)
-                        .font(.figtree(size: 16))
+                        .font(.figtree(size: 14))
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
-                    
-                    if !itemType.isCollectible && !itemType.isSpecial {
-                        Text("Mengurangi nyawa")
-                            .font(.figtree(size: 12))
-                            .fontWeight(.medium)
-                            .foregroundColor(.red)
-                    } else if itemType.points > 0 {
+                        .multilineTextAlignment(.center)
+
+                   if itemType.points > 0 {
                         Text("+\(itemType.points) gram")
                             .font(.figtree(size: 12))
                             .fontWeight(.medium)
                             .foregroundColor(.green)
-                    } else {
-                        Text(itemType.tutorialDescription)
-                            .font(.figtree(size: 12))
-                            .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                            .multilineTextAlignment(.center)
                     }
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+            .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(itemType.tutorialBackgroundColor.opacity(0.1))
@@ -81,15 +72,15 @@ extension FallingObjectType {
     var displayName: String {
         switch assetName {
         case "collect_botol": return "Botol Plastik"
-        case "collect_kaleng": return "Kaleng"
-        case "collect_kresek": return "Kresek"
+        case "collect_kaleng": return "Kaleng Soda"
+        case "collect_kresek": return "Kantong Sampah"
         case "collect_ban": return "Ban"
-        case "collect_ciki": return "Ciki"
-        case "collect_sandal": return "Sandal"
-        case "collect_popmie": return "Mie Instan"
-        case "power_extralive": return "Nyawa Tambahan"
-        case "power_doublepoint": return "Dua kali poin"
-        case "power_slowdown": return "Mengurangi kecepatan"
+        case "collect_ciki": return "Bungkus Ciki"
+        case "collect_sandal": return "Sandal Bekas"
+        case "collect_popmie": return "Cup Mie Instan"
+        case "power_extralive": return "Nyawa Ekstra"
+        case "power_doublepoint": return "Poin Ganda"
+        case "power_slowdown": return "Tameng Hati"
         case "noncollect_gabus": return "Gabus"
         case "noncollect_ganggang": return "Ganggang"
         case "noncollect_lele": return "Lele"
@@ -140,11 +131,35 @@ struct TutorialItemsSection: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            ForEach(items.indices, id: \.self) { index in
+            row(for: Array(items.prefix(3)), columns: 3)
+
+            if items.count > 3 {
+                row(for: Array(items[3..<min(items.count, 5)]), columns: 2)
+            }
+
+            if items.count > 5 {
+                row(for: Array(items[5..<min(items.count, 7)]), columns: 2)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func row(for rowItems: [FallingObjectType], columns: Int)
+        -> some View
+    {
+        HStack(spacing: 8) {
+            ForEach(rowItems.indices, id: \.self) { index in
                 TutorialItemView(
-                    itemType: items[index],
+                    itemType: rowItems[index],
                     isAnimated: animateItems
                 )
+                .frame(maxWidth: .infinity)
+            }
+
+            if rowItems.count < columns {
+                ForEach(0..<(columns - rowItems.count), id: \.self) { _ in
+                    Color.clear.frame(maxWidth: .infinity)
+                }
             }
         }
     }
