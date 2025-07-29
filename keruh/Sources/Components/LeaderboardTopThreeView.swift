@@ -12,7 +12,7 @@ struct LeaderboardTopThreeView: View {
     var name: String
     var score: Int
     var image: UIImage? = nil
-    var rankFrameImage: Image = Image("rankframe_rank1")
+    var rankFrameImage: Image = Image("borderLD")
     var borderRankImage: Image = Image("border_rank1")
     var scoreViewImage: Image = Image("score_view")
     
@@ -43,13 +43,16 @@ struct LeaderboardTopThreeView: View {
             ZStack {
                 rankFrameImage
                     .resizable()
-                    .frame(width: 60, height: 60)
+                    .frame(width: 40, height: 40)
+                    .offset(x:-3.5)
                 Text("\(rank)")
-                    .font(.figtree(size: 20))
+//                    .font(.figtree(size: 20))
                     .fontWeight(.heavy)
-                    .foregroundColor(Color(red: 26/255, green: 134/255, blue: 153/255))
+                    .foregroundColor(.white)
                     .offset(x:-4)
                     .offset(y:-2)
+                    .shadow(color: Color.black.opacity(0.5), radius: 2, x: 1, y: 1)
+                    .font(.paperInko(size: 20))
             }
             .offset(y: -55)
             ZStack {
@@ -68,7 +71,7 @@ struct LeaderboardTopThreeView: View {
             .offset(y: 55)
             Text(name)
                 .font(.figtree(size: 16))
-                .fontWeight(.bold)
+                .fontWeight(.heavy)
                 .foregroundColor(Color(red: 26/255, green: 134/255, blue: 153/255))
                 .offset(y: 85)
         }
