@@ -43,7 +43,7 @@ struct GameView: View {
                     )
 
                     SettingsView(
-                        title: "Paused",
+                        score: viewModel.gameState.score,
                         showActionButtons: true,
                         onContinue: { viewModel.resumeGame() },
                         onReplay: { viewModel.resetGame() },
@@ -86,7 +86,7 @@ struct GameView: View {
                     )
 
                     SettingsView(
-                        title: "",
+                        score: viewModel.gameState.score,
                         showActionButtons: false,
                         onContinue: {},
                         onReplay: {},
@@ -332,7 +332,7 @@ private struct GameOverlayView: View {
 
                     if viewModel.shieldTimeRemaining > 0 {
                         PowerUpTimerView(
-                            iconName: "icon_active power up_slow down",
+                            iconName: "icon_active power up_shield",
                             progress: viewModel.shieldTimeRemaining
                         )
                         .transition(.scale.combined(with: .opacity))
@@ -370,9 +370,9 @@ private struct GameOverView: View {
                         .fontWeight(.bold)
                         .foregroundColor(
                             Color(
-                                red: 51 / 255,
-                                green: 178 / 255,
-                                blue: 199 / 255
+                                red: 26 / 255,
+                                green: 135 / 255,
+                                blue: 153 / 255
                             )
                         )
                         + Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
@@ -387,7 +387,7 @@ private struct GameOverView: View {
                     .font(.paperInko(size: 14))
                     .multilineTextAlignment(.center)
                     .foregroundColor(
-                        Color(red: 51 / 255, green: 178 / 255, blue: 199 / 255)
+                        Color(red: 26 / 255, green: 135 / 255, blue: 153 / 255)
                     )
                 }
             },
@@ -397,7 +397,7 @@ private struct GameOverView: View {
                         MenuButton(
                             icon: "arrow.counterclockwise",
                             size: 70,
-                            padding: 10
+                            padding: 15
                         )
                     }
 
@@ -405,7 +405,7 @@ private struct GameOverView: View {
                         MenuButton(
                             icon: "house.fill",
                             size: 70,
-                            padding: 10
+                            padding: 15
                         )
                     }
                 }
@@ -483,7 +483,7 @@ private struct GameStatsView: View {
 
 // MARK: - Settings View
 private struct SettingsView: View {
-    let title: String
+    let score: Int
     let showActionButtons: Bool
     let onContinue: () -> Void
     let onReplay: () -> Void
@@ -497,7 +497,7 @@ private struct SettingsView: View {
         GameOverlayContentView(
             showCloseButton: showCloseButton,
             onClose: onClose,
-            titleImage: "title_\(title.lowercased())",
+            titleImage: "title_settings",
             mainContent: {
                 GeometryReader { geo in
                     let isLargeScreen = geo.size.width > 800
@@ -505,8 +505,8 @@ private struct SettingsView: View {
                     let fontSize = 25 * scaleFactor
                     let gridSpacing = 12 * scaleFactor
 
-                    VStack(spacing: 20 * scaleFactor) {
-                        Text(title)
+                    VStack(spacing: 10 * scaleFactor) {
+                        Text("\(score) G")
                             .font(.paperInko(size: 48))
                             .fontWeight(.bold)
                             .foregroundColor(.black)
