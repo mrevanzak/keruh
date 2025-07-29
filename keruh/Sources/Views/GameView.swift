@@ -371,34 +371,46 @@ private struct GameOverView: View {
             titleImage: "title_gameover",
             mainContent: {
                 VStack(spacing: 16) {
-                    Text("\(score) G")
-                        .font(.paperInko(size: 36))
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
-                        .modifier(Confetti(trigger: $confettiTrigger, shouldShow: isNewHighScore))
-
                     if isNewHighScore {
-                        Text("Congratulations!\nNew Highscore!") //sementara
-                            .font(.paperInko(size: 20))
-                            .fontWeight(.black)
-                            .foregroundColor(.yellow)
-                            .multilineTextAlignment(.center)
-                            .padding(.top, 8)
-                            .onAppear {
-                                confettiTrigger += 1
-                            }
+                        ZStack{
+                            Text("Rekor Baru!")
+                                .font(.paperInko(size: 20))
+                                .fontWeight(.black)
+                                .foregroundColor(Color(red: 252 / 255, green: 180 / 255, blue: 41 / 255))
+                                .multilineTextAlignment(.center)
+                                .onAppear {
+                                    confettiTrigger += 1
+                                }
+                                .offset(y:13)
+                            Image("highScoreBadge")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
+                                .rotationEffect(.degrees(20))
+                                .transition(.scale)
+                                .offset(x:130)
+                                .offset(y: 15)
+                        }
                     }
+                    VStack(spacing: 16){
+                        Text("\(score) G")
+                            .font(.paperInko(size: 36))
+                            .fontWeight(.bold)
+                            .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
+                            .modifier(Confetti(trigger: $confettiTrigger, shouldShow: isNewHighScore))
 
-                    Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
-                        .font(.paperInko(size: 28))
-                        .fontWeight(.black)
-                        .foregroundColor(.black)
-                        .multilineTextAlignment(.center)
+                        Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
+                            .font(.paperInko(size: 28))
+                            .fontWeight(.black)
+                            .foregroundColor(.black)
+                            .multilineTextAlignment(.center)
 
-                    Text("KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!")
-                        .font(.paperInko(size: 14))
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
+                        Text("KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!")
+                            .font(.paperInko(size: 14))
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
+                    }
+                    .offset(y: isNewHighScore ? -30 : 0)
                 }
             },
             actionContent: {
@@ -726,7 +738,7 @@ extension Color {
 
 #Preview("GameOverView with Confetti") {
     GameOverView(
-        score: 999,
+        score: 15000,
         isNewHighScore: true,
         onReplay: {},
         onHome: {}
