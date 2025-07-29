@@ -50,6 +50,7 @@ struct TutorialItemView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
+            .frame(height: 130)
             .frame(maxWidth: .infinity)
             .padding(14)
             .background(
@@ -87,7 +88,7 @@ extension FallingObjectType {
         case "collect_popmie": return "Cup Mie Instan"
         case "power_extralive": return "Nyawa Ekstra"
         case "power_doublepoint": return "Poin Ganda"
-        case "power_slowdown": return "Tameng Hati"
+        case "power_shield": return "Tameng Hati"
         case "noncollect_gabus": return "Gabus"
         case "noncollect_ganggang": return "Ganggang"
         case "noncollect_lele": return "Lele"
@@ -101,7 +102,7 @@ extension FallingObjectType {
         switch assetName {
         case "power_extralive": return "Tambahkan nyawa"
         case "power_doublepoint": return "Dua kali poin untuk 10 detik"
-        case "power_slowdown": return "Mengurangi kecepatan jatuhnya barang"
+        case "power_shield": return "Mengurangi kecepatan jatuhnya barang"
         default: return ""
         }
     }
@@ -120,7 +121,7 @@ extension FallingObjectType {
     static var collectibles: [FallingObjectType] {
         return FallingObjectType.allTypes.filter {
             $0.isCollectible && !$0.isSpecial
-        }
+        }.sorted { $0.points < $1.points }
     }
 
     static var harmful: [FallingObjectType] {

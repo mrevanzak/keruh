@@ -11,7 +11,7 @@ enum TutorialStep: Int, CaseIterable {
     var title: String {
         switch self {
         case .movement:
-            return "Gerakkan Karakter!"
+            return "Kontrol karakter"
         case .catching:
             return "Pungut sampah-sampahnya!"
         case .avoidHarmful:
@@ -27,7 +27,7 @@ enum TutorialStep: Int, CaseIterable {
         switch self {
         case .movement:
             return
-                "Tekan dan geser Lutfi ke kanan atau kiri untuk menangkap sampah!"
+                "Tekan dan geser karakter ke kanan atau kiri untuk menangkap sampah!"
         case .catching:
             return
                 "Tiap jenis sampah punya poinnya sendiri-sendiri. Kumpulkan sebanyak mungkin dan raih skor tertinggi sekarang!"
