@@ -5,9 +5,9 @@
 //  Created by Elizabeth Celine Liong on 14/07/25.
 //
 
+import ConfettiSwiftUI
 import SpriteKit
 import SwiftUI
-import ConfettiSwiftUI
 
 struct GameView: View {
     @Binding var currentScreen: ScreenState
@@ -66,7 +66,7 @@ struct GameView: View {
 
                     GameOverView(
                         score: viewModel.gameState.score,
-                        isNewHighScore: viewModel.isNewHighScore, // <-- new param
+                        isNewHighScore: viewModel.isNewHighScore,  // <-- new param
                         onReplay: { viewModel.resetGame() },
                         onHome: {
                             viewModel.resetToMenu()
@@ -216,7 +216,7 @@ private struct GameTitleView: View {
     let namespace: Namespace.ID
 
     var body: some View {
-        VStack{
+        VStack {
             Image("logo homepage")
                 .resizable()
                 .scaledToFit()
@@ -224,17 +224,17 @@ private struct GameTitleView: View {
                 .transition(.scale)
                 .matchedGeometryEffect(id: "title", in: namespace)
                 .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
-                .offset(y:60)
-//            Text("KERUH")
-//                .font(.paperInko(size: 80))
-//                .fontWeight(.bold)
-//                .padding(.vertical, 24)
-//                .foregroundColor(.white)
-//                .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
-//                .fixedSize()
-                
+                .offset(y: 60)
+            //            Text("KERUH")
+            //                .font(.paperInko(size: 80))
+            //                .fontWeight(.bold)
+            //                .padding(.vertical, 24)
+            //                .foregroundColor(.white)
+            //                .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
+            //                .fixedSize()
+
         }
-        
+
     }
 }
 
@@ -383,32 +383,49 @@ private struct GameOverView: View {
             mainContent: {
                 VStack(spacing: 16) {
                     if isNewHighScore {
-                        ZStack{
+                        ZStack {
                             Text("Rekor Baru!")
                                 .font(.paperInko(size: 20))
                                 .fontWeight(.black)
-                                .foregroundColor(Color(red: 252 / 255, green: 180 / 255, blue: 41 / 255))
+                                .foregroundColor(
+                                    Color(
+                                        red: 252 / 255,
+                                        green: 180 / 255,
+                                        blue: 41 / 255
+                                    )
+                                )
                                 .multilineTextAlignment(.center)
                                 .onAppear {
                                     confettiTrigger += 1
                                 }
-                                .offset(y:13)
+                                .offset(y: 13)
                             Image("highScoreBadge")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 80, height: 80)
                                 .rotationEffect(.degrees(20))
                                 .transition(.scale)
-                                .offset(x:130)
+                                .offset(x: 130)
                                 .offset(y: 15)
                         }
                     }
-                    VStack(spacing: 16){
+                    VStack(spacing: 16) {
                         Text("\(score) G")
                             .font(.paperInko(size: 36))
                             .fontWeight(.bold)
-                            .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
-                            .modifier(Confetti(trigger: $confettiTrigger, shouldShow: isNewHighScore))
+                            .foregroundColor(
+                                Color(
+                                    red: 26 / 255,
+                                    green: 135 / 255,
+                                    blue: 153 / 255
+                                )
+                            )
+                            .modifier(
+                                Confetti(
+                                    trigger: $confettiTrigger,
+                                    shouldShow: isNewHighScore
+                                )
+                            )
 
                         Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
                             .font(.paperInko(size: 28))
@@ -416,10 +433,18 @@ private struct GameOverView: View {
                             .foregroundColor(.black)
                             .multilineTextAlignment(.center)
 
-                        Text("KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!")
-                            .font(.paperInko(size: 14))
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
+                        Text(
+                            "KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!"
+                        )
+                        .font(.paperInko(size: 14))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(
+                            Color(
+                                red: 26 / 255,
+                                green: 135 / 255,
+                                blue: 153 / 255
+                            )
+                        )
                     }
                     .offset(y: isNewHighScore ? -30 : 0)
                 }
@@ -539,11 +564,19 @@ private struct SettingsView: View {
                     let gridSpacing = 12 * scaleFactor
 
                     VStack(spacing: 10 * scaleFactor) {
-                        Text("\(score) G")
-                            .font(.paperInko(size: 48))
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-                            .padding(.bottom)
+                        if showActionButtons {
+                            Text("\(score) G")
+                                .font(.paperInko(size: 48))
+                                .fontWeight(.bold)
+                                .foregroundColor(
+                                    Color(
+                                        red: 26 / 255,
+                                        green: 135 / 255,
+                                        blue: 153 / 255
+                                    )
+                                )
+                                .padding(.bottom)
+                        }
 
                         Grid(
                             horizontalSpacing: gridSpacing,
@@ -716,7 +749,12 @@ struct Confetti: ViewModifier {
     func body(content: Content) -> some View {
         if shouldShow {
             content
-                .confettiCannon(trigger: $trigger, num: 3, repetitions: 50, repetitionInterval: 0.1)
+                .confettiCannon(
+                    trigger: $trigger,
+                    num: 3,
+                    repetitions: 50,
+                    repetitionInterval: 0.1
+                )
         } else {
             content
         }
