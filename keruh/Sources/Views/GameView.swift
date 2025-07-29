@@ -469,7 +469,7 @@ private struct GameStatsView: View {
                         .transition(.scale)
                 }
                 ForEach(0..<viewModel.extraLive, id: \.self) { _ in
-                    Image("power_extralive")
+                    Image("icon_extralive")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 32, height: 32)
