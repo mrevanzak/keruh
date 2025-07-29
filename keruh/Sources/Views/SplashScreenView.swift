@@ -12,12 +12,13 @@ struct SplashScreenView: View {
 
     var body: some View {
         ZStack {
-            Text("KERUH")
-                .font(.paperInko(size: 80))
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .fixedSize()
+            Image("logo homepage")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 240, height: 240)
+                .transition(.scale)
                 .matchedGeometryEffect(id: "title", in: namespace)
+                .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
         }
     }
 }
