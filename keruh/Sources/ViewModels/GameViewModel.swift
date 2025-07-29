@@ -521,7 +521,7 @@ class GameViewModel: ObservableObject {
         guard spawnLanes.count >= visualLayoutOrder.count else { return }
 
         let screenCenterY = (screenSize.height / 2) - 50.0
-        let verticalSpread: CGFloat = 90.0
+        let verticalSpread: CGFloat = 120.0
         let topYBound = screenCenterY + verticalSpread
         let bottomYBound = screenCenterY - verticalSpread
         let spacing =

@@ -216,14 +216,25 @@ private struct GameTitleView: View {
     let namespace: Namespace.ID
 
     var body: some View {
-        Text("KERUH")
-            .font(.paperInko(size: 80))
-            .fontWeight(.bold)
-            .padding(.vertical, 24)
-            .foregroundColor(.white)
-            .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
-            .fixedSize()
-            .matchedGeometryEffect(id: "title", in: namespace)
+        VStack{
+            Image("logo homepage")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 240, height: 240)
+                .transition(.scale)
+                .matchedGeometryEffect(id: "title", in: namespace)
+                .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
+                .offset(y:60)
+//            Text("KERUH")
+//                .font(.paperInko(size: 80))
+//                .fontWeight(.bold)
+//                .padding(.vertical, 24)
+//                .foregroundColor(.white)
+//                .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
+//                .fixedSize()
+                
+        }
+        
     }
 }
 
@@ -720,28 +731,28 @@ extension Color {
     )
 }
 
-//// MARK: - Preview
-//#Preview {
-//    struct MenuPreview: View {
-//        @Namespace private var namespace
-//
-//        var body: some View {
-//            GameView(
-//                currentScreen: .constant(.game),
-//                namespace: namespace
-//            )
-//        }
-//    }
-//
-//    return MenuPreview()
-//}
+// MARK: - Preview
+#Preview {
+    struct MenuPreview: View {
+        @Namespace private var namespace
 
-#Preview("GameOverView with Confetti") {
-    GameOverView(
-        score: 15000,
-        isNewHighScore: true,
-        onReplay: {},
-        onHome: {}
-    )
-    .background(Color.black.opacity(0.6))
+        var body: some View {
+            GameView(
+                currentScreen: .constant(.game),
+                namespace: namespace
+            )
+        }
+    }
+
+    return MenuPreview()
 }
+
+//#Preview("GameOverView with Confetti") {
+//    GameOverView(
+//        score: 15000,
+//        isNewHighScore: true,
+//        onReplay: {},
+//        onHome: {}
+//    )
+//    .background(Color.black.opacity(0.6))
+//}

@@ -64,16 +64,17 @@ struct LeaderboardPopUpView: View {
                                         alignment: .bottom,
                                         spacing: max(-85 * scale, -75)
                                     ) {
-                                        if viewModel.topPlayers.count >= 2 {
+                                        
+                                        if viewModel.topPlayers.count >= 3 {
                                             LeaderboardTopThreeView(
-                                                rank: viewModel.topPlayers[1]
+                                                rank: viewModel.topPlayers[2]
                                                     .rank,
                                                 name: displayName(
-                                                    for: viewModel.topPlayers[1]
+                                                    for: viewModel.topPlayers[2]
                                                 ),
-                                                score: viewModel.topPlayers[1]
+                                                score: viewModel.topPlayers[2]
                                                     .score,
-                                                image: viewModel.topPlayers[1]
+                                                image: viewModel.topPlayers[2]
                                                     .playerImage
                                             )
                                             .scaleEffect(0.65 * scale)
@@ -95,24 +96,26 @@ struct LeaderboardPopUpView: View {
                                             .scaleEffect(0.75 * scale)
                                             .offset(y: 0)
                                         }
-
-                                        if viewModel.topPlayers.count >= 3 {
+                                        
+                                        if viewModel.topPlayers.count >= 2 {
                                             LeaderboardTopThreeView(
-                                                rank: viewModel.topPlayers[2]
+                                                rank: viewModel.topPlayers[1]
                                                     .rank,
                                                 name: displayName(
-                                                    for: viewModel.topPlayers[2]
+                                                    for: viewModel.topPlayers[1]
                                                 ),
-                                                score: viewModel.topPlayers[2]
+                                                score: viewModel.topPlayers[1]
                                                     .score,
-                                                image: viewModel.topPlayers[2]
+                                                image: viewModel.topPlayers[1]
                                                     .playerImage
                                             )
                                             .scaleEffect(0.65 * scale)
                                             .offset(y: 10 * scale)
                                         }
+
+                                        
                                     }
-                                    .offset(y: -10 * scale)
+                                    .offset(y: 10 * scale)
                                     .offset(x: 18 * scale)
 
                                     let otherPlayers = viewModel.topPlayers
