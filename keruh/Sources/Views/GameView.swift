@@ -374,7 +374,7 @@ private struct GameOverView: View {
                     Text("\(score) G")
                         .font(.paperInko(size: 36))
                         .fontWeight(.bold)
-                        .foregroundColor(Color(red: 51/255, green: 178/255, blue: 199/255))
+                        .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
                         .modifier(Confetti(trigger: $confettiTrigger, shouldShow: isNewHighScore))
 
                     if isNewHighScore {
@@ -398,7 +398,7 @@ private struct GameOverView: View {
                     Text("KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!")
                         .font(.paperInko(size: 14))
                         .multilineTextAlignment(.center)
-                        .foregroundColor(Color(red: 51/255, green: 178/255, blue: 199/255))
+                        .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
                 }
             },
             actionContent: {
