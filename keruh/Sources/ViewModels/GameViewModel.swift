@@ -26,6 +26,7 @@ private enum GameConfiguration {
     static let slowMotionFallSpeedMultiplier: Double = 0.5
     static let slowMotionSpawnMultiplier: Double = 3
     static let slowMotionDuration: TimeInterval = 10.0
+    static let minimumGameSpeedThreshold: TimeInterval = 0.4
 }
 
 struct GameState {
@@ -814,8 +815,8 @@ class GameViewModel: ObservableObject {
     private func checkForSpeedIncrease() {
         guard gameState.score % GameConfiguration.speedIncreaseInterval == 0
         else { return }
-
-        gameState.gameSpeed *= GameConfiguration.speedMultiplier
+        let newSpeed = gameState.gameSpeed * GameConfiguration.speedMultiplier
+        gameState.gameSpeed = max(newSpeed, GameConfiguration.minimumGameSpeedThreshold)
     }
 
     private func updateSpawning() {
