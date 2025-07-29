@@ -7,6 +7,7 @@
 
 import SpriteKit
 import SwiftUI
+import ConfettiSwiftUI
 
 struct GameView: View {
     @Binding var currentScreen: ScreenState
@@ -24,7 +25,7 @@ struct GameView: View {
                 MenuContentView(
                     tutorialManager: tutorialManager,
                     viewModel: viewModel,
-                    namespace: namespace,
+                    namespace: namespace
                 )
             case .playing:
                 GameOverlayView(
@@ -65,6 +66,7 @@ struct GameView: View {
 
                     GameOverView(
                         score: viewModel.gameState.score,
+                        isNewHighScore: viewModel.isNewHighScore, // <-- new param
                         onReplay: { viewModel.resetGame() },
                         onHome: {
                             viewModel.resetToMenu()
@@ -78,6 +80,7 @@ struct GameView: View {
                     GameCenterManager.shared.submitScore(
                         viewModel.gameState.score
                     )
+                    viewModel.checkIfNewHighScore()
                 }
             case .settings:
                 ZStack {
@@ -128,6 +131,7 @@ struct GameView: View {
                         }
                     )
                 }
+                viewModel.fetchUserHighScore()
             }
         }
         .animation(
@@ -357,38 +361,44 @@ private struct GameOverlayView: View {
 // MARK: - Game Over View
 private struct GameOverView: View {
     let score: Int
+    let isNewHighScore: Bool
     let onReplay: () -> Void
     let onHome: () -> Void
+    @State private var confettiTrigger = 0
 
     var body: some View {
         GameOverlayContentView(
             titleImage: "title_gameover",
             mainContent: {
                 VStack(spacing: 16) {
-                    (Text("\(score) G\n")
+                    Text("\(score) G")
                         .font(.paperInko(size: 36))
                         .fontWeight(.bold)
-                        .foregroundColor(
-                            Color(
-                                red: 26 / 255,
-                                green: 135 / 255,
-                                blue: 153 / 255
-                            )
-                        )
-                        + Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
+                        .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
+                        .modifier(Confetti(trigger: $confettiTrigger, shouldShow: isNewHighScore))
+
+                    if isNewHighScore {
+                        Text("Congratulations!\nNew Highscore!") //sementara
+                            .font(.paperInko(size: 20))
+                            .fontWeight(.black)
+                            .foregroundColor(.yellow)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 8)
+                            .onAppear {
+                                confettiTrigger += 1
+                            }
+                    }
+
+                    Text("SAMPAH LENYAP.\nDAN ITU,\nKARENA KAMU!")
                         .font(.paperInko(size: 28))
                         .fontWeight(.black)
-                        .foregroundColor(.black))
+                        .foregroundColor(.black)
                         .multilineTextAlignment(.center)
 
-                    Text(
-                        "KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!"
-                    )
-                    .font(.paperInko(size: 14))
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(
-                        Color(red: 26 / 255, green: 135 / 255, blue: 153 / 255)
-                    )
+                    Text("KALAU SEMUA ORANG KAYAK KAMU,\nBUMI BISA LEGA NAPASNYA!")
+                        .font(.paperInko(size: 14))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(Color(red: 26/255, green: 135/255, blue: 153/255))
                 }
             },
             actionContent: {
@@ -675,6 +685,21 @@ struct WhiteBlueToggleStyle: ToggleStyle {
     }
 }
 
+//congetii modifier
+struct Confetti: ViewModifier {
+    @Binding var trigger: Int
+    let shouldShow: Bool
+
+    func body(content: Content) -> some View {
+        if shouldShow {
+            content
+                .confettiCannon(trigger: $trigger, num: 3, repetitions: 50, repetitionInterval: 0.1)
+        } else {
+            content
+        }
+    }
+}
+
 extension Color {
     static let toggleBlue = Color(
         red: 0.21568627450980393,
@@ -683,18 +708,28 @@ extension Color {
     )
 }
 
-// MARK: - Preview
-#Preview {
-    struct MenuPreview: View {
-        @Namespace private var namespace
+//// MARK: - Preview
+//#Preview {
+//    struct MenuPreview: View {
+//        @Namespace private var namespace
+//
+//        var body: some View {
+//            GameView(
+//                currentScreen: .constant(.game),
+//                namespace: namespace
+//            )
+//        }
+//    }
+//
+//    return MenuPreview()
+//}
 
-        var body: some View {
-            GameView(
-                currentScreen: .constant(.game),
-                namespace: namespace
-            )
-        }
-    }
-
-    return MenuPreview()
+#Preview("GameOverView with Confetti") {
+    GameOverView(
+        score: 999,
+        isNewHighScore: true,
+        onReplay: {},
+        onHome: {}
+    )
+    .background(Color.black.opacity(0.6))
 }

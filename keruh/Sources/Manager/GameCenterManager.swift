@@ -103,4 +103,34 @@ class GameCenterManager {
             }
         }
     }
+    
+    func getCurrentUserHighScore(leaderboardID: String = "com.keruh.leaderboard", completion: @escaping (Int?) -> Void) {
+        GKLeaderboard.loadLeaderboards(IDs: [leaderboardID]) { leaderboards, error in
+            if let error = error {
+                print("Error loading leaderboard: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+
+            guard let leaderboard = leaderboards?.first else {
+                completion(nil)
+                return
+            }
+
+            leaderboard.loadEntries(for: GKLeaderboard.PlayerScope.global, timeScope: .allTime, range: NSRange(location: 1, length: 1)) { localPlayerEntry, _, _, error in
+                if let error = error {
+                    print("Error loading local player entry: \(error.localizedDescription)")
+                    completion(nil)
+                    return
+                }
+
+                if let score = localPlayerEntry?.score {
+                    completion(Int(score))
+                } else {
+                    completion(nil)
+                }
+            }
+        }
+    }
+
 }
