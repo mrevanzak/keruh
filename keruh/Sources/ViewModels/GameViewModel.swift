@@ -125,7 +125,7 @@ class GameViewModel: ObservableObject {
         leftIsland: SKSpriteNode(imageNamed: "pulau_kiri"),
         rightIsland: SKSpriteNode(imageNamed: "pulau_kanan"),
         clouds: SKSpriteNode(imageNamed: "awan"),
-        waves: SKSpriteNode(imageNamed: "air_sungai")
+        waves: SKSpriteNode(imageNamed: "ombak1_1")
     )
 
     init() {
@@ -253,6 +253,46 @@ class GameViewModel: ObservableObject {
             .wait(forDuration: 0.8), .fadeIn(withDuration: 0.6),
         ])
         sceneNodes.waves.run(wave)
+
+        let waveTextures = [
+            SKTexture(imageNamed: "ombak 1_4"),
+            SKTexture(imageNamed: "ombak 1_5"),
+            SKTexture(imageNamed: "ombak 1_6"),
+            SKTexture(imageNamed: "ombak 1_7"),
+            SKTexture(imageNamed: "ombak 1_8"),
+            SKTexture(imageNamed: "ombak 1_9"),
+            SKTexture(imageNamed: "ombak 1_10"),
+            SKTexture(imageNamed: "ombak 1_11"),
+            SKTexture(imageNamed: "ombak 1_12"),
+            SKTexture(imageNamed: "ombak 1_13"),
+            SKTexture(imageNamed: "ombak 1_14"),
+            SKTexture(imageNamed: "ombak 1_13"),
+            SKTexture(imageNamed: "ombak 1_12"),
+            SKTexture(imageNamed: "ombak 1_11"),
+            SKTexture(imageNamed: "ombak 1_10"),
+            SKTexture(imageNamed: "ombak 1_9"),
+            SKTexture(imageNamed: "ombak 1_8"),
+            SKTexture(imageNamed: "ombak 1_7"),
+            SKTexture(imageNamed: "ombak 1_6"),
+            SKTexture(imageNamed: "ombak 1_5"),
+            
+        ]
+
+        let animateWavesAction = SKAction.animate(
+            with: waveTextures,
+            timePerFrame: 0.375
+        )
+
+        let loopWavesAction = SKAction.repeatForever(animateWavesAction)
+
+        let fadeInAction = SKAction.sequence([
+            .wait(forDuration: 0.8),
+            .fadeIn(withDuration: 0.6),
+        ])
+
+        let waveAnimationGroup = SKAction.group([fadeInAction, loopWavesAction])
+
+        sceneNodes.waves.run(waveAnimationGroup)
 
         let cloud = SKAction.sequence([
             .wait(forDuration: 1.5),

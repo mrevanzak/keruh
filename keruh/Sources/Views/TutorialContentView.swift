@@ -11,13 +11,18 @@ struct TutorialContentView: View {
             VStack(spacing: 20) {
                 // Progress bar
                 TutorialProgressView(tutorialManager: tutorialManager)
+                
+                Spacer()
 
                 // Content based on step
                 TutorialStepContent(step: tutorialManager.currentStep)
-
+                
+                Spacer()
+                
                 // Navigation buttons
-                TutorialNavigationButtons(tutorialManager: tutorialManager)
+                TutorialNavigationButtons(tutorialManager: tutorialManager, step: tutorialManager.currentStep)
             }
+            .frame(height: 480)
             .padding(24)
             .background(
                 Color(.systemBackground)
@@ -39,7 +44,7 @@ struct TutorialProgressView: View {
     var body: some View {
         VStack(spacing: 8) {
             ProgressView(value: tutorialManager.progress)
-                .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                .progressViewStyle(LinearProgressViewStyle(tint: Color(red: 52/255, green: 168/255, blue: 197/255)))
                 .scaleEffect(y: 2.0)
                 .background(
                     RoundedRectangle(cornerRadius: 4)
@@ -49,10 +54,9 @@ struct TutorialProgressView: View {
 
             HStack {
                 Text(
-                    "Langkah \(tutorialManager.currentStep.rawValue + 1) dari \(TutorialStep.allCases.count)"
+                    "\(tutorialManager.currentStep.rawValue + 1)/\(TutorialStep.allCases.count)"
                 )
-                .font(.figtree(size: 12))
-                .foregroundColor(.secondary)
+                .font(.figtree(size: 14))
                 Spacer()
             }
         }
@@ -61,47 +65,46 @@ struct TutorialProgressView: View {
 
 struct TutorialNavigationButtons: View {
     @ObservedObject var tutorialManager: TutorialManager
+    let step: TutorialStep
 
     var body: some View {
         HStack(spacing: 12) {
-            Button("Lewati") {
-                tutorialManager.skipTutorial()
-            }
-            .foregroundColor(.gray)
+            if step != .completed {
+                Button("Lewati") {
+                    tutorialManager.skipTutorial()
+                }
+                .foregroundColor(.gray)
 
-            Spacer()
+                Spacer()
+            }
 
             Button(tutorialManager.currentStep.buttonText) {
                 tutorialManager.nextStep()
             }
             .buttonStyle(.borderedProminent)
+            .tint(Color(red: 52/255, green: 168/255, blue: 197/255))
         }
     }
 }
+
 
 struct TutorialStepContent: View {
     let step: TutorialStep
 
     var body: some View {
         VStack(spacing: 16) {
-            // Icon
-            TutorialStepIcon(step: step)
-            
-            VStack(spacing: 8){
-                // Title
+            if step != .movement {
                 Text(step.title)
-                    .font(.paperInko(size: 24))
+                    .font(.figtree(size: 24))
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
-                
-                // Description
-                Text(step.description)
-                    .font(.figtree(size: 16))
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.primary)
-                    .lineLimit(nil)
+            } else {
+                Image("icon_arrow")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 150)
+                    .padding(.vertical, 12)
             }
 
             // Step-specific content
@@ -128,6 +131,32 @@ struct TutorialStepContent: View {
                     EmptyView()
                 }
             }
+
+            if step != .completed {
+
+                VStack(spacing: 8) {
+                    // title for movement
+                    if step == .movement {
+                        Text(step.title)
+                            .font(.figtree(size: 24))
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    // Description
+                    Text(step.description)
+                        .font(.figtree(size: 16))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.primary)
+                        .lineLimit(nil)
+                }.padding(.vertical, 8)
+            } else {
+                Image("bg_game_over")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 200)
+            }
         }
     }
 }
@@ -145,7 +174,7 @@ struct MovementDemoView: View {
                 Image("lutfi")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 60, height: 80)
+                    .frame(width: 100)
                     .offset(x: characterPosition)
                     .onAppear {
                         startMovementDemo()
@@ -153,19 +182,6 @@ struct MovementDemoView: View {
 
                 Spacer()
             }
-            .frame(height: 100)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.blue.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                    )
-            )
-
-            Text("Seret ke kiri dan kanan untuk bergerak")
-                .font(.caption2)
-                .foregroundColor(.blue)
         }
     }
 
