@@ -43,8 +43,7 @@
   
 | [Revan](https://github.com/mrevanzak) | [Celine](https://github.com/elizabethceline) | [Farrell](https://github.com/tapeds) | [Richie](https://github.com/richiereubenn) | [Karen](https://github.com/karenrust) |
 |:---:|:---:|:---:|:---:|:---:|
-|<img width="119" height="131" alt="Revan's memoji" src="https://github.com/user-attachments/assets/9e0d73ea-66ba-4231-8ee8-0bae4c002489" />|<img width="129" height="144" alt="Celine's memoji" src="https://github.com/user-attachments/assets/c5c24bb3-1462-479f-a9e5-33588799b667" />
-|<img width="121" height="135" alt="Farrell's memoji" src="https://github.com/user-attachments/assets/255948cc-9164-44d4-8190-da89d7acf54d" />|<img width="129" height="144" alt="Richie's memoji" src="https://github.com/user-attachments/assets/0090845c-bc3d-4952-bf8d-205dc02b663b" />|<img width="129" height="144" alt="Karen's memoji" src="https://github.com/user-attachments/assets/f4deb40e-2bbc-45a9-b814-1086e07627c8" />|
+|<img width="119" height="131" alt="Revan's memoji" src="https://github.com/user-attachments/assets/9e0d73ea-66ba-4231-8ee8-0bae4c002489" />|<img width="129" height="144" alt="Celine's memoji" src="https://github.com/user-attachments/assets/c5c24bb3-1462-479f-a9e5-33588799b667" />|<img width="121" height="135" alt="Farrell's memoji" src="https://github.com/user-attachments/assets/255948cc-9164-44d4-8190-da89d7acf54d" />|<img width="129" height="144" alt="Richie's memoji" src="https://github.com/user-attachments/assets/0090845c-bc3d-4952-bf8d-205dc02b663b" />|<img width="129" height="144" alt="Karen's memoji" src="https://github.com/user-attachments/assets/f4deb40e-2bbc-45a9-b814-1086e07627c8" />|
 |Project Manager / Tech Lead|iOS Developer|iOS Developer|iOS Developer|Designer|
   
 </div>
